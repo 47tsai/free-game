@@ -26,7 +26,7 @@ def format_deadline(value):
             r"(?:\s*(\d{1,2})\s*(?:點|時)(?:\s*(\d{1,2})分?)?)?",
             value,
         )
-        if match:
+        if match and match.group(4) is not None:
             year, month, day = map(int, match.group(1, 2, 3))
             hour = int(match.group(4) or 0)
             minute = int(match.group(5) or 0)
