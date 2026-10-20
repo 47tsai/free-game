@@ -19,6 +19,7 @@ class Game:
     link: str = ""
     image: str = ""
     steam_price: str = ""
+    original_price: str = ""
 
 
 @dataclass(frozen=True)
