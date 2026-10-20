@@ -3,7 +3,7 @@ import tempfile
 import unittest
 
 from free_game.article import normalize_store_url, parse_article
-from free_game.discord import DiscordSender
+from free_game.discord import DiscordSender, format_deadline
 from free_game.models import Game
 from free_game.state import StateStore
 from free_game.stores import SteamPriceResolver
@@ -155,6 +155,15 @@ class CoreStateTests(unittest.TestCase):
 
 
 class DiscordTests(unittest.TestCase):
+    def test_format_deadline_uses_taiwan_timezone_timestamp(self):
+        self.assertEqual(
+            format_deadline("2026-11-03T00:00:00+08:00"),
+            "<t:1793635200:F> (<t:1793635200:R>)",
+        )
+
+    def test_date_without_time_is_not_guessed(self):
+        self.assertEqual(format_deadline("2026年11月3日"), "2026年11月3日")
+
     def _send(self, game):
         class FakeHttp:
             def post_json(self, url, payload):
@@ -172,20 +181,21 @@ class DiscordTests(unittest.TestCase):
         game = Game(
             name="Example",
             platform="Steam",
-            deadline="7日內",
+            deadline="2026年11月3日 0點前",
             genre="生態模擬",
             rating="None",
             brief="建立並維持一個完整的生態系統。",
             link="https://store.steampowered.com/app/1/",
             image="https://example.com/image.jpg",
-            steam_price="免費",
+            steam_price="",
+            original_price="$52",
         )
 
         embed = self._send(game).payload["embeds"][0]
         self.assertEqual(embed["title"], "Example")
         self.assertEqual(embed["url"], game.link)
-        self.assertIn("💰 **原價**　免費", embed["description"])
-        self.assertIn("⏳ **期限**　7日內", embed["description"])
+        self.assertIn("💰 **原價**　~~$52~~ Free", embed["description"])
+        self.assertIn("⏳ **期限**　<t:1793635200:F> (<t:1793635200:R>)", embed["description"])
         self.assertIn("🎮 **平台**　Steam", embed["description"])
         self.assertIn("🧩 **遊戲類型**　生態模擬", embed["description"])
         self.assertIn("📝 **介紹**　建立並維持一個完整的生態系統。", embed["description"])
