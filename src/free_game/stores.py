@@ -41,8 +41,8 @@ class SteamPriceResolver:
     def _price(data):
         if not isinstance(data, dict):
             return ""
-        if data.get("is_free"):
-            return "免費"
+        if data.get("is_free") and not isinstance(data.get("price_overview"), dict):
+            return ""
 
         overview = data.get("price_overview")
         if isinstance(overview, dict):
