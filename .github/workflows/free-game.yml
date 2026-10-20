@@ -27,6 +27,7 @@ jobs:
           GEMINI_API_KEY: ${{ secrets.GEMINI_API_KEY }}
         run: PYTHONPATH=src python main.py
       - name: Save state
+        if: always()
         run: |
           git add data/processed.json
           if git diff --cached --quiet; then exit 0; fi
