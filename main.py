@@ -32,11 +32,12 @@ def process_article(item, http, state, ai, discord, steam, processed):
 
         try:
             price = steam.resolve(game.name, game.link)
+            original_price = game.original_price or price
             game = game.__class__(
                 name=game.name, platform=game.platform, deadline=game.deadline,
                 genre=game.genre, gameplay=game.gameplay, rating=game.rating,
                 brief=game.brief, link=game.link, image=game.image,
-                steam_price=price,
+                steam_price=price, original_price=original_price,
             )
             discord.send(game, article.title, article.url)
             processed.add(key)
