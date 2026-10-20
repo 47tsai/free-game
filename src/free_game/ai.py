@@ -20,7 +20,7 @@ class GeminiExtractor:
         ]
         prompt = (
             "你是遊戲資訊結構化助手。只根據文章內容判斷哪些遊戲正在限時免費。"
-            "輸出 JSON 陣列，不要 Markdown。欄位為 name, platform, deadline, genre, gameplay, rating, brief, store_index。brief 只寫一句 20 字內的超短遊戲特色介紹。"
+            "輸出 JSON 陣列，不要 Markdown。欄位為 name, platform, original_price, deadline, genre, gameplay, rating, brief, store_index。original_price 是本次免費活動開始前的原價，只能使用文章明確提供的價格，保留原幣別與格式（例如 $52、NT$ 300）；不可把「免費」或折扣後的 $0 當成原價，文章沒有提供就輸出空字串。deadline 請輸出 ISO 8601 日期時間並使用台灣時區 +08:00，例如 2026-11-03T00:00:00+08:00；若文章未提供具體時間，不可自行猜測，輸出原文或空字串。brief 只寫一句 20 字內的超短遊戲特色介紹。"
             "store_index 必須是候選商店連結前面的整數編號，不可自行產生 URL。每個候選連結最多配對一款遊戲；"
             "若文章有多個遊戲，分別配對最合理的候選連結。若無法可靠配對，省略該遊戲。"
             f"\n標題：{article.title}\n文章：{article.text}"
@@ -83,6 +83,7 @@ class GeminiExtractor:
                     name=name[:200],
                     platform=str(item.get("platform", "")).strip()[:100],
                     deadline=str(item.get("deadline", "")).strip()[:200],
+                    original_price=str(item.get("original_price", "")).strip()[:100],
                     genre=str(item.get("genre", "")).strip()[:200],
                     gameplay=str(item.get("gameplay", "")).strip()[:1000],
                     rating=str(item.get("rating", "")).strip()[:300],
