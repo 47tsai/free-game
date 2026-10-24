@@ -18,6 +18,33 @@ class MainFlowTests(unittest.TestCase):
             Game(name="Second", link="https://store.steampowered.com/app/2/"),
         ]
 
+    def test_empty_extraction_does_not_mark_article_processed(self):
+        class FakeHttp:
+            def get(self, url):
+                return b"<html><body>Example</body></html>", {}
+
+        class FakeAI:
+            def extract(self, article):
+                return []
+
+        class FakeSteam:
+            def resolve(self, name, link):
+                return ""
+
+        class FakeDiscord:
+            def send(self, game, article_title, article_url):
+                pass
+
+        with tempfile.TemporaryDirectory() as d:
+            state = StateStore(d + "/state.json", 100)
+            processed = state.load()
+            success = process_article(
+                self.article, FakeHttp(), state, FakeAI(), FakeDiscord(),
+                FakeSteam(), processed,
+            )
+            self.assertTrue(success)
+            self.assertNotIn(state.article_key(self.article.url), processed)
+
     def test_partial_failure_keeps_successful_game(self):
         class FakeHttp:
             def get(self, url):
