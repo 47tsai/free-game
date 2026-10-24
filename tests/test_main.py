@@ -7,7 +7,7 @@ os.environ.setdefault("GEMINI_API_KEY", "test-key")
 
 from free_game.models import Article, Game
 from free_game.state import StateStore
-from main import process_article
+from main import process_article, select_articles
 
 
 class MainFlowTests(unittest.TestCase):
@@ -17,6 +17,20 @@ class MainFlowTests(unittest.TestCase):
             Game(name="First", link="https://store.steampowered.com/app/1/"),
             Game(name="Second", link="https://store.steampowered.com/app/2/"),
         ]
+
+    def test_backfill_article_is_selected_when_missing_from_rss(self):
+        with tempfile.TemporaryDirectory() as d:
+            state = StateStore(d + "/state.json", 100)
+            processed = state.load()
+            selected = select_articles([], state, processed, (self.article,))
+            self.assertEqual([item.url for item in selected], [self.article.url])
+
+    def test_processed_backfill_article_is_not_selected_again(self):
+        with tempfile.TemporaryDirectory() as d:
+            state = StateStore(d + "/state.json", 100)
+            processed = {state.article_key(self.article.url)}
+            selected = select_articles([], state, processed, (self.article,))
+            self.assertEqual(selected, [])
 
     def test_empty_extraction_does_not_mark_article_processed(self):
         class FakeHttp:
