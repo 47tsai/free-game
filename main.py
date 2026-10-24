@@ -21,6 +21,16 @@ def process_article(item, http, state, ai, discord, steam, processed):
     article = parse_article(html, item.url, item.title, item.summary, item.published)
     games = ai.extract(article)
 
+    if not games:
+        print(
+            f"[WARN] {item.url} | no games extracted; "
+            f"store_links={len(article.store_links)}; will retry on next run"
+        )
+        # Do not permanently mark an article processed if extraction returned
+        # nothing. A later run can retry it, and the log shows whether store
+        # links were discovered by the article parser.
+        return True
+
     article_failed = False
     seen_games = set()
 
@@ -73,8 +83,8 @@ def main():
             failures += 1
             print(f"[ERROR] {item.url}: {exc}")
         finally:
-            # Persist partial progress. A state-write failure is fatal because it
-            # can cause duplicate notifications on the next run.
+            # Persist partial progress. A state-write failure is fatal because
+            # it can cause duplicate notifications on the next run.
             state.save(processed)
 
     if failures:
