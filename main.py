@@ -11,9 +11,39 @@ from free_game.config import (
 )
 from free_game.discord import DiscordSender
 from free_game.http import HttpClient
+from free_game.models import Article
 from free_game.rss import is_free_game_article, parse_rss
 from free_game.state import StateStore
 from free_game.stores import SteamPriceResolver
+
+
+# One-time recovery entry for an article that may have aged out of the RSS feed.
+# Once successfully processed, the normal state check prevents it being retried.
+BACKFILL_ARTICLES = (
+    Article(
+        title="EGS限免：太空生存策略《Terraspace》單周限時免費 星際跳島拓展生存圈",
+        url="https://www.4gamers.com.tw/news/detail/82784/terraspace-free-claim-epic-games-store",
+    ),
+)
+
+
+def select_articles(rss_articles, state, processed, backfill_articles=()):
+    print(f"[INFO] RSS articles fetched: {len(rss_articles)}")
+    matching = [a for a in rss_articles if is_free_game_article(a)]
+    print(f"[INFO] RSS free-game keyword matches: {len(matching)}")
+
+    articles_by_url = {a.url: a for a in matching}
+    for item in backfill_articles:
+        if item.url not in articles_by_url:
+            print(f"[INFO] Adding backfill article not present in RSS: {item.url}")
+            articles_by_url[item.url] = item
+
+    candidates = [
+        item for item in articles_by_url.values()
+        if not state.is_article_processed(processed, item.url)
+    ]
+    print(f"[INFO] Unprocessed free-game articles to handle: {len(candidates)}")
+    return candidates
 
 
 def process_article(item, http, state, ai, discord, steam, processed):
@@ -66,10 +96,8 @@ def main():
     state = StateStore(STATE_FILE, MAX_PROCESSED)
     processed = state.load()
     data, _ = http.get(RSS_URL)
-    articles = [
-        a for a in parse_rss(data)
-        if is_free_game_article(a) and not state.is_article_processed(processed, a.url)
-    ]
+    rss_articles = parse_rss(data)
+    articles = select_articles(rss_articles, state, processed, BACKFILL_ARTICLES)
     ai = GeminiExtractor(http, GEMINI_API_KEY, GEMINI_MODEL)
     discord = DiscordSender(http, WEBHOOK_URL)
     steam = SteamPriceResolver(http)
