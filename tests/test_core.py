@@ -158,7 +158,7 @@ class DiscordTests(unittest.TestCase):
     def test_format_deadline_uses_taiwan_timezone_timestamp(self):
         self.assertEqual(
             format_deadline("2026-11-03T00:00:00+08:00"),
-            "<t:1793635200:F> (<t:1793635200:R>)",
+            "2026 年 11 月 3 日（週二） 00:00",
         )
 
     def test_date_without_time_is_not_guessed(self):
@@ -194,12 +194,12 @@ class DiscordTests(unittest.TestCase):
         embed = self._send(game).payload["embeds"][0]
         self.assertEqual(embed["title"], "Example")
         self.assertEqual(embed["url"], game.link)
-        self.assertIn("💰 **原價**　~~$52~~ Free", embed["description"])
-        self.assertIn("⏳ **期限**　<t:1793635200:F> (<t:1793635200:R>)", embed["description"])
+        self.assertIn("💰 **原價**　~~US$52.00（約 NT$1,638）~~ 免費", embed["description"])
+        self.assertIn("⏳ **期限**　2026 年 11 月 3 日（週二） 00:00", embed["description"])
         self.assertIn("🎮 **平台**　Steam", embed["description"])
         self.assertIn("🧩 **遊戲類型**　生態模擬", embed["description"])
         self.assertIn("📝 **介紹**　建立並維持一個完整的生態系統。", embed["description"])
-        self.assertIn("⭐ **玩家評價**　None", embed["description"])
+        self.assertIn("⭐ **玩家評價**　暫無資料", embed["description"])
         self.assertEqual(embed["image"]["url"], game.image)
         self.assertEqual(embed["footer"]["text"], "Free Game Notifier")
         self.assertNotIn("fields", embed)
