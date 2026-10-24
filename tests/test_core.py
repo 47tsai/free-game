@@ -156,10 +156,9 @@ class CoreStateTests(unittest.TestCase):
 
 class DiscordTests(unittest.TestCase):
     def test_format_deadline_uses_taiwan_timezone_timestamp(self):
-        self.assertEqual(
-            format_deadline("2026-11-03T00:00:00+08:00"),
-            "2026 年 11 月 3 日（週二） 00:00",
-        )
+        formatted = format_deadline("2026-11-03T00:00:00+08:00")
+        self.assertTrue(formatted.startswith("2026 年 11 月 3 日（週二） 00:00"))
+        self.assertIn("（約 ", formatted)
 
     def test_date_without_time_is_not_guessed(self):
         self.assertEqual(format_deadline("2026年11月3日"), "2026年11月3日")
