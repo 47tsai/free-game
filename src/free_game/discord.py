@@ -6,12 +6,34 @@ from urllib.parse import parse_qsl, urlencode, urlsplit, urlunsplit
 from .models import Game
 
 
+TAIPEI = ZoneInfo("Asia/Taipei")
+WEEKDAYS_ZH = ("週一", "週二", "週三", "週四", "週五", "週六", "週日")
+USD_TO_TWD_ESTIMATE = 31.5
+
+
 def clip(value, n):
     value = str(value or "").strip()
     return value if len(value) <= n else value[: n - 1] + "…"
 
 
-def format_deadline(value):
+def format_price(value):
+    """Show an estimated TWD equivalent for USD prices and localize the free label."""
+    value = str(value or "").strip()
+    if not value:
+        return "原價未查到"
+    if value in ("免費", "Free"):
+        return "免費"
+
+    match = re.fullmatch(r"(?:US)?\$\s*([\d,]+(?:\.\d{1,2})?)", value, re.IGNORECASE)
+    if match:
+        usd = float(match.group(1).replace(",", ""))
+        twd = round(usd * USD_TO_TWD_ESTIMATE)
+        return f"~~US${usd:.2f}（約 NT${twd:,}）~~ 免費"
+
+    return f"~~{clip(value, 180)}~~ 免費"
+
+
+def format_deadline(value, now=None):
     value = str(value or "").strip()
     if not value:
         return "期限未提供"
@@ -31,17 +53,33 @@ def format_deadline(value):
             hour = int(match.group(4) or 0)
             minute = int(match.group(5) or 0)
             try:
-                parsed = datetime(year, month, day, hour, minute, tzinfo=ZoneInfo("Asia/Taipei"))
+                parsed = datetime(year, month, day, hour, minute, tzinfo=TAIPEI)
             except ValueError:
                 pass
 
     if parsed is None:
         return value
     if parsed.tzinfo is None:
-        parsed = parsed.replace(tzinfo=ZoneInfo("Asia/Taipei"))
-    timestamp = int(parsed.timestamp())
-    return f"<t:{timestamp}:F> (<t:{timestamp}:R>)"
+        parsed = parsed.replace(tzinfo=TAIPEI)
+    local_deadline = parsed.astimezone(TAIPEI)
+    date_text = (
+        f"{local_deadline.year} 年 {local_deadline.month} 月 {local_deadline.day} 日"
+        f"（{WEEKDAYS_ZH[local_deadline.weekday()]}） {local_deadline:%H:%M}"
+    )
 
+    current = now or datetime.now(TAIPEI)
+    if current.tzinfo is None:
+        current = current.replace(tzinfo=TAIPEI)
+    seconds = int((local_deadline - current.astimezone(TAIPEI)).total_seconds())
+    if seconds <= 0:
+        relative = "（已截止）"
+    elif seconds >= 86400:
+        days = (seconds + 86399) // 86400
+        relative = f"（約 {days} 天後）"
+    else:
+        hours = max(1, (seconds + 3599) // 3600)
+        relative = f"（約 {hours} 小時後）"
+    return f"{date_text}{relative}"
 
 def enable_components(url):
     parts = urlsplit(url)
@@ -58,12 +96,12 @@ class DiscordSender:
 
     def send(self, game, article_title, article_url):
         original_price = game.original_price or game.steam_price
-        price_text = f"~~{clip(original_price, 180)}~~ Free" if original_price and original_price != "免費" else "原價未查到"
+        price_text = format_price(original_price)
         deadline = format_deadline(game.deadline)
         platform = game.platform or "未知"
         genre = game.genre or "未知"
         brief = game.brief or "限時免費活動"
-        rating = game.rating or "None"
+        rating = game.rating or "暫無資料"
 
         description = (
             f"💰 **原價**　{price_text}\n"
