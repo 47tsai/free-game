@@ -103,6 +103,8 @@ class DiscordSender:
         genre = game.genre or "未知"
         brief = game.brief or "限時免費活動"
         rating = game.rating or "暫無資料"
+        if rating.strip().lower() in ("none", "null", "n/a", "na", "-"):
+            rating = "暫無資料"
 
         description = (
             f"💰 **原價**　{price_text}\n"
