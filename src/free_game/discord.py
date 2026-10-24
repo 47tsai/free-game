@@ -74,12 +74,13 @@ def format_deadline(value, now=None):
     if seconds <= 0:
         relative = "（已截止）"
     elif seconds >= 86400:
-        days = (seconds + 86399) // 86400
+        days = seconds // 86400
         relative = f"（約 {days} 天後）"
     else:
         hours = max(1, (seconds + 3599) // 3600)
         relative = f"（約 {hours} 小時後）"
     return f"{date_text}{relative}"
+
 
 def enable_components(url):
     parts = urlsplit(url)
