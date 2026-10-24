@@ -7,7 +7,7 @@ os.environ.setdefault("GEMINI_API_KEY", "test-key")
 
 from free_game.models import Article, Game
 from free_game.state import StateStore
-from main import process_article, select_articles
+from main import TERRASPACE_ARTICLE_URL, process_article, select_articles
 
 
 class MainFlowTests(unittest.TestCase):
@@ -31,6 +31,49 @@ class MainFlowTests(unittest.TestCase):
             processed = {state.article_key(self.article.url)}
             selected = select_articles([], state, processed, (self.article,))
             self.assertEqual(selected, [])
+
+    def test_terraspace_uses_verified_fallback_when_ai_returns_empty(self):
+        article = Article(
+            title="EGS限免：太空生存策略《Terraspace》",
+            url=TERRASPACE_ARTICLE_URL,
+        )
+
+        class FakeHttp:
+            def get(self, url):
+                return (
+                    b'<html><body><a href="https://store.epicgames.com/p/dimond-hunt-03a766">Terraspace</a></body></html>',
+                    {},
+                )
+
+        class FakeAI:
+            def extract(self, article):
+                return []
+
+        class FakeSteam:
+            def resolve(self, name, link):
+                return ""
+
+        class FakeDiscord:
+            def __init__(self):
+                self.sent = []
+
+            def send(self, game, article_title, article_url):
+                self.sent.append((game.name, game.link, article_url))
+
+        with tempfile.TemporaryDirectory() as d:
+            state = StateStore(d + "/state.json", 100)
+            processed = state.load()
+            discord = FakeDiscord()
+            success = process_article(
+                article, FakeHttp(), state, FakeAI(), discord, FakeSteam(), processed
+            )
+            self.assertTrue(success)
+            self.assertEqual(len(discord.sent), 1)
+            self.assertEqual(discord.sent[0][0], "Terraspace")
+            self.assertEqual(
+                discord.sent[0][1], "https://store.epicgames.com/p/dimond-hunt-03a766"
+            )
+            self.assertIn(state.article_key(article.url), processed)
 
     def test_empty_extraction_does_not_mark_article_processed(self):
         class FakeHttp:
