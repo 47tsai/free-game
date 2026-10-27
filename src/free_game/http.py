@@ -23,16 +23,24 @@ class HttpClient:
                 with urllib.request.urlopen(req, timeout=timeout) as r:
                     return r.read(), dict(r.headers.items())
             except urllib.error.HTTPError as e:
-                if e.code not in RETRY_STATUS or attempt == self.retries:
+                if e.code not in retryable_status or attempt == self.retries:
                     raise HttpError(f"HTTP {e.code}: {url}") from e
                 time.sleep(self._retry_delay(e, attempt))
             except (urllib.error.URLError, TimeoutError) as e:
-                if attempt == self.retries:
+                if not retry_transport_errors or attempt == self.retries:
                     raise HttpError(f"request failed: {url}") from e
                 time.sleep(min(2 ** attempt, 15))
         raise HttpError(f"request failed: {url}")
 
-    def post_json(self, url, payload, timeout=20, headers=None):
+    def post_json(
+        self,
+        url,
+        payload,
+        timeout=20,
+        headers=None,
+        retry_status=None,
+        retry_transport_errors=True,
+    ):
         import json
 
         body = json.dumps(payload, ensure_ascii=False).encode()
@@ -42,6 +50,8 @@ class HttpClient:
         }
         if headers:
             request_headers.update(headers)
+
+        retryable_status = RETRY_STATUS if retry_status is None else set(retry_status)
 
         for attempt in range(self.retries + 1):
             req = urllib.request.Request(
