@@ -354,9 +354,10 @@ class DiscordTests(unittest.TestCase):
 
     def _send(self, game):
         class FakeHttp:
-            def post_json(self, url, payload):
+            def post_json(self, url, payload, **kwargs):
                 self.url = url
                 self.payload = payload
+                self.kwargs = kwargs
                 return 204, b"", {}
 
         http = FakeHttp()
@@ -400,7 +401,9 @@ class DiscordTests(unittest.TestCase):
         )
 
         http = self._send(game)
-        self.assertEqual(http.url, "https://discord.example/webhook?with_components=true")
+        self.assertEqual(http.url, "https://discord.example/webhook?with_components=true&wait=true")
+        self.assertEqual(http.kwargs["retry_status"], {429})
+        self.assertFalse(http.kwargs["retry_transport_errors"])
         buttons = http.payload["components"][0]["components"]
         self.assertEqual(len(buttons), 2)
         self.assertEqual(buttons[0]["label"], "4Gamers")
