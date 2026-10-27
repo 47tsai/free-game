@@ -314,6 +314,19 @@ class CoreStateTests(unittest.TestCase):
             )
         )
 
+    def test_uncertain_delivery_is_suppressed_across_future_runs(self):
+        game = Game(
+            name="Example Game",
+            link="https://store.steampowered.com/app/1/",
+        )
+        uncertain = {StateStore.uncertain_game_key(game)}
+        self.assertTrue(
+            StateStore.is_game_processed(
+                uncertain, "https://example.com/article", game
+            )
+        )
+        self.assertNotIn(StateStore.game_key(game), uncertain)
+
     def test_same_game_is_deduplicated_across_articles(self):
         game = Game(
             name="Example Game",
@@ -404,6 +417,7 @@ class DiscordTests(unittest.TestCase):
         self.assertEqual(http.url, "https://discord.example/webhook?with_components=true&wait=true")
         self.assertEqual(http.kwargs["retry_status"], {429})
         self.assertFalse(http.kwargs["retry_transport_errors"])
+        self.assertTrue(http.kwargs["ambiguous_on_error"])
         buttons = http.payload["components"][0]["components"]
         self.assertEqual(len(buttons), 2)
         self.assertEqual(buttons[0]["label"], "4Gamers")
