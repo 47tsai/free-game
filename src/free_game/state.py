@@ -25,11 +25,15 @@ class StateStore:
         known = set(ordered)
         ordered.extend(item for item in current if item not in known)
         data = ordered[-self.limit:]
-        self._order = data
-        self.path.write_text(
+        # Write beside the destination, then atomically replace it. If the
+        # process stops mid-write, the previous valid state file survives.
+        temporary_path = self.path.with_name(self.path.name + ".tmp")
+        temporary_path.write_text(
             json.dumps(data, ensure_ascii=False, indent=2) + "\n",
             encoding="utf-8",
         )
+        temporary_path.replace(self.path)
+        self._order = data
 
     @staticmethod
     def _normalize(value):
