@@ -1,6 +1,6 @@
 import unittest
 
-from src.free_game.ai import extract_deadline, extract_original_price, platform_from_url
+from free_game.ai import extract_deadline, extract_original_price, platform_from_url
 
 
 class ArticleMetadataTests(unittest.TestCase):
