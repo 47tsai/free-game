@@ -246,7 +246,7 @@ class StateTests(unittest.TestCase):
     def test_state_save_is_atomic_when_replace_fails(self):
         with tempfile.TemporaryDirectory() as d:
             path = Path(d) / "state.json"
-            path.write_text('[\"previous-valid-state\"]\\n', encoding="utf-8")
+            path.write_text('[\"previous-valid-state\"]\n', encoding="utf-8")
             store = StateStore(path, 100)
 
             with patch.object(Path, "replace", side_effect=OSError("simulated failure")):
@@ -255,7 +255,7 @@ class StateTests(unittest.TestCase):
 
             self.assertEqual(
                 path.read_text(encoding="utf-8"),
-                '[\"previous-valid-state\"]\\n',
+                '[\"previous-valid-state\"]\n',
             )
             path.with_name(path.name + ".tmp").unlink()
 
