@@ -1,4 +1,5 @@
 import io
+import urllib.error
 import unittest
 from email.message import Message
 from unittest.mock import patch
@@ -56,6 +57,54 @@ class HttpRetryTests(unittest.TestCase):
 
         self.assertEqual(urlopen.call_count, 4)
         self.assertEqual(sleep.call_count, 3)
+
+    @patch("free_game.http.time.sleep")
+    @patch("free_game.http.urllib.request.urlopen")
+    def test_post_json_can_retry_only_explicitly_allowed_statuses(self, urlopen, sleep):
+        urlopen.side_effect = [http_error(503), FakeResponse()]
+
+        with self.assertRaisesRegex(HttpError, "HTTP 503"):
+            HttpClient("test-agent", retries=3).post_json(
+                "https://discord.example/webhook",
+                {"test": True},
+                retry_status={429},
+                retry_transport_errors=False,
+            )
+
+        urlopen.assert_called_once()
+        sleep.assert_not_called()
+
+    @patch("free_game.http.time.sleep")
+    @patch("free_game.http.urllib.request.urlopen")
+    def test_post_json_can_disable_ambiguous_transport_retries(self, urlopen, sleep):
+        urlopen.side_effect = urllib.error.URLError("connection timed out")
+
+        with self.assertRaisesRegex(HttpError, "request failed"):
+            HttpClient("test-agent", retries=3).post_json(
+                "https://discord.example/webhook",
+                {"test": True},
+                retry_status={429},
+                retry_transport_errors=False,
+            )
+
+        urlopen.assert_called_once()
+        sleep.assert_not_called()
+
+    @patch("free_game.http.time.sleep")
+    @patch("free_game.http.urllib.request.urlopen")
+    def test_post_json_retries_explicit_429_when_allowed(self, urlopen, sleep):
+        urlopen.side_effect = [http_error(429, retry_after=2), FakeResponse()]
+
+        result = HttpClient("test-agent", retries=3).post_json(
+            "https://discord.example/webhook",
+            {"test": True},
+            retry_status={429},
+            retry_transport_errors=False,
+        )
+
+        self.assertEqual(result[0], 200)
+        self.assertEqual(urlopen.call_count, 2)
+        sleep.assert_called_once_with(2)
 
     @patch("free_game.http.time.sleep")
     @patch("free_game.http.urllib.request.urlopen")
