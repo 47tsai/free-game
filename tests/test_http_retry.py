@@ -109,6 +109,23 @@ class HttpRetryTests(unittest.TestCase):
 
     @patch("free_game.http.time.sleep")
     @patch("free_game.http.urllib.request.urlopen")
+    def test_post_json_classifies_http_408_as_ambiguous(self, urlopen, sleep):
+        urlopen.side_effect = http_error(408)
+
+        with self.assertRaisesRegex(AmbiguousDeliveryError, "HTTP 408"):
+            HttpClient("test-agent", retries=3).post_json(
+                "https://discord.example/webhook",
+                {"test": True},
+                retry_status={429},
+                retry_transport_errors=False,
+                ambiguous_on_error=True,
+            )
+
+        urlopen.assert_called_once()
+        sleep.assert_not_called()
+
+    @patch("free_game.http.time.sleep")
+    @patch("free_game.http.urllib.request.urlopen")
     def test_post_json_classifies_transport_failure_as_ambiguous(self, urlopen, sleep):
         urlopen.side_effect = urllib.error.URLError("connection timed out")
 
