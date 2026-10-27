@@ -162,4 +162,5 @@ class DiscordSender:
             # failures or 5xx responses that could produce duplicate messages.
             retry_status={429},
             retry_transport_errors=False,
+            ambiguous_on_error=True,
         )
