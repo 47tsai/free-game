@@ -94,10 +94,11 @@ def process_article(item, http, state, ai, discord, steam, processed):
 
         try:
             price = steam.resolve(game.name, game.link)
+            rating = steam.resolve_rating(game.link) or game.rating
             original_price = game.original_price or price
             game = game.__class__(
                 name=game.name, platform=game.platform, deadline=game.deadline,
-                genre=game.genre, gameplay=game.gameplay, rating=game.rating,
+                genre=game.genre, gameplay=game.gameplay, rating=rating,
                 brief=game.brief, link=game.link, image=game.image,
                 steam_price=price, original_price=original_price,
             )
