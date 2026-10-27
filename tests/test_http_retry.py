@@ -112,7 +112,7 @@ class HttpRetryTests(unittest.TestCase):
     def test_post_json_classifies_transport_failure_as_ambiguous(self, urlopen, sleep):
         urlopen.side_effect = urllib.error.URLError("connection timed out")
 
-        with self.assertRaisesRegex(AmbiguousDeliveryError, "outcome"):
+        with self.assertRaisesRegex(AmbiguousDeliveryError, "request failed"):
             HttpClient("test-agent", retries=3).post_json(
                 "https://discord.example/webhook",
                 {"test": True},
