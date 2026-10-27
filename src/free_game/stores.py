@@ -131,3 +131,124 @@ class SteamPriceResolver:
     def _appid(link):
         match = re.search(r"/app/(\d+)", urlparse(link).path)
         return match.group(1) if match else ""
+
+
+class EpicPromotionResolver:
+    """Resolve metadata from Epic's public free-game promotions feed."""
+
+    API_URL = (
+        "https://store-site-backend-static.ak.epicgames.com/"
+        "freeGamesPromotions?locale=zh-TW&country=TW&allowCountries=TW"
+    )
+
+    def __init__(self, http):
+        self.http = http
+
+    def resolve(self, link):
+        """Return exact-slug promotion metadata, or an empty dict on any mismatch."""
+        parsed = urlparse(str(link or ""))
+        if parsed.scheme != "https" or parsed.hostname != "store.epicgames.com":
+            return {}
+
+        slug = self._page_slug(parsed.path)
+        if not slug:
+            return {}
+
+        try:
+            body, _ = self.http.get(self.API_URL)
+            response = json.loads(body)
+            elements = (
+                response.get("data", {})
+                .get("Catalog", {})
+                .get("searchStore", {})
+                .get("elements", [])
+            )
+            for element in elements if isinstance(elements, list) else []:
+                if not isinstance(element, dict) or not self._matches_slug(element, slug):
+                    continue
+                return self._metadata(element)
+        except Exception:
+            return {}
+        return {}
+
+    @staticmethod
+    def _page_slug(path):
+        parts = [part for part in path.split("/") if part]
+        for index, part in enumerate(parts[:-1]):
+            if part.lower() == "p":
+                return parts[index + 1].lower()
+        return ""
+
+    @classmethod
+    def _matches_slug(cls, element, slug):
+        candidates = [element.get("productSlug"), element.get("urlSlug")]
+        mappings = element.get("offerMappings", [])
+        if isinstance(mappings, list):
+            candidates.extend(
+                item.get("pageSlug") for item in mappings if isinstance(item, dict)
+            )
+        return any(
+            isinstance(value, str)
+            and value.strip("/").lower() == slug
+            for value in candidates
+        )
+
+    @staticmethod
+    def _metadata(element):
+        result = {}
+        price = element.get("price", {})
+        total_price = price.get("totalPrice", {}) if isinstance(price, dict) else {}
+        if isinstance(total_price, dict):
+            try:
+                original_amount = int(total_price.get("originalPrice", 0) or 0)
+                discount_amount = int(total_price.get("discountPrice", -1))
+            except (TypeError, ValueError):
+                original_amount, discount_amount = 0, -1
+            formatted = total_price.get("fmtPrice", {})
+            if (
+                original_amount > 0
+                and discount_amount == 0
+                and isinstance(formatted, dict)
+            ):
+                result["original_price"] = str(
+                    formatted.get("originalPrice", "") or ""
+                ).strip()
+
+        promotions = element.get("promotions", {})
+        if not isinstance(promotions, dict):
+            return result
+        groups = []
+        for field in ("promotionalOffers", "upcomingPromotionalOffers"):
+            value = promotions.get(field, [])
+            if isinstance(value, list):
+                groups.extend(value)
+        end_dates = []
+        for group in groups:
+            if not isinstance(group, dict):
+                continue
+            offers = group.get("promotionalOffers", [])
+            if not isinstance(offers, list):
+                continue
+            for offer in offers:
+                if isinstance(offer, dict) and offer.get("endDate"):
+                    end_dates.append(str(offer["endDate"]))
+        if end_dates:
+            # The active/upcoming offer with the earliest end is the relevant one.
+            from datetime import datetime
+            from zoneinfo import ZoneInfo
+
+            parsed_dates = []
+            for value in end_dates:
+                try:
+                    normalized = value[:-1] + "+00:00" if value.endswith("Z") else value
+                    parsed_dates.append(datetime.fromisoformat(normalized))
+                except ValueError:
+                    continue
+            if parsed_dates:
+                end = min(parsed_dates)
+                if end.tzinfo is None:
+                    end = end.replace(tzinfo=ZoneInfo("UTC"))
+                result["deadline"] = end.astimezone(
+                    ZoneInfo("Asia/Taipei")
+                ).isoformat(timespec="seconds")
+        return result
