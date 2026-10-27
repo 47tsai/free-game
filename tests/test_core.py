@@ -259,6 +259,19 @@ class StateTests(unittest.TestCase):
             )
             path.with_name(path.name + ".tmp").unlink()
 
+    def test_missing_state_file_starts_empty(self):
+        with tempfile.TemporaryDirectory() as d:
+            store = StateStore(Path(d) / "missing.json", 100)
+            self.assertEqual(store.load(), set())
+
+    def test_corrupt_state_file_fails_closed(self):
+        with tempfile.TemporaryDirectory() as d:
+            path = Path(d) / "state.json"
+            path.write_text("{invalid json", encoding="utf-8")
+            store = StateStore(path, 100)
+            with self.assertRaisesRegex(RuntimeError, "state file is invalid"):
+                store.load()
+
     def test_state_preserves_recent_insertion_order(self):
         with tempfile.TemporaryDirectory() as d:
             store = StateStore(d + "/state.json", 2)
