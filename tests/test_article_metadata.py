@@ -1,6 +1,11 @@
 import unittest
 
-from free_game.ai import extract_deadline, extract_original_price, platform_from_url
+from free_game.ai import (
+    extract_deadline,
+    extract_explicit_rating,
+    extract_original_price,
+    platform_from_url,
+)
 
 
 class ArticleMetadataTests(unittest.TestCase):
@@ -20,9 +25,24 @@ class ArticleMetadataTests(unittest.TestCase):
             "Epic Games Store",
         )
 
+    def test_explicit_steam_rating_is_extracted(self):
+        self.assertEqual(
+            extract_explicit_rating("Steam 好評率 96%"),
+            "Steam 好評率 96%",
+        )
+        self.assertEqual(
+            extract_explicit_rating("Steam 評價：極度好評"),
+            "Steam 評價：極度好評",
+        )
+
+    def test_unrelated_percentages_are_not_player_ratings(self):
+        self.assertEqual(extract_explicit_rating("本次折扣 90%"), "")
+        self.assertEqual(extract_explicit_rating("文章未提到玩家評價"), "")
+
     def test_missing_values_stay_missing(self):
         self.assertEqual(extract_original_price("免費領取"), "")
         self.assertEqual(extract_deadline("期限未提供"), "")
+        self.assertEqual(extract_explicit_rating("沒有評價資料"), "")
 
 
 if __name__ == "__main__":
