@@ -141,6 +141,51 @@ class MainFlowTests(unittest.TestCase):
             self.assertIn(first_key, processed)
             self.assertNotIn(article_key, processed)
 
+    def test_ambiguous_discord_delivery_is_recorded_and_not_retried(self):
+        from free_game.http import AmbiguousDeliveryError
+
+        game = Game(
+            name="Example",
+            link="https://store.steampowered.com/app/123/example/",
+        )
+
+        class FakeHttp:
+            def get(self, url):
+                return b"<html><body>Example</body></html>", {}
+
+        class FakeAI:
+            def extract(self, article):
+                return [game]
+
+        class FakeSteam:
+            def resolve(self, name, link):
+                return ""
+
+        class FakeDiscord:
+            def send(self, game, article_title, article_url):
+                raise AmbiguousDeliveryError("request failed")
+
+        with tempfile.TemporaryDirectory() as d:
+            state = StateStore(d + "/state.json", 100)
+            processed = state.load()
+            success = process_article(
+                self.article, FakeHttp(), state, FakeAI(), FakeDiscord(),
+                FakeSteam(), processed,
+            )
+            uncertain_key = state.uncertain_game_key(game)
+            self.assertTrue(success)
+            self.assertIn(uncertain_key, processed)
+            self.assertNotIn(state.game_key(game), processed)
+            self.assertIn(state.article_key(self.article.url), processed)
+            state.save(processed)
+
+            reloaded = StateStore(d + "/state.json", 100)
+            loaded = reloaded.load()
+            self.assertIn(uncertain_key, loaded)
+            self.assertTrue(
+                StateStore.is_game_processed(loaded, self.article.url, game)
+            )
+
     def test_successful_article_gets_article_key(self):
         class FakeHttp:
             def get(self, url):

@@ -11,12 +11,21 @@ class StateStore:
     def load(self):
         try:
             data = json.loads(self.path.read_text(encoding="utf-8"))
-            if not isinstance(data, list):
-                return set()
-            self._order = list(dict.fromkeys(str(item) for item in data))
+            if not isinstance(data, list) or not all(
+                isinstance(item, str) for item in data
+            ):
+                raise RuntimeError(
+                    f"state file has an invalid structure: {self.path}"
+                )
+            self._order = list(dict.fromkeys(data))
             return set(self._order)
-        except (OSError, json.JSONDecodeError):
+        except FileNotFoundError:
+            # A first run has no state file yet, so an empty state is expected.
             return set()
+        except (OSError, json.JSONDecodeError) as exc:
+            # Never silently forget notification history: that can resend every
+            # previously announced game. Fail closed and require repair.
+            raise RuntimeError(f"state file is invalid or unreadable: {self.path}") from exc
 
     def save(self, values):
         self.path.parent.mkdir(parents=True, exist_ok=True)
@@ -25,11 +34,15 @@ class StateStore:
         known = set(ordered)
         ordered.extend(item for item in current if item not in known)
         data = ordered[-self.limit:]
-        self._order = data
-        self.path.write_text(
+        # Write beside the destination, then atomically replace it. If the
+        # process stops mid-write, the previous valid state file survives.
+        temporary_path = self.path.with_name(self.path.name + ".tmp")
+        temporary_path.write_text(
             json.dumps(data, ensure_ascii=False, indent=2) + "\n",
             encoding="utf-8",
         )
+        temporary_path.replace(self.path)
+        self._order = data
 
     @staticmethod
     def _normalize(value):
@@ -43,6 +56,10 @@ class StateStore:
         return "game|" + link + "|" + name
 
     @staticmethod
+    def uncertain_game_key(game):
+        return "uncertain|" + StateStore.game_key(game)
+
+    @staticmethod
     def legacy_game_key(article_url, game):
         return "game|" + article_url + "|" + game.link + "|" + game.name
 
@@ -54,6 +71,7 @@ class StateStore:
     def is_game_processed(values, article_url, game):
         return (
             StateStore.game_key(game) in values
+            or StateStore.uncertain_game_key(game) in values
             or StateStore.legacy_game_key(article_url, game) in values
         )
 

@@ -1,12 +1,14 @@
 import json
 import tempfile
 import unittest
+from pathlib import Path
+from unittest.mock import patch
 
 from free_game.article import normalize_store_url, parse_article
 from free_game.discord import DiscordSender, format_deadline
 from free_game.models import Game
 from free_game.state import StateStore
-from free_game.stores import SteamPriceResolver
+from free_game.stores import EpicPromotionResolver, SteamPriceResolver
 
 
 class ArticleTests(unittest.TestCase):
@@ -72,6 +74,56 @@ class SteamTests(unittest.TestCase):
             "NT$ 300.00",
         )
 
+    def test_rating_uses_exact_steam_app_review_summary(self):
+        class FakeHttp:
+            def get(self, url):
+                self.url = url
+                return json.dumps({
+                    "query_summary": {
+                        "total_reviews": 1000,
+                        "total_positive": 960,
+                        "review_score_desc": "極度好評",
+                    }
+                }).encode(), {}
+
+        http = FakeHttp()
+        rating = SteamPriceResolver(http).resolve_rating(
+            "https://store.steampowered.com/app/12345/example/"
+        )
+        self.assertEqual(rating, "極度好評，96% 好評（1,000 則評論）")
+        self.assertIn("/appreviews/12345?", http.url)
+        self.assertIn("num_per_page=0", http.url)
+
+    def test_rating_returns_empty_when_reviews_are_missing(self):
+        class FakeHttp:
+            def get(self, url):
+                return json.dumps({
+                    "query_summary": {
+                        "total_reviews": 0,
+                        "total_positive": 0,
+                        "review_score_desc": "無評論",
+                    }
+                }).encode(), {}
+
+        self.assertEqual(
+            SteamPriceResolver(FakeHttp()).resolve_rating(
+                "https://store.steampowered.com/app/12345/example/"
+            ),
+            "",
+        )
+
+    def test_rating_does_not_search_for_non_steam_links(self):
+        class FakeHttp:
+            def get(self, url):
+                raise AssertionError("No lookup should happen for Epic links")
+
+        self.assertEqual(
+            SteamPriceResolver(FakeHttp()).resolve_rating(
+                "https://store.epicgames.com/p/example"
+            ),
+            "",
+        )
+
     def test_epic_link_does_not_trigger_steam_lookup(self):
         class FakeHttp:
             def get(self, url):
@@ -98,7 +150,144 @@ class SteamTests(unittest.TestCase):
         )
 
 
+class EpicPromotionTests(unittest.TestCase):
+    @staticmethod
+    def response_for(slug="mafia-hotel"):
+        return {
+            "data": {
+                "Catalog": {
+                    "searchStore": {
+                        "elements": [{
+                            "title": "MAFIA HOTEL",
+                            "offerMappings": [{"pageSlug": slug}],
+                            "price": {
+                                "totalPrice": {
+                                    "originalPrice": 2700,
+                                    "discountPrice": 0,
+                                    "fmtPrice": {
+                                        "originalPrice": "NT$ 27.00",
+                                        "discountPrice": "NT$ 0.00",
+                                    },
+                                }
+                            },
+                            "promotions": {
+                                "promotionalOffers": [{
+                                    "promotionalOffers": [{
+                                        "endDate": "2026-11-02T17:02:00Z"
+                                    }]
+                                }],
+                                "upcomingPromotionalOffers": [{
+                                    "promotionalOffers": [{
+                                        "endDate": "2026-11-02T12:00:00Z"
+                                    }]
+                                }],
+                            },
+                        }]
+                    }
+                }
+            }
+        }
+
+    def test_resolves_exact_epic_slug_and_taiwan_deadline(self):
+        class FakeHttp:
+            def get(self, url):
+                self.url = url
+                return json.dumps(
+                    EpicPromotionTests.response_for()
+                ).encode(), {}
+
+        http = FakeHttp()
+        result = EpicPromotionResolver(http).resolve(
+            "https://store.epicgames.com/zh-TW/p/mafia-hotel"
+        )
+        self.assertEqual(result["original_price"], "NT$ 27.00")
+        self.assertEqual(result["deadline"], "2026-11-03T01:02:00+08:00")
+        self.assertIn("country=TW", http.url)
+        self.assertIn("locale=zh-TW", http.url)
+
+    def test_does_not_match_a_different_epic_slug(self):
+        class FakeHttp:
+            def get(self, url):
+                return json.dumps(
+                    EpicPromotionTests.response_for("different-game")
+                ).encode(), {}
+
+        self.assertEqual(
+            EpicPromotionResolver(FakeHttp()).resolve(
+                "https://store.epicgames.com/p/mafia-hotel"
+            ),
+            {},
+        )
+
+    def test_rejects_non_epic_links_without_request(self):
+        class FakeHttp:
+            def get(self, url):
+                raise AssertionError("No request should be made")
+
+        self.assertEqual(
+            EpicPromotionResolver(FakeHttp()).resolve(
+                "https://example.com/p/mafia-hotel"
+            ),
+            {},
+        )
+
+    def test_missing_or_nonfree_price_is_not_reported(self):
+        data = self.response_for()
+        data["data"]["Catalog"]["searchStore"]["elements"][0]["price"][
+            "totalPrice"
+        ]["discountPrice"] = 100
+        result = EpicPromotionResolver._metadata(
+            data["data"]["Catalog"]["searchStore"]["elements"][0]
+        )
+        self.assertNotIn("original_price", result)
+
+
 class StateTests(unittest.TestCase):
+    def test_state_save_is_atomic_when_replace_fails(self):
+        with tempfile.TemporaryDirectory() as d:
+            path = Path(d) / "state.json"
+            path.write_text('[\"previous-valid-state\"]\n', encoding="utf-8")
+            store = StateStore(path, 100)
+
+            with patch.object(Path, "replace", side_effect=OSError("simulated failure")):
+                with self.assertRaises(OSError):
+                    store.save({"new-state"})
+
+            self.assertEqual(
+                path.read_text(encoding="utf-8"),
+                '[\"previous-valid-state\"]\n',
+            )
+            path.with_name(path.name + ".tmp").unlink()
+
+    def test_missing_state_file_starts_empty(self):
+        with tempfile.TemporaryDirectory() as d:
+            store = StateStore(Path(d) / "missing.json", 100)
+            self.assertEqual(store.load(), set())
+
+    def test_corrupt_state_file_fails_closed(self):
+        with tempfile.TemporaryDirectory() as d:
+            path = Path(d) / "state.json"
+            path.write_text("{invalid json", encoding="utf-8")
+            store = StateStore(path, 100)
+            with self.assertRaisesRegex(RuntimeError, "state file is invalid"):
+                store.load()
+
+    def test_state_file_with_wrong_json_shape_fails_closed(self):
+        with tempfile.TemporaryDirectory() as d:
+            path = Path(d) / "state.json"
+            path.write_text('{"processed": []}', encoding="utf-8")
+            store = StateStore(path, 100)
+            with self.assertRaisesRegex(RuntimeError, "invalid structure"):
+                store.load()
+
+    def test_state_file_with_non_string_entry_fails_closed(self):
+        with tempfile.TemporaryDirectory() as d:
+            path = Path(d) / "state.json"
+            path.write_text('[\"valid-key\", 42]', encoding="utf-8")
+            store = StateStore(path, 100)
+            with self.assertRaisesRegex(RuntimeError, "invalid structure"):
+                store.load()
+
     def test_state_preserves_recent_insertion_order(self):
         with tempfile.TemporaryDirectory() as d:
             store = StateStore(d + "/state.json", 2)
@@ -124,6 +313,19 @@ class CoreStateTests(unittest.TestCase):
                 values, "https://example.com/article"
             )
         )
+
+    def test_uncertain_delivery_is_suppressed_across_future_runs(self):
+        game = Game(
+            name="Example Game",
+            link="https://store.steampowered.com/app/1/",
+        )
+        uncertain = {StateStore.uncertain_game_key(game)}
+        self.assertTrue(
+            StateStore.is_game_processed(
+                uncertain, "https://example.com/article", game
+            )
+        )
+        self.assertNotIn(StateStore.game_key(game), uncertain)
 
     def test_same_game_is_deduplicated_across_articles(self):
         game = Game(
@@ -165,9 +367,10 @@ class DiscordTests(unittest.TestCase):
 
     def _send(self, game):
         class FakeHttp:
-            def post_json(self, url, payload):
+            def post_json(self, url, payload, **kwargs):
                 self.url = url
                 self.payload = payload
+                self.kwargs = kwargs
                 return 204, b"", {}
 
         http = FakeHttp()
@@ -211,7 +414,10 @@ class DiscordTests(unittest.TestCase):
         )
 
         http = self._send(game)
-        self.assertEqual(http.url, "https://discord.example/webhook?with_components=true")
+        self.assertEqual(http.url, "https://discord.example/webhook?with_components=true&wait=true")
+        self.assertEqual(http.kwargs["retry_status"], {429})
+        self.assertFalse(http.kwargs["retry_transport_errors"])
+        self.assertTrue(http.kwargs["ambiguous_on_error"])
         buttons = http.payload["components"][0]["components"]
         self.assertEqual(len(buttons), 2)
         self.assertEqual(buttons[0]["label"], "4Gamers")
@@ -270,8 +476,8 @@ class AITests(unittest.TestCase):
         )
         games = GeminiExtractor(FakeHttp(), "key", "gemini-test").extract(article)
         self.assertEqual(games[0].link, "https://store.epicgames.com/p/example")
-        self.assertEqual(games[0].original_price, "$52")
-        self.assertEqual(games[0].deadline, "2026-11-03T00:00:00+08:00")
+        self.assertEqual(games[0].original_price, "")
+        self.assertEqual(games[0].deadline, "")
 
     def test_invalid_store_link_is_rejected(self):
         from free_game.ai import GeminiExtractor
