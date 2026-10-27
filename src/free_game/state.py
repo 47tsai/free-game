@@ -56,6 +56,10 @@ class StateStore:
         return "game|" + link + "|" + name
 
     @staticmethod
+    def uncertain_game_key(game):
+        return "uncertain|" + StateStore.game_key(game)
+
+    @staticmethod
     def legacy_game_key(article_url, game):
         return "game|" + article_url + "|" + game.link + "|" + game.name
 
@@ -67,6 +71,7 @@ class StateStore:
     def is_game_processed(values, article_url, game):
         return (
             StateStore.game_key(game) in values
+            or StateStore.uncertain_game_key(game) in values
             or StateStore.legacy_game_key(article_url, game) in values
         )
 
