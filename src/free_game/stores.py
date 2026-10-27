@@ -217,11 +217,13 @@ class EpicPromotionResolver:
         promotions = element.get("promotions", {})
         if not isinstance(promotions, dict):
             return result
-        groups = []
-        for field in ("promotionalOffers", "upcomingPromotionalOffers"):
-            value = promotions.get(field, [])
-            if isinstance(value, list):
-                groups.extend(value)
+        # Prefer the currently active promotion. Upcoming offers can have
+        # different end dates and must not shorten the current claim window.
+        active_groups = promotions.get("promotionalOffers", [])
+        upcoming_groups = promotions.get("upcomingPromotionalOffers", [])
+        groups = active_groups if isinstance(active_groups, list) and active_groups else (
+            upcoming_groups if isinstance(upcoming_groups, list) else []
+        )
         end_dates = []
         for group in groups:
             if not isinstance(group, dict):
@@ -233,7 +235,6 @@ class EpicPromotionResolver:
                 if isinstance(offer, dict) and offer.get("endDate"):
                     end_dates.append(str(offer["endDate"]))
         if end_dates:
-            # The active/upcoming offer with the earliest end is the relevant one.
             from datetime import datetime
             from zoneinfo import ZoneInfo
 
