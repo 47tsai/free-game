@@ -1,7 +1,60 @@
 import json
 import re
+from urllib.parse import urlparse
 
 from .models import Game
+
+
+def extract_original_price(text):
+    match = re.search(
+        r"(?:原價|原售價|原本售價|定價)\s*(?:為|是|約)?\s*(新台幣|台幣|NT\s*\$|US\s*\$|USD\s*\$|\$)\s*([\d,]+(?:\.\d{1,2})?)\s*(?:元|新台幣)?",
+        str(text or ""),
+        re.IGNORECASE,
+    )
+    if not match:
+        return ""
+    currency, amount = match.groups()
+    amount = amount.replace(",", "")
+    if currency in ("新台幣", "台幣") or re.match(r"NT", currency, re.I):
+        return f"NT${amount}"
+    if re.match(r"USD", currency, re.I):
+        return f"US${amount}"
+    return f"${amount}"
+
+
+def extract_deadline(text):
+    pattern = (
+        r"(?:期限至|期限為|免費至|限免至|截止至|領取期限(?:至|為)?)"
+        r"\s*(?:(?:台灣|臺灣)時間\s*)?"
+        r"(\d{4})\s*年\s*(\d{1,2})\s*月\s*(\d{1,2})\s*日"
+        r"\s*(凌晨|上午|早上|中午|下午|晚上)?\s*(\d{1,2})\s*(?:點|時)(?:\s*(\d{1,2})\s*分)?"
+    )
+    match = re.search(pattern, str(text or ""))
+    if not match:
+        return ""
+    year, month, day = map(int, match.group(1, 2, 3))
+    period, hour, minute = match.group(4) or "", int(match.group(5)), int(match.group(6) or 0)
+    if period == "凌晨" and hour == 12:
+        hour = 0
+    elif period in ("下午", "晚上") and hour < 12:
+        hour += 12
+    elif period == "中午" and hour < 11:
+        hour += 12
+    try:
+        from datetime import datetime
+        datetime(year, month, day, hour, minute)
+    except ValueError:
+        return ""
+    return f"{year:04d}-{month:02d}-{day:02d}T{hour:02d}:{minute:02d}:00+08:00"
+
+
+def platform_from_url(url):
+    host = urlparse(str(url or "")).netloc.lower().split("@")[-1].split(":")[0]
+    if host == "store.epicgames.com" or host.endswith(".store.epicgames.com"):
+        return "Epic Games Store"
+    if host == "store.steampowered.com" or host.endswith(".steampowered.com"):
+        return "Steam"
+    return ""
 
 
 class GeminiExtractor:
@@ -57,6 +110,9 @@ class GeminiExtractor:
         if not isinstance(data, list):
             raise RuntimeError("Gemini JSON is not a list")
 
+        source_price = extract_original_price(article.text)
+        source_deadline = extract_deadline(article.text)
+
         result = []
         seen = set()
         used_indexes = set()
@@ -81,9 +137,9 @@ class GeminiExtractor:
             result.append(
                 Game(
                     name=name[:200],
-                    platform=str(item.get("platform", "")).strip()[:100],
-                    deadline=str(item.get("deadline", "")).strip()[:200],
-                    original_price=str(item.get("original_price", "")).strip()[:100],
+                    platform=platform_from_url(link) or str(item.get("platform", "")).strip()[:100],
+                    deadline=(source_deadline or str(item.get("deadline", "")).strip())[:200],
+                    original_price=(source_price or str(item.get("original_price", "")).strip())[:100],
                     genre=str(item.get("genre", "")).strip()[:200],
                     gameplay=str(item.get("gameplay", "")).strip()[:1000],
                     rating=str(item.get("rating", "")).strip()[:300],
