@@ -6,22 +6,30 @@ from .models import Game
 
 
 def extract_original_price(text):
+    """Extract a price only when the article explicitly marks it as the original price."""
     match = re.search(
-        r"(?:原價|原售價|原本售價|定價)\s*(?:為|是|約)?\s*(新台幣|台幣|NT\s*\$|US\s*\$|USD\s*\$|\$)\s*([\d,]+(?:\.\d{1,2})?)\s*(?:元|新台幣)?",
+        r"(?:原價|原售價|原本售價|定價)\s*(?:為|是|約)?\s*"
+        r"(?:(新台幣|台幣|NT\s*\$|US\s*\$|USD\s*\$|\$)\s*)?"
+        r"([\d,]+(?:\.\d{1,2})?)\s*"
+        r"(元|新台幣|台幣|NTD|TWD|USD|美元)?",
         str(text or ""),
         re.IGNORECASE,
     )
     if not match:
         return ""
-    currency, amount = match.groups()
+    currency, amount, suffix = match.groups()
+    if not currency and not suffix:
+        return ""
     amount = amount.replace(",", "")
-    if currency in ("新台幣", "台幣") or re.match(r"NT", currency, re.I):
-        return f"NT${amount}"
-    if re.match(r"USD", currency, re.I):
-        return f"US${amount}"
-    return f"${amount}"
-
-
+    currency = (currency or "").replace(" ", "").upper()
+    suffix = (suffix or "").upper()
+    if currency in ("新台幣", "台幣", "NT$", "NTD", "TWD") or suffix in (
+        "元", "新台幣", "台幣", "NTD", "TWD"
+    ):
+        return "NT$" + amount
+    if currency in ("US$", "USD$", "USD") or suffix in ("USD", "美元"):
+        return "US$" + amount
+    return "$" + amount
 def extract_deadline(text):
     pattern = (
         r"(?:期限至|期限為|免費至|限免至|截止至|領取期限(?:至|為)?)"
