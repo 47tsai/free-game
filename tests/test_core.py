@@ -174,7 +174,11 @@ class EpicPromotionTests(unittest.TestCase):
                                         "endDate": "2026-11-02T17:02:00Z"
                                     }]
                                 }],
-                                "upcomingPromotionalOffers": [],
+                                "upcomingPromotionalOffers": [{
+                                    "promotionalOffers": [{
+                                        "endDate": "2026-11-02T12:00:00Z"
+                                    }]
+                                }],
                             },
                         }]
                     }
