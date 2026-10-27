@@ -72,6 +72,56 @@ class SteamTests(unittest.TestCase):
             "NT$ 300.00",
         )
 
+    def test_rating_uses_exact_steam_app_review_summary(self):
+        class FakeHttp:
+            def get(self, url):
+                self.url = url
+                return json.dumps({
+                    "query_summary": {
+                        "total_reviews": 1000,
+                        "total_positive": 960,
+                        "review_score_desc": "極度好評",
+                    }
+                }).encode(), {}
+
+        http = FakeHttp()
+        rating = SteamPriceResolver(http).resolve_rating(
+            "https://store.steampowered.com/app/12345/example/"
+        )
+        self.assertEqual(rating, "極度好評，96% 好評（1,000 則評論）")
+        self.assertIn("/appreviews/12345?", http.url)
+        self.assertIn("num_per_page=0", http.url)
+
+    def test_rating_returns_empty_when_reviews_are_missing(self):
+        class FakeHttp:
+            def get(self, url):
+                return json.dumps({
+                    "query_summary": {
+                        "total_reviews": 0,
+                        "total_positive": 0,
+                        "review_score_desc": "無評論",
+                    }
+                }).encode(), {}
+
+        self.assertEqual(
+            SteamPriceResolver(FakeHttp()).resolve_rating(
+                "https://store.steampowered.com/app/12345/example/"
+            ),
+            "",
+        )
+
+    def test_rating_does_not_search_for_non_steam_links(self):
+        class FakeHttp:
+            def get(self, url):
+                raise AssertionError("No lookup should happen for Epic links")
+
+        self.assertEqual(
+            SteamPriceResolver(FakeHttp()).resolve_rating(
+                "https://store.epicgames.com/p/example"
+            ),
+            "",
+        )
+
     def test_epic_link_does_not_trigger_steam_lookup(self):
         class FakeHttp:
             def get(self, url):
