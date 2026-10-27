@@ -94,7 +94,8 @@ def process_article(item, http, state, ai, discord, steam, processed):
 
         try:
             price = steam.resolve(game.name, game.link)
-            rating = steam.resolve_rating(game.link) or game.rating
+            rating_lookup = getattr(steam, "resolve_rating", None)
+            rating = (rating_lookup(game.link) if rating_lookup else "") or game.rating
             original_price = game.original_price or price
             game = game.__class__(
                 name=game.name, platform=game.platform, deadline=game.deadline,
