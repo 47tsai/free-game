@@ -161,8 +161,11 @@ class GeminiExtractor:
                 Game(
                     name=name[:200],
                     platform=platform_from_url(link) or str(item.get("platform", "")).strip()[:100],
-                    deadline=(source_deadline or str(item.get("deadline", "")).strip())[:200],
-                    original_price=(source_price or str(item.get("original_price", "")).strip())[:100],
+                    # Never trust model-generated prices or deadlines. Only
+                    # use values explicitly parsed from the article; official
+                    # store metadata can fill gaps later in process_article.
+                    deadline=source_deadline[:200],
+                    original_price=source_price[:100],
                     genre=str(item.get("genre", "")).strip()[:200],
                     gameplay=str(item.get("gameplay", "")).strip()[:1000],
                     rating=source_rating,
