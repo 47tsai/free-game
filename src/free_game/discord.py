@@ -86,6 +86,7 @@ def enable_components(url):
     parts = urlsplit(url)
     query = parse_qsl(parts.query, keep_blank_values=True)
     query.append(("with_components", "true"))
+    query.append(("wait", "true"))
     return urlunsplit(
         (parts.scheme, parts.netloc, parts.path, urlencode(query), parts.fragment)
     )
@@ -153,4 +154,12 @@ class DiscordSender:
             ],
         }
 
-        self.http.post_json(enable_components(self.webhook), payload)
+        self.http.post_json(
+            enable_components(self.webhook),
+            payload,
+            # Discord may have accepted a message even if the response is lost.
+            # Retry only explicit rate-limit rejection, never ambiguous transport
+            # failures or 5xx responses that could produce duplicate messages.
+            retry_status={429},
+            retry_transport_errors=False,
+        )
