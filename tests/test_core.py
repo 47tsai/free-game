@@ -6,7 +6,7 @@ from free_game.article import normalize_store_url, parse_article
 from free_game.discord import DiscordSender, format_deadline
 from free_game.models import Game
 from free_game.state import StateStore
-from free_game.stores import SteamPriceResolver
+from free_game.stores import EpicPromotionResolver, SteamPriceResolver
 
 
 class ArticleTests(unittest.TestCase):
@@ -146,6 +146,94 @@ class SteamTests(unittest.TestCase):
             SteamPriceResolver._price(data),
             "NT$ 300.00",
         )
+
+
+class EpicPromotionTests(unittest.TestCase):
+    @staticmethod
+    def response_for(slug="mafia-hotel"):
+        return {
+            "data": {
+                "Catalog": {
+                    "searchStore": {
+                        "elements": [{
+                            "title": "MAFIA HOTEL",
+                            "offerMappings": [{"pageSlug": slug}],
+                            "price": {
+                                "totalPrice": {
+                                    "originalPrice": 2700,
+                                    "discountPrice": 0,
+                                    "fmtPrice": {
+                                        "originalPrice": "NT$ 27.00",
+                                        "discountPrice": "NT$ 0.00",
+                                    },
+                                }
+                            },
+                            "promotions": {
+                                "promotionalOffers": [{
+                                    "promotionalOffers": [{
+                                        "endDate": "2026-11-02T17:02:00Z"
+                                    }]
+                                }],
+                                "upcomingPromotionalOffers": [],
+                            },
+                        }]
+                    }
+                }
+            }
+        }
+
+    def test_resolves_exact_epic_slug_and_taiwan_deadline(self):
+        class FakeHttp:
+            def get(self, url):
+                self.url = url
+                return json.dumps(
+                    EpicPromotionTests.response_for()
+                ).encode(), {}
+
+        http = FakeHttp()
+        result = EpicPromotionResolver(http).resolve(
+            "https://store.epicgames.com/zh-TW/p/mafia-hotel"
+        )
+        self.assertEqual(result["original_price"], "NT$ 27.00")
+        self.assertEqual(result["deadline"], "2026-11-03T01:02:00+08:00")
+        self.assertIn("country=TW", http.url)
+        self.assertIn("locale=zh-TW", http.url)
+
+    def test_does_not_match_a_different_epic_slug(self):
+        class FakeHttp:
+            def get(self, url):
+                return json.dumps(
+                    EpicPromotionTests.response_for("different-game")
+                ).encode(), {}
+
+        self.assertEqual(
+            EpicPromotionResolver(FakeHttp()).resolve(
+                "https://store.epicgames.com/p/mafia-hotel"
+            ),
+            {},
+        )
+
+    def test_rejects_non_epic_links_without_request(self):
+        class FakeHttp:
+            def get(self, url):
+                raise AssertionError("No request should be made")
+
+        self.assertEqual(
+            EpicPromotionResolver(FakeHttp()).resolve(
+                "https://example.com/p/mafia-hotel"
+            ),
+            {},
+        )
+
+    def test_missing_or_nonfree_price_is_not_reported(self):
+        data = self.response_for()
+        data["data"]["Catalog"]["searchStore"]["elements"][0]["price"][
+            "totalPrice"
+        ]["discountPrice"] = 100
+        result = EpicPromotionResolver._metadata(
+            data["data"]["Catalog"]["searchStore"]["elements"][0]
+        )
+        self.assertNotIn("original_price", result)
 
 
 class StateTests(unittest.TestCase):
