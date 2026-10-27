@@ -73,7 +73,7 @@ class HttpClient:
                 if e.code not in retryable_status or attempt == self.retries:
                     error_type = (
                         AmbiguousDeliveryError
-                        if ambiguous_on_error and e.code >= 500
+                        if ambiguous_on_error and (e.code == 408 or e.code >= 500)
                         else HttpError
                     )
                     raise error_type(f"HTTP {e.code}: {url}") from e
