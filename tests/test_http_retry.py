@@ -4,7 +4,7 @@ import unittest
 from email.message import Message
 from unittest.mock import patch
 
-from free_game.http import HttpClient, HttpError
+from free_game.http import AmbiguousDeliveryError, HttpClient, HttpError
 
 
 def http_error(status, retry_after=None):
@@ -85,6 +85,40 @@ class HttpRetryTests(unittest.TestCase):
                 {"test": True},
                 retry_status={429},
                 retry_transport_errors=False,
+            )
+
+        urlopen.assert_called_once()
+        sleep.assert_not_called()
+
+    @patch("free_game.http.time.sleep")
+    @patch("free_game.http.urllib.request.urlopen")
+    def test_post_json_classifies_5xx_as_ambiguous_when_requested(self, urlopen, sleep):
+        urlopen.side_effect = http_error(503)
+
+        with self.assertRaisesRegex(AmbiguousDeliveryError, "HTTP 503"):
+            HttpClient("test-agent", retries=3).post_json(
+                "https://discord.example/webhook",
+                {"test": True},
+                retry_status={429},
+                retry_transport_errors=False,
+                ambiguous_on_error=True,
+            )
+
+        urlopen.assert_called_once()
+        sleep.assert_not_called()
+
+    @patch("free_game.http.time.sleep")
+    @patch("free_game.http.urllib.request.urlopen")
+    def test_post_json_classifies_transport_failure_as_ambiguous(self, urlopen, sleep):
+        urlopen.side_effect = urllib.error.URLError("connection timed out")
+
+        with self.assertRaisesRegex(AmbiguousDeliveryError, "outcome"):
+            HttpClient("test-agent", retries=3).post_json(
+                "https://discord.example/webhook",
+                {"test": True},
+                retry_status={429},
+                retry_transport_errors=False,
+                ambiguous_on_error=True,
             )
 
         urlopen.assert_called_once()
