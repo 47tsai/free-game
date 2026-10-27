@@ -9,6 +9,11 @@ class HttpError(RuntimeError):
     pass
 
 
+class AmbiguousDeliveryError(HttpError):
+    """A POST may have been accepted even though its outcome is unknown."""
+
+
+
 class HttpClient:
     def __init__(self, user_agent, retries=3):
         self.user_agent, self.retries = user_agent, retries
@@ -40,6 +45,7 @@ class HttpClient:
         headers=None,
         retry_status=None,
         retry_transport_errors=True,
+        ambiguous_on_error=False,
     ):
         import json
 
@@ -65,11 +71,21 @@ class HttpClient:
                     return r.status, r.read(), dict(r.headers.items())
             except urllib.error.HTTPError as e:
                 if e.code not in retryable_status or attempt == self.retries:
-                    raise HttpError(f"HTTP {e.code}: {url}") from e
+                    error_type = (
+                        AmbiguousDeliveryError
+                        if ambiguous_on_error and e.code >= 500
+                        else HttpError
+                    )
+                    raise error_type(f"HTTP {e.code}: {url}") from e
                 time.sleep(self._retry_delay(e, attempt))
             except (urllib.error.URLError, TimeoutError) as e:
                 if not retry_transport_errors or attempt == self.retries:
-                    raise HttpError(f"request failed: {url}") from e
+                    error_type = (
+                        AmbiguousDeliveryError
+                        if ambiguous_on_error and not retry_transport_errors
+                        else HttpError
+                    )
+                    raise error_type(f"request failed: {url}") from e
                 time.sleep(min(2 ** attempt, 15))
         raise HttpError(f"request failed: {url}")
 
