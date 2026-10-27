@@ -14,7 +14,7 @@ from free_game.http import HttpClient
 from free_game.models import Article, Game
 from free_game.rss import is_free_game_article, parse_rss
 from free_game.state import StateStore
-from free_game.stores import SteamPriceResolver
+from free_game.stores import EpicPromotionResolver, SteamPriceResolver
 
 
 # One-time recovery entry for an article that may have aged out of the RSS feed.
@@ -50,7 +50,7 @@ def select_articles(rss_articles, state, processed, backfill_articles=()):
     return candidates
 
 
-def process_article(item, http, state, ai, discord, steam, processed):
+def process_article(item, http, state, ai, discord, steam, processed, epic=None):
     html, _ = http.get(item.url)
     article = parse_article(html, item.url, item.title, item.summary, item.published)
     games = ai.extract(article)
@@ -96,9 +96,15 @@ def process_article(item, http, state, ai, discord, steam, processed):
             price = steam.resolve(game.name, game.link)
             rating_lookup = getattr(steam, "resolve_rating", None)
             rating = (rating_lookup(game.link) if rating_lookup else "") or game.rating
-            original_price = game.original_price or price
+            epic_metadata = epic.resolve(game.link) if epic else {}
+            original_price = (
+                game.original_price
+                or epic_metadata.get("original_price", "")
+                or price
+            )
+            deadline = game.deadline or epic_metadata.get("deadline", "")
             game = game.__class__(
-                name=game.name, platform=game.platform, deadline=game.deadline,
+                name=game.name, platform=game.platform, deadline=deadline,
                 genre=game.genre, gameplay=game.gameplay, rating=rating,
                 brief=game.brief, link=game.link, image=game.image,
                 steam_price=price, original_price=original_price,
@@ -125,11 +131,12 @@ def main():
     ai = GeminiExtractor(http, GEMINI_API_KEY, GEMINI_MODEL)
     discord = DiscordSender(http, WEBHOOK_URL)
     steam = SteamPriceResolver(http)
+    epic = EpicPromotionResolver(http)
     failures = 0
 
     for item in articles:
         try:
-            if not process_article(item, http, state, ai, discord, steam, processed):
+            if not process_article(item, http, state, ai, discord, steam, processed, epic):
                 failures += 1
         except Exception as exc:
             failures += 1
