@@ -272,6 +272,22 @@ class StateTests(unittest.TestCase):
             with self.assertRaisesRegex(RuntimeError, "state file is invalid"):
                 store.load()
 
+    def test_state_file_with_wrong_json_shape_fails_closed(self):
+        with tempfile.TemporaryDirectory() as d:
+            path = Path(d) / "state.json"
+            path.write_text('{"processed": []}', encoding="utf-8")
+            store = StateStore(path, 100)
+            with self.assertRaisesRegex(RuntimeError, "invalid structure"):
+                store.load()
+
+    def test_state_file_with_non_string_entry_fails_closed(self):
+        with tempfile.TemporaryDirectory() as d:
+            path = Path(d) / "state.json"
+            path.write_text('[\"valid-key\", 42]', encoding="utf-8")
+            store = StateStore(path, 100)
+            with self.assertRaisesRegex(RuntimeError, "invalid structure"):
+                store.load()
+
     def test_state_preserves_recent_insertion_order(self):
         with tempfile.TemporaryDirectory() as d:
             store = StateStore(d + "/state.json", 2)
