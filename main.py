@@ -10,7 +10,7 @@ from free_game.config import (
     WEBHOOK_URL,
 )
 from free_game.discord import DiscordSender
-from free_game.http import HttpClient
+from free_game.http import AmbiguousDeliveryError, HttpClient
 from free_game.models import Article, Game
 from free_game.rss import is_free_game_article, parse_rss
 from free_game.state import StateStore
@@ -109,7 +109,17 @@ def process_article(item, http, state, ai, discord, steam, processed, epic=None)
                 brief=game.brief, link=game.link, image=game.image,
                 steam_price=price, original_price=original_price,
             )
-            discord.send(game, article.title, article.url)
+            try:
+                discord.send(game, article.title, article.url)
+            except AmbiguousDeliveryError as exc:
+                # Do not resend automatically: Discord may already have accepted it.
+                # This marker is distinct from confirmed delivery and requires manual review.
+                processed.add(state.uncertain_game_key(game))
+                print(
+                    f"[WARN] {item.url} | {game.name}: delivery outcome unknown; "
+                    f"recorded for manual review and will not auto-retry ({exc})"
+                )
+                continue
             processed.add(key)
         except Exception as exc:
             article_failed = True
