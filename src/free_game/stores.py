@@ -37,6 +37,37 @@ class SteamPriceResolver:
         except Exception:
             return ""
 
+    def resolve_rating(self, link):
+        """Fetch a review summary for the exact Steam app linked by the article."""
+        if urlparse(link).netloc.lower() != "store.steampowered.com":
+            return ""
+
+        appid = self._appid(link)
+        if not appid:
+            return ""
+
+        try:
+            data, _ = self.http.get(
+                f"https://store.steampowered.com/appreviews/{appid}"
+                "?json=1&language=all&purchase_type=all&num_per_page=0"
+            )
+            response = json.loads(data)
+            summary = response.get("query_summary", {})
+            if not isinstance(summary, dict):
+                return ""
+
+            total = int(summary.get("total_reviews", 0) or 0)
+            positive = int(summary.get("total_positive", 0) or 0)
+            if total <= 0 or positive < 0 or positive > total:
+                return ""
+
+            percent = round(positive * 100 / total)
+            description = str(summary.get("review_score_desc", "")).strip()
+            label = f"{description}，" if description else ""
+            return f"{label}{percent}% 好評（{total:,} 則評論）"
+        except Exception:
+            return ""
+
     @staticmethod
     def _price(data):
         if not isinstance(data, dict):
