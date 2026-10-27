@@ -15,8 +15,13 @@ class StateStore:
                 return set()
             self._order = list(dict.fromkeys(str(item) for item in data))
             return set(self._order)
-        except (OSError, json.JSONDecodeError):
+        except FileNotFoundError:
+            # A first run has no state file yet, so an empty state is expected.
             return set()
+        except (OSError, json.JSONDecodeError) as exc:
+            # Never silently forget notification history: that can resend every
+            # previously announced game. Fail closed and require repair.
+            raise RuntimeError(f"state file is invalid or unreadable: {self.path}") from exc
 
     def save(self, values):
         self.path.parent.mkdir(parents=True, exist_ok=True)
