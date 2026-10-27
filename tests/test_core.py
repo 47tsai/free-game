@@ -1,6 +1,8 @@
 import json
 import tempfile
 import unittest
+from pathlib import Path
+from unittest.mock import patch
 
 from free_game.article import normalize_store_url, parse_article
 from free_game.discord import DiscordSender, format_deadline
@@ -241,6 +243,22 @@ class EpicPromotionTests(unittest.TestCase):
 
 
 class StateTests(unittest.TestCase):
+    def test_state_save_is_atomic_when_replace_fails(self):
+        with tempfile.TemporaryDirectory() as d:
+            path = Path(d) / "state.json"
+            path.write_text('[\"previous-valid-state\"]\\n', encoding="utf-8")
+            store = StateStore(path, 100)
+
+            with patch.object(Path, "replace", side_effect=OSError("simulated failure")):
+                with self.assertRaises(OSError):
+                    store.save({"new-state"})
+
+            self.assertEqual(
+                path.read_text(encoding="utf-8"),
+                '[\"previous-valid-state\"]\\n',
+            )
+            path.with_name(path.name + ".tmp").unlink()
+
     def test_state_preserves_recent_insertion_order(self):
         with tempfile.TemporaryDirectory() as d:
             store = StateStore(d + "/state.json", 2)
