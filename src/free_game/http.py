@@ -23,11 +23,11 @@ class HttpClient:
                 with urllib.request.urlopen(req, timeout=timeout) as r:
                     return r.read(), dict(r.headers.items())
             except urllib.error.HTTPError as e:
-                if e.code not in retryable_status or attempt == self.retries:
+                if e.code not in RETRY_STATUS or attempt == self.retries:
                     raise HttpError(f"HTTP {e.code}: {url}") from e
                 time.sleep(self._retry_delay(e, attempt))
             except (urllib.error.URLError, TimeoutError) as e:
-                if not retry_transport_errors or attempt == self.retries:
+                if attempt == self.retries:
                     raise HttpError(f"request failed: {url}") from e
                 time.sleep(min(2 ** attempt, 15))
         raise HttpError(f"request failed: {url}")
@@ -64,11 +64,11 @@ class HttpClient:
                 with urllib.request.urlopen(req, timeout=timeout) as r:
                     return r.status, r.read(), dict(r.headers.items())
             except urllib.error.HTTPError as e:
-                if e.code not in RETRY_STATUS or attempt == self.retries:
+                if e.code not in retryable_status or attempt == self.retries:
                     raise HttpError(f"HTTP {e.code}: {url}") from e
                 time.sleep(self._retry_delay(e, attempt))
             except (urllib.error.URLError, TimeoutError) as e:
-                if attempt == self.retries:
+                if not retry_transport_errors or attempt == self.retries:
                     raise HttpError(f"request failed: {url}") from e
                 time.sleep(min(2 ** attempt, 15))
         raise HttpError(f"request failed: {url}")
