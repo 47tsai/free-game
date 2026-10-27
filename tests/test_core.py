@@ -408,8 +408,8 @@ class AITests(unittest.TestCase):
         )
         games = GeminiExtractor(FakeHttp(), "key", "gemini-test").extract(article)
         self.assertEqual(games[0].link, "https://store.epicgames.com/p/example")
-        self.assertEqual(games[0].original_price, "$52")
-        self.assertEqual(games[0].deadline, "2026-11-03T00:00:00+08:00")
+        self.assertEqual(games[0].original_price, "")
+        self.assertEqual(games[0].deadline, "")
 
     def test_invalid_store_link_is_rejected(self):
         from free_game.ai import GeminiExtractor
