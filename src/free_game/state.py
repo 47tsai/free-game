@@ -11,9 +11,13 @@ class StateStore:
     def load(self):
         try:
             data = json.loads(self.path.read_text(encoding="utf-8"))
-            if not isinstance(data, list):
-                return set()
-            self._order = list(dict.fromkeys(str(item) for item in data))
+            if not isinstance(data, list) or not all(
+                isinstance(item, str) for item in data
+            ):
+                raise RuntimeError(
+                    f"state file has an invalid structure: {self.path}"
+                )
+            self._order = list(dict.fromkeys(data))
             return set(self._order)
         except FileNotFoundError:
             # A first run has no state file yet, so an empty state is expected.
