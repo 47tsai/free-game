@@ -12,6 +12,17 @@ class ArticleMetadataTests(unittest.TestCase):
     def test_extract_twd_original_price(self):
         self.assertEqual(extract_original_price("本作原價新台幣 27 元"), "NT$27")
 
+    def test_extract_original_price_without_currency_prefix(self):
+        self.assertEqual(extract_original_price("本作原價 27 元"), "NT$27")
+        self.assertEqual(extract_original_price("定價為 1,299 TWD"), "NT$1299")
+
+    def test_extract_original_price_keeps_explicit_usd(self):
+        self.assertEqual(extract_original_price("原價 US$ 6.99"), "US$6.99")
+        self.assertEqual(extract_original_price("原價 6.99 美元"), "US$6.99")
+
+    def test_price_without_currency_is_not_guessed(self):
+        self.assertEqual(extract_original_price("原價 27"), "")
+
     def test_extract_taiwan_deadline(self):
         article = "期限至台灣時間 2026 年 11 月 2 日凌晨 1 點 2 分"
         self.assertEqual(
