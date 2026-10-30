@@ -18,7 +18,7 @@
 ## GitHub Actions
 
 - Python 3.12
-- 每 15 分鐘排程與手動執行
+- 僅支援 GitHub Actions 手動觸發（`workflow_dispatch`）；目前此 Repository 的 Workflow 未設定 `schedule`，因此不能將定期執行視為由 GitHub Actions 排程。若觀察到定期執行，需另外確認外部觸發來源。
 - 測試通過後才執行 notifier
 - `data/processed.json` 由 Actions 自動寫回 repository
 - concurrency 避免多個執行同時修改 state
