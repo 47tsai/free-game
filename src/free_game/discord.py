@@ -112,7 +112,7 @@ class DiscordSender:
             f"⏳ **期限**　{clip(deadline, 200)}\n"
             f"🎮 **平台**　{clip(platform, 200)}\n"
             f"🧩 **遊戲類型**　{clip(genre, 200)}\n"
-            f"📝 **介紹**　{clip(brief, 80)}\n"
+            f"📝 **介紹**　{clip(brief, 140)}\n"
             f"⭐ **玩家評價**　{clip(rating, 300)}"
         )
 
