@@ -95,10 +95,10 @@ class GeminiExtractor:
         ]
         prompt = (
             "你是遊戲資訊結構化助手。只根據文章內容判斷哪些遊戲正在限時免費。"
-            "輸出 JSON 陣列，不要 Markdown。欄位為 name, platform, original_price, deadline, genre, gameplay, rating, brief, store_index。original_price 是本次免費活動開始前的原價，只能使用文章明確提供的價格，保留原幣別與格式（例如 $52、NT$ 300）；不可把「免費」或折扣後的 $0 當成原價，文章沒有提供就輸出空字串。deadline 請輸出 ISO 8601 日期時間並使用台灣時區 +08:00，例如 2026-11-03T00:00:00+08:00；若文章未提供具體時間，不可自行猜測，輸出原文或空字串。rating 只能引用文章明確寫出的玩家評價或好評率，文章未提供就輸出空字串，絕不可推測。brief 只寫一句 20 字內的超短遊戲特色介紹。"
+            "輸出 JSON 陣列，不要 Markdown。欄位為 name, platform, original_price, deadline, genre, gameplay, rating, brief, store_index。original_price 是本次免費活動開始前的原價，只能使用文章明確提供的價格，保留原幣別與格式（例如 $52、NT$ 300）；不可把「免費」或折扣後的 $0 當成原價，文章沒有提供就輸出空字串。deadline 請輸出 ISO 8601 日期時間並使用台灣時區 +08:00，例如 2026-11-03T00:00:00+08:00；若文章未提供具體時間，不可自行猜測，輸出原文或空字串。rating 只能引用文章明確寫出的玩家評價或好評率，文章未提供就輸出空字串，絕不可推測。genre 請使用精簡且明確的遊戲類型；gameplay 說明主要操作、目標與核心機制；brief 是給 Discord 通知直接顯示的完整遊戲介紹，請用自然的繁體中文寫 1 至 2 句、約 40 至 80 個中文字，交代玩家要做什麼及最具辨識度的玩法特色，避免空泛形容、重複標題或只寫宣傳口號。所有描述只能依據標題、RSS 摘要與文章內文，不確定的細節不要補寫。"
             "store_index 必須是候選商店連結前面的整數編號，不可自行產生 URL。每個候選連結最多配對一款遊戲；"
             "若文章有多個遊戲，分別配對最合理的候選連結。若無法可靠配對，省略該遊戲。"
-            f"\n標題：{article.title}\n文章：{article.text}"
+            f"\n標題：{article.title}\nRSS 摘要：{article.summary}\n文章：{article.text}"
             f"\n候選商店連結：{json.dumps(candidates, ensure_ascii=False)}"
         )
         url = (
