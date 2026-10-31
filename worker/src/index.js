@@ -101,7 +101,8 @@ function platformKey(value) {
 }
 
 function autoStatus(record) {
-  const value = String(record && record.status || "").trim().toLocaleLowerCase();
+  if (!record) return "";
+  const value = String(record.status || "").trim().toLocaleLowerCase();
   if (value === "claimed") return "已領取";
   if (value.includes("already") || value.includes("exist")) return "已擁有";
   if (value.includes("available")) return "尚未領取";
