@@ -96,7 +96,7 @@ class DiscordSender:
     def __init__(self, http, webhook):
         self.http, self.webhook = http, webhook
 
-    def send(self, game, article_title, article_url):
+    def send(self, game, article_title, article_url, claim_status="尚無回報"):
         original_price = game.original_price or game.steam_price
         price_text = format_price(original_price)
         deadline = format_deadline(game.deadline)
@@ -111,6 +111,7 @@ class DiscordSender:
             f"💰 **原價**　{price_text}\n"
             f"⏳ **期限**　{clip(deadline, 200)}\n"
             f"🎮 **平台**　{clip(platform, 200)}\n"
+            f"📦 **領取狀態**　{clip(claim_status, 100)}\n"
             f"🧩 **遊戲類型**　{clip(genre, 200)}\n"
             f"📝 **介紹**　{clip(brief, 140)}\n"
             f"⭐ **玩家評價**　{clip(rating, 300)}"
