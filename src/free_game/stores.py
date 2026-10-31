@@ -37,6 +37,38 @@ class SteamPriceResolver:
         except Exception:
             return ""
 
+    def resolve_deadline(self, link):
+        """Return the end of an active Steam discount when the API exposes it."""
+        if urlparse(link).netloc.lower() != "store.steampowered.com":
+            return ""
+
+        appid = self._appid(link)
+        if not appid:
+            return ""
+
+        try:
+            from datetime import datetime, timezone
+            from zoneinfo import ZoneInfo
+
+            data, _ = self.http.get(
+                "https://store.steampowered.com/api/appdetails"
+                "?appids=" + appid + "&cc=tw&l=tchinese"
+            )
+            obj = json.loads(data).get(appid, {})
+            if not obj.get("success"):
+                return ""
+            overview = obj.get("data", {}).get("price_overview", {})
+            if not isinstance(overview, dict) or not overview.get("discount_percent"):
+                return ""
+            expiration = int(overview.get("discount_expiration", 0) or 0)
+            if expiration <= 0:
+                return ""
+            return datetime.fromtimestamp(
+                expiration, timezone.utc
+            ).astimezone(ZoneInfo("Asia/Taipei")).isoformat(timespec="seconds")
+        except (TypeError, ValueError, KeyError, OSError):
+            return ""
+
     def resolve_rating(self, link):
         """Fetch a review summary for the exact Steam app linked by the article."""
         if urlparse(link).netloc.lower() != "store.steampowered.com":
