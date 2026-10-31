@@ -115,9 +115,14 @@ def process_article(item, http, state, ai, discord, steam, processed, epic=None,
             )
             try:
                 claim_status = claims.get_status(game) if claims else "尚無回報"
-                discord.send(
-                    game, article.title, article.url, claim_status=claim_status
+                game = game.__class__(
+                    name=game.name, platform=game.platform, deadline=game.deadline,
+                    genre=game.genre, gameplay=game.gameplay, rating=game.rating,
+                    brief=game.brief, link=game.link, image=game.image,
+                    steam_price=game.steam_price, original_price=game.original_price,
+                    claim_status=claim_status,
                 )
+                discord.send(game, article.title, article.url)
             except AmbiguousDeliveryError as exc:
                 # Do not resend automatically: Discord may already have accepted it.
                 # This marker is distinct from confirmed delivery and requires manual review.
