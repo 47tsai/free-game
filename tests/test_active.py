@@ -21,15 +21,18 @@ class ActiveGameStoreTests(unittest.TestCase):
             path = Path(directory) / "active-games.json"
             store = ActiveGameStore(path)
             self.assertTrue(store.upsert(game, "Free game", "https://example.com", now=now))
+            store.bootstrapped = True
             store.save()
 
             payload = json.loads(path.read_text(encoding="utf-8"))
+            self.assertTrue(payload["bootstrapped"])
             self.assertEqual(len(payload["games"]), 1)
             self.assertEqual(payload["games"][0]["name"], "Example Game")
 
             loaded = ActiveGameStore(path)
             loaded.load()
             self.assertEqual(len(loaded.records), 1)
+            self.assertTrue(loaded.bootstrapped)
 
     def test_rejects_missing_or_expired_deadline(self):
         now = datetime(2026, 10, 31, 4, 0, tzinfo=timezone.utc)
