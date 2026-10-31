@@ -133,7 +133,11 @@ def process_article(
 
             # Refresh the public active-game index even when Discord already
             # processed this article during an earlier notifier run.
-            if active_games:
+            epic_campaign_is_upcoming = (
+                game.platform == "Epic Games Store"
+                and epic_metadata.get("is_active") is False
+            )
+            if active_games and not epic_campaign_is_upcoming:
                 active_games.upsert(game, article.title, article.url, claim_status)
 
             # Existing game/article state still prevents duplicate notifications.
