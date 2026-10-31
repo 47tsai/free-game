@@ -96,7 +96,7 @@ class DiscordSender:
     def __init__(self, http, webhook):
         self.http, self.webhook = http, webhook
 
-    def send(self, game, article_title, article_url, claim_status="尚無回報"):
+    def send(self, game, article_title, article_url):
         original_price = game.original_price or game.steam_price
         price_text = format_price(original_price)
         deadline = format_deadline(game.deadline)
@@ -104,6 +104,7 @@ class DiscordSender:
         genre = game.genre or "未知"
         brief = game.brief or "限時免費活動"
         rating = game.rating or "暫無資料"
+        claim_status = getattr(game, "claim_status", "尚無回報")
         if rating.strip().lower() in ("none", "null", "n/a", "na", "-"):
             rating = "暫無資料"
 
