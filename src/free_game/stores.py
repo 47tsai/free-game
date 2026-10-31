@@ -253,9 +253,10 @@ class EpicPromotionResolver:
         # different end dates and must not shorten the current claim window.
         active_groups = promotions.get("promotionalOffers", [])
         upcoming_groups = promotions.get("upcomingPromotionalOffers", [])
-        groups = active_groups if isinstance(active_groups, list) and active_groups else (
-            upcoming_groups if isinstance(upcoming_groups, list) else []
-        )
+        active_groups = active_groups if isinstance(active_groups, list) else []
+        upcoming_groups = upcoming_groups if isinstance(upcoming_groups, list) else []
+        result["is_active"] = bool(active_groups)
+        groups = active_groups if active_groups else upcoming_groups
         end_dates = []
         for group in groups:
             if not isinstance(group, dict):
