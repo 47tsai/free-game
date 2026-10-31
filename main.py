@@ -112,9 +112,9 @@ def process_article(
                 or price
             )
             deadline = (
-                game.deadline
-                or epic_metadata.get("deadline", "")
+                epic_metadata.get("deadline", "")
                 or steam_deadline
+                or game.deadline
             )
             game = game.__class__(
                 name=game.name, platform=game.platform, deadline=deadline,
