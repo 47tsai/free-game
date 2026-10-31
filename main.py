@@ -3,6 +3,9 @@ from free_game.article import parse_article
 from free_game.config import (
     GEMINI_API_KEY,
     GEMINI_MODEL,
+    NTFY_URL,
+    CLAIMS_FILE,
+    NTFY_CURSOR_FILE,
     MAX_PROCESSED,
     RSS_URL,
     STATE_FILE,
@@ -10,6 +13,7 @@ from free_game.config import (
     WEBHOOK_URL,
 )
 from free_game.discord import DiscordSender
+from free_game.claims import ClaimStore, load_cursor, poll_ntfy, save_cursor
 from free_game.http import AmbiguousDeliveryError, HttpClient
 from free_game.models import Article, Game
 from free_game.rss import is_free_game_article, parse_rss
@@ -50,7 +54,7 @@ def select_articles(rss_articles, state, processed, backfill_articles=()):
     return candidates
 
 
-def process_article(item, http, state, ai, discord, steam, processed, epic=None):
+def process_article(item, http, state, ai, discord, steam, processed, epic=None, claims=None):
     html, _ = http.get(item.url)
     article = parse_article(html, item.url, item.title, item.summary, item.published)
     games = ai.extract(article)
@@ -110,6 +114,14 @@ def process_article(item, http, state, ai, discord, steam, processed, epic=None)
                 steam_price=price, original_price=original_price,
             )
             try:
+                claim_status = claims.get_status(game) if claims else "尚無回報"
+                game = game.__class__(
+                    name=game.name, platform=game.platform, deadline=game.deadline,
+                    genre=game.genre, gameplay=game.gameplay, rating=game.rating,
+                    brief=game.brief, link=game.link, image=game.image,
+                    steam_price=game.steam_price, original_price=game.original_price,
+                    claim_status=claim_status,
+                )
                 discord.send(game, article.title, article.url)
             except AmbiguousDeliveryError as exc:
                 # Do not resend automatically: Discord may already have accepted it.
@@ -135,6 +147,30 @@ def main():
     http = HttpClient(USER_AGENT)
     state = StateStore(STATE_FILE, MAX_PROCESSED)
     processed = state.load()
+    claims = ClaimStore(CLAIMS_FILE)
+    claims.load()
+    cursor = load_cursor(NTFY_CURSOR_FILE)
+
+    if NTFY_URL:
+        try:
+            events, latest_cursor = poll_ntfy(http, NTFY_URL, cursor)
+            updated = claims.apply_events(events)
+            if latest_cursor:
+                cursor = latest_cursor
+            print(
+                f"[INFO] ntfy messages received: {len(events)}; "
+                f"claim records updated: {updated}"
+            )
+        except Exception as exc:
+            # Claim status is supplementary: keep the last saved status and
+            # continue sending game alerts if ntfy is temporarily unavailable.
+            print(f"[WARN] ntfy polling failed; using saved claim statuses: {exc}")
+
+    # Persist claim data before the cursor. If saving fails, the same ntfy
+    # messages are replayed on the next run rather than silently lost.
+    claims.save()
+    save_cursor(NTFY_CURSOR_FILE, cursor)
+
     data, _ = http.get(RSS_URL)
     rss_articles = parse_rss(data)
     articles = select_articles(rss_articles, state, processed, BACKFILL_ARTICLES)
@@ -146,7 +182,7 @@ def main():
 
     for item in articles:
         try:
-            if not process_article(item, http, state, ai, discord, steam, processed, epic):
+            if not process_article(item, http, state, ai, discord, steam, processed, epic, claims):
                 failures += 1
         except Exception as exc:
             failures += 1

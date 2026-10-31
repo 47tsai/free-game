@@ -7,3 +7,8 @@ GEMINI_MODEL = os.environ.get("GEMINI_MODEL", "gemini-2.5-flash")
 STATE_FILE = "data/processed.json"
 MAX_PROCESSED = 500
 USER_AGENT = "free-game-notifier/2.0"
+
+# FGC claim-status bridge (public ntfy topic; no credential required).
+NTFY_URL = os.getenv("NTFY_URL", "https://ntfy.sh/47tsai-fgc").strip().rstrip("/")
+CLAIMS_FILE = "data/claims.json"
+NTFY_CURSOR_FILE = "data/ntfy_cursor.json"

@@ -104,6 +104,7 @@ class DiscordSender:
         genre = game.genre or "未知"
         brief = game.brief or "限時免費活動"
         rating = game.rating or "暫無資料"
+        claim_status = getattr(game, "claim_status", "尚無回報")
         if rating.strip().lower() in ("none", "null", "n/a", "na", "-"):
             rating = "暫無資料"
 
@@ -111,6 +112,7 @@ class DiscordSender:
             f"💰 **原價**　{price_text}\n"
             f"⏳ **期限**　{clip(deadline, 200)}\n"
             f"🎮 **平台**　{clip(platform, 200)}\n"
+            f"📦 **領取狀態**　{clip(claim_status, 100)}\n"
             f"🧩 **遊戲類型**　{clip(genre, 200)}\n"
             f"📝 **介紹**　{clip(brief, 140)}\n"
             f"⭐ **玩家評價**　{clip(rating, 300)}"
