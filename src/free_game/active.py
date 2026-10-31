@@ -32,6 +32,7 @@ class ActiveGameStore:
     def __init__(self, path):
         self.path = Path(path)
         self.records = {}
+        self.bootstrapped = False
 
     def load(self):
         try:
@@ -49,6 +50,7 @@ class ActiveGameStore:
         ):
             raise RuntimeError(f"active game state has an invalid structure: {self.path}")
         self.records = {item["id"]: item for item in games}
+        self.bootstrapped = bool(data.get("bootstrapped", False))
         return self.records
 
     def prune(self, now=None):
@@ -93,6 +95,7 @@ class ActiveGameStore:
             json.dumps(
                 {
                     "updated_at": datetime.now(timezone.utc).isoformat(timespec="seconds"),
+                    "bootstrapped": self.bootstrapped,
                     "games": sorted(
                         self.records.values(),
                         key=lambda item: item.get("deadline", ""),
