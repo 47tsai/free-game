@@ -42,12 +42,13 @@ class ActiveGameStore:
         except (OSError, json.JSONDecodeError) as exc:
             raise RuntimeError(f"active game state is invalid or unreadable: {self.path}") from exc
 
-        if not isinstance(data, dict) or not all(
-            isinstance(key, str) and isinstance(value, dict)
-            for key, value in data.items()
+        games = data.get("games") if isinstance(data, dict) else None
+        if not isinstance(games, list) or not all(
+            isinstance(item, dict) and isinstance(item.get("id"), str)
+            for item in games
         ):
             raise RuntimeError(f"active game state has an invalid structure: {self.path}")
-        self.records = data
+        self.records = {item["id"]: item for item in games}
         return self.records
 
     def prune(self, now=None):
@@ -90,11 +91,13 @@ class ActiveGameStore:
         temporary = self.path.with_name(self.path.name + ".tmp")
         temporary.write_text(
             json.dumps(
-                {"updated_at": datetime.now(timezone.utc).isoformat(timespec="seconds"),
-                 "games": sorted(
-                     self.records.values(),
-                     key=lambda item: item.get("deadline", ""),
-                 )},
+                {
+                    "updated_at": datetime.now(timezone.utc).isoformat(timespec="seconds"),
+                    "games": sorted(
+                        self.records.values(),
+                        key=lambda item: item.get("deadline", ""),
+                    ),
+                },
                 ensure_ascii=False,
                 indent=2,
             ) + "\n",
