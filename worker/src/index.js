@@ -167,7 +167,7 @@ export default {
       const document = JSON.stringify({
         updated_at: new Date().toISOString(),
         claims,
-      }, null, 2) + "\\n";
+      }, null, 2) + "\n";
       const response = await githubRequest(MANUAL_PATH, env, {
         method: "PUT",
         headers: { "Content-Type": "application/json" },
