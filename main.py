@@ -12,6 +12,7 @@ from free_game.config import (
     USER_AGENT,
     WEBHOOK_URL,
 )
+from free_game.active import ActiveGameStore
 from free_game.discord import DiscordSender
 from free_game.claims import ClaimStore, load_cursor, poll_ntfy, save_cursor
 from free_game.http import AmbiguousDeliveryError, HttpClient
@@ -54,7 +55,10 @@ def select_articles(rss_articles, state, processed, backfill_articles=()):
     return candidates
 
 
-def process_article(item, http, state, ai, discord, steam, processed, epic=None, claims=None):
+def process_article(
+    item, http, state, ai, discord, steam, processed,
+    epic=None, claims=None, active_games=None,
+):
     html, _ = http.get(item.url)
     article = parse_article(html, item.url, item.title, item.summary, item.published)
     games = ai.extract(article)
@@ -82,9 +86,6 @@ def process_article(item, http, state, ai, discord, steam, processed, epic=None,
             f"[WARN] {item.url} | no games extracted; "
             f"store_links={len(article.store_links)}; will retry on next run"
         )
-        # Do not permanently mark an article processed if extraction returned
-        # nothing. A later run can retry it, and the log shows whether store
-        # links were discovered by the article parser.
         return True
 
     article_failed = False
@@ -113,19 +114,19 @@ def process_article(item, http, state, ai, discord, steam, processed, epic=None,
                 brief=game.brief, link=game.link, image=game.image,
                 steam_price=price, original_price=original_price,
             )
+            claim_status = claims.get_status(game) if claims else "尚無回報"
+            game = game.__class__(
+                name=game.name, platform=game.platform, deadline=game.deadline,
+                genre=game.genre, gameplay=game.gameplay, rating=game.rating,
+                brief=game.brief, link=game.link, image=game.image,
+                steam_price=game.steam_price, original_price=game.original_price,
+                claim_status=claim_status,
+            )
+            if active_games:
+                active_games.upsert(game, article.title, article.url, claim_status)
             try:
-                claim_status = claims.get_status(game) if claims else "尚無回報"
-                game = game.__class__(
-                    name=game.name, platform=game.platform, deadline=game.deadline,
-                    genre=game.genre, gameplay=game.gameplay, rating=game.rating,
-                    brief=game.brief, link=game.link, image=game.image,
-                    steam_price=game.steam_price, original_price=game.original_price,
-                    claim_status=claim_status,
-                )
                 discord.send(game, article.title, article.url)
             except AmbiguousDeliveryError as exc:
-                # Do not resend automatically: Discord may already have accepted it.
-                # This marker is distinct from confirmed delivery and requires manual review.
                 processed.add(state.uncertain_game_key(game))
                 print(
                     f"[WARN] {item.url} | {game.name}: delivery outcome unknown; "
@@ -149,6 +150,12 @@ def main():
     processed = state.load()
     claims = ClaimStore(CLAIMS_FILE)
     claims.load()
+    active_games = ActiveGameStore("data/active-games.json")
+    active_games.load()
+    removed = active_games.prune()
+    if removed:
+        print(f"[INFO] Expired active campaigns removed: {removed}")
+    active_games.save()
     cursor = load_cursor(NTFY_CURSOR_FILE)
 
     if NTFY_URL:
@@ -162,12 +169,8 @@ def main():
                 f"claim records updated: {updated}"
             )
         except Exception as exc:
-            # Claim status is supplementary: keep the last saved status and
-            # continue sending game alerts if ntfy is temporarily unavailable.
             print(f"[WARN] ntfy polling failed; using saved claim statuses: {exc}")
 
-    # Persist claim data before the cursor. If saving fails, the same ntfy
-    # messages are replayed on the next run rather than silently lost.
     claims.save()
     save_cursor(NTFY_CURSOR_FILE, cursor)
 
@@ -182,15 +185,18 @@ def main():
 
     for item in articles:
         try:
-            if not process_article(item, http, state, ai, discord, steam, processed, epic, claims):
+            if not process_article(
+                item, http, state, ai, discord, steam, processed,
+                epic, claims, active_games,
+            ):
                 failures += 1
         except Exception as exc:
             failures += 1
             print(f"[ERROR] {item.url}: {exc}")
         finally:
-            # Persist partial progress. A state-write failure is fatal because
-            # it can cause duplicate notifications on the next run.
             state.save(processed)
+            active_games.prune()
+            active_games.save()
 
     if failures:
         raise RuntimeError(f"{failures} article(s) failed")
