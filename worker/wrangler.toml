@@ -1,7 +1,10 @@
 name = "chi-free-game-api"
 main = "src/index.js"
 compatibility_date = "2026-10-31"
-workers_dev = true\n\n[triggers]\ncrons = ["17 */6 * * *"]
+workers_dev = true
+
+[triggers]
+crons = ["17 */6 * * *"]
 
 routes = [
   { pattern = "fg-api.chi.qzz.io", custom_domain = true }
