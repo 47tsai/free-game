@@ -3,12 +3,12 @@ main = "src/index.js"
 compatibility_date = "2026-10-31"
 workers_dev = true
 
-[triggers]
-crons = ["17 */6 * * *"]
-
 routes = [
   { pattern = "fg-api.chi.qzz.io", custom_domain = true }
 ]
+
+[triggers]
+crons = ["17 */6 * * *"]
 
 [vars]
 APP_ORIGIN = "https://fg.chi.qzz.io"
