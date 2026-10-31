@@ -167,7 +167,7 @@ def main():
     claims = ClaimStore(CLAIMS_FILE)
     claims.load()
     active_games = ActiveGameStore("data/active-games.json")
-    rebuild_active_index = not active_games.path.exists()
+    rebuild_active_index = not active_games.bootstrapped
     active_games.load()
     removed = active_games.prune()
     if removed:
@@ -220,6 +220,10 @@ def main():
 
     if failures:
         raise RuntimeError(f"{failures} article(s) failed")
+
+    if rebuild_active_index:
+        active_games.bootstrapped = True
+        active_games.save()
 
 
 if __name__ == "__main__":
