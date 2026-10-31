@@ -122,10 +122,10 @@ async function verifyOwner(request, env) {
   return user.sub === "chi-owner" && user.aud === env.CHI_CLIENT_ID;
 }
 
-async function writeManualClaim(eventId, claimed, env) {
+async function writeManualClaim(eventId, claimed, activeIds, env) {
   for (let attempt = 0; attempt < 2; attempt++) {
     const current = await readManualClaims(env);
-    const claims = { ...current.document.claims };
+    const claims = Object.fromEntries(Object.entries(current.document.claims).filter(([id]) => activeIds.has(id)));
     claims[eventId] = {
       claimed,
       updated_at: new Date().toISOString(),
@@ -155,6 +155,36 @@ async function writeManualClaim(eventId, claimed, env) {
 }
 
 export default {
+  async scheduled(_controller, env) {
+    const active = await readActiveGames();
+    const activeIds = new Set(active.games.map((game) => game.id));
+    for (let attempt = 0; attempt < 2; attempt++) {
+      const current = await readManualClaims(env);
+      const claims = Object.fromEntries(
+        Object.entries(current.document.claims).filter(([id]) => activeIds.has(id)),
+      );
+      if (Object.keys(claims).length === Object.keys(current.document.claims).length) return;
+      const document = JSON.stringify({
+        updated_at: new Date().toISOString(),
+        claims,
+      }, null, 2) + "\\n";
+      const response = await githubRequest(MANUAL_PATH, env, {
+        method: "PUT",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({
+          message: "chore: prune expired manual game claims",
+          content: encodeBase64(document),
+          ...(current.sha ? { sha: current.sha } : {}),
+        }),
+      });
+      if (response.ok) return;
+      if (response.status !== 409 && response.status !== 422) {
+        throw new Error("GitHub 清理過期領取紀錄失敗：" + response.status);
+      }
+    }
+    throw new Error("清理時資料持續變動，將等待下次排程");
+  },
+
   async fetch(request, env) {
     const origin = allowedOrigin(request, env);
     if (request.method === "OPTIONS") {
@@ -205,7 +235,8 @@ export default {
         if (!active.games.some((game) => game.id === eventId)) {
           return json({ error: "這個限免活動已經過期或不存在" }, 404, origin);
         }
-        const claim = await writeManualClaim(eventId, body.claimed, env);
+        const activeIds = new Set(active.games.map((game) => game.id));
+        const claim = await writeManualClaim(eventId, body.claimed, activeIds, env);
         return json({ claim }, 200, origin);
       }
 
