@@ -102,12 +102,20 @@ def process_article(
             rating_lookup = getattr(steam, "resolve_rating", None)
             rating = (rating_lookup(game.link) if rating_lookup else "") or game.rating
             epic_metadata = epic.resolve(game.link) if epic else {}
+            steam_deadline_lookup = getattr(steam, "resolve_deadline", None)
+            steam_deadline = (
+                steam_deadline_lookup(game.link) if steam_deadline_lookup else ""
+            )
             original_price = (
                 game.original_price
                 or epic_metadata.get("original_price", "")
                 or price
             )
-            deadline = game.deadline or epic_metadata.get("deadline", "")
+            deadline = (
+                game.deadline
+                or epic_metadata.get("deadline", "")
+                or steam_deadline
+            )
             game = game.__class__(
                 name=game.name, platform=game.platform, deadline=deadline,
                 genre=game.genre, gameplay=game.gameplay, rating=rating,
