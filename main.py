@@ -36,7 +36,9 @@ BACKFILL_ARTICLES = (
 )
 
 
-def select_articles(rss_articles, state, processed, backfill_articles=()):
+def select_articles(
+    rss_articles, state, processed, backfill_articles=(), include_processed=False,
+):
     print(f"[INFO] RSS articles fetched: {len(rss_articles)}")
     matching = [a for a in rss_articles if is_free_game_article(a)]
     print(f"[INFO] RSS free-game keyword matches: {len(matching)}")
@@ -49,9 +51,9 @@ def select_articles(rss_articles, state, processed, backfill_articles=()):
 
     candidates = [
         item for item in articles_by_url.values()
-        if not state.is_article_processed(processed, item.url)
+        if include_processed or not state.is_article_processed(processed, item.url)
     ]
-    print(f"[INFO] Unprocessed free-game articles to handle: {len(candidates)}")
+    print(f"[INFO] Articles to process for active-game index: {len(candidates)}")
     return candidates
 
 
@@ -64,8 +66,6 @@ def process_article(
     games = ai.extract(article)
 
     if not games and item.url == TERRASPACE_ARTICLE_URL and article.store_links:
-        # Verified recovery for this specific article: Gemini returned no game,
-        # although the article and its single Epic Store link are available.
         print("[WARN] Using verified metadata fallback for Terraspace")
         games = [
             Game(
@@ -93,7 +93,7 @@ def process_article(
 
     for game in games:
         key = state.game_key(game)
-        if key in seen_games or state.is_game_processed(processed, item.url, game):
+        if key in seen_games:
             continue
         seen_games.add(key)
 
@@ -122,8 +122,16 @@ def process_article(
                 steam_price=game.steam_price, original_price=game.original_price,
                 claim_status=claim_status,
             )
+
+            # Refresh the public active-game index even when Discord already
+            # processed this article during an earlier notifier run.
             if active_games:
                 active_games.upsert(game, article.title, article.url, claim_status)
+
+            # Existing game/article state still prevents duplicate notifications.
+            if state.is_game_processed(processed, item.url, game):
+                continue
+
             try:
                 discord.send(game, article.title, article.url)
             except AmbiguousDeliveryError as exc:
@@ -151,6 +159,7 @@ def main():
     claims = ClaimStore(CLAIMS_FILE)
     claims.load()
     active_games = ActiveGameStore("data/active-games.json")
+    rebuild_active_index = not active_games.path.exists()
     active_games.load()
     removed = active_games.prune()
     if removed:
@@ -176,7 +185,10 @@ def main():
 
     data, _ = http.get(RSS_URL)
     rss_articles = parse_rss(data)
-    articles = select_articles(rss_articles, state, processed, BACKFILL_ARTICLES)
+    articles = select_articles(
+        rss_articles, state, processed, BACKFILL_ARTICLES,
+        include_processed=rebuild_active_index,
+    )
     ai = GeminiExtractor(http, GEMINI_API_KEY, GEMINI_MODEL)
     discord = DiscordSender(http, WEBHOOK_URL)
     steam = SteamPriceResolver(http)
