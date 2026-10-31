@@ -1,6 +1,7 @@
 const REPO = "47tsai/free-game";
 const ACTIVE_PATH = "data/active-games.json";
 const MANUAL_PATH = "data/manual-claims.json";
+const AUTO_PATH = "data/claims.json";
 
 function json(data, status = 200, origin = "*") {
   return new Response(JSON.stringify(data), {
@@ -49,16 +50,26 @@ async function githubRequest(path, env, options = {}) {
   });
 }
 
-async function readManualClaims(env) {
-  const response = await githubRequest(MANUAL_PATH, env);
-  if (response.status === 404) return { sha: null, document: { claims: {} } };
-  if (!response.ok) throw new Error("GitHub 讀取手動領取資料失敗：" + response.status);
+async function readJsonFile(path, env, fallback) {
+  const response = await githubRequest(path, env);
+  if (response.status === 404) return { sha: null, document: fallback };
+  if (!response.ok) throw new Error("GitHub 讀取 " + path + " 失敗：" + response.status);
   const file = await response.json();
-  const document = JSON.parse(decodeBase64(file.content));
-  if (!document || typeof document !== "object" || !document.claims || typeof document.claims !== "object") {
+  return { sha: file.sha, document: JSON.parse(decodeBase64(file.content)) };
+}
+
+async function readManualClaims(env) {
+  const result = await readJsonFile(MANUAL_PATH, env, { claims: {} });
+  if (!result.document || typeof result.document !== "object"
+      || !result.document.claims || typeof result.document.claims !== "object") {
     throw new Error("手動領取資料格式錯誤");
   }
-  return { sha: file.sha, document };
+  return result;
+}
+
+async function readAutoClaims(env) {
+  const result = await readJsonFile(AUTO_PATH, env, {});
+  return result.document && typeof result.document === "object" ? result.document : {};
 }
 
 async function readActiveGames() {
@@ -76,6 +87,27 @@ async function readActiveGames() {
     return Number.isFinite(deadline) && deadline > now;
   });
   return { updated_at: data.updated_at || null, games };
+}
+
+function normalizeTitle(value) {
+  return String(value || "").normalize("NFKC").toLocaleLowerCase().trim().replace(/\s+/g, " ");
+}
+
+function platformKey(value) {
+  const platform = String(value || "").toLocaleLowerCase();
+  if (platform.includes("steam")) return "steam";
+  if (platform.includes("epic")) return "epic";
+  return "";
+}
+
+function autoStatus(record) {
+  const value = String(record && record.status || "").trim().toLocaleLowerCase();
+  if (value === "claimed") return "已領取";
+  if (value.includes("already") || value.includes("exist")) return "已擁有";
+  if (value.includes("available")) return "尚未領取";
+  if (value.includes("fail")) return "領取失敗";
+  if (value.includes("skip")) return "未完成";
+  return "尚無回報";
 }
 
 async function verifyOwner(request, env) {
@@ -140,12 +172,21 @@ export default {
     const url = new URL(request.url);
     try {
       if (request.method === "GET" && url.pathname === "/api/games") {
-        const [active, manual] = await Promise.all([
+        const [active, manual, automatic] = await Promise.all([
           readActiveGames(),
           readManualClaims(env),
+          readAutoClaims(env),
         ]);
+        const games = active.games.map((game) => {
+          const key = platformKey(game.platform) + "|" + normalizeTitle(game.name);
+          return {
+            ...game,
+            claim_status: autoStatus(automatic[key]) || game.claim_status || "尚無回報",
+          };
+        });
         return json({
-          ...active,
+          updated_at: active.updated_at,
+          games,
           manual_claims: manual.document.claims,
         }, 200, origin);
       }
