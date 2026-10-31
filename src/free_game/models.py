@@ -20,6 +20,7 @@ class Game:
     image: str = ""
     steam_price: str = ""
     original_price: str = ""
+    claim_status: str = "尚無回報"
 
 
 @dataclass(frozen=True)
