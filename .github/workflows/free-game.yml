@@ -25,11 +25,12 @@ jobs:
         env:
           DISCORD_WEBHOOK_URL: ${{ secrets.DISCORD_WEBHOOK_URL }}
           GEMINI_API_KEY: ${{ secrets.GEMINI_API_KEY }}
+          NTFY_URL: https://ntfy.sh/47tsai-fgc
         run: PYTHONPATH=src python main.py
       - name: Save state
         if: always()
         run: |
-          git add data/processed.json
+          git add data/processed.json data/claims.json data/ntfy_cursor.json
           if git diff --cached --quiet; then exit 0; fi
           git config user.name "github-actions[bot]"
           git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
