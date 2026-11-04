@@ -132,6 +132,45 @@ def test_single_game_deadline_is_not_applied_to_other_games_in_same_article():
     assert all(item.offer_end_at is None for item in result)
 
 
+
+def test_extracts_slash_date_and_24_hour_clock_deadline():
+    html = """
+    <html><body>
+      <p>免費領取期限至 11/10 23:59。</p>
+      <a href="https://store.steampowered.com/app/12345/example/">Example Game</a>
+    </body></html>
+    """
+    result = FourGamersArticleAnalyzer().analyze(observation(), html)
+
+    assert len(result) == 1
+    assert result[0].offer_end_at.isoformat() == "2026-11-10T23:59:00+08:00"
+
+
+def test_extracts_chinese_date_with_colon_clock():
+    html = """
+    <html><body>
+      <p>領取截止至 2026 年 11 月 10 日 21:30。</p>
+      <a href="https://store.steampowered.com/app/12345/example/">Example Game</a>
+    </body></html>
+    """
+    result = FourGamersArticleAnalyzer().analyze(observation(), html)
+
+    assert len(result) == 1
+    assert result[0].offer_end_at.isoformat() == "2026-11-10T21:30:00+08:00"
+
+
+def test_does_not_treat_bare_number_after_date_as_clock():
+    html = """
+    <html><body>
+      <p>免費領取期限至 11 月 10 日，活動編號 21。</p>
+      <a href="https://store.steampowered.com/app/12345/example/">Example Game</a>
+    </body></html>
+    """
+    result = FourGamersArticleAnalyzer().analyze(observation(), html)
+
+    assert len(result) == 1
+    assert result[0].offer_end_at is None
+
 def test_ambiguous_or_date_only_deadline_is_not_guessed():
     html = """
     <html><body>
