@@ -89,3 +89,43 @@ def test_article_without_store_link_keeps_og_image_and_game_title():
     assert result[0].title == "Example Game"
     assert result[0].article_url == observation().source_url
     assert result[0].image_url == "https://cdn.example.com/cover.jpg"
+
+
+def test_extracts_explicit_taiwan_deadline_from_article_body():
+    html = """
+    <html><body>
+      <p>《Example Game》現正開放免費領取，期限至台灣時間 11 月 10 日晚間 9 點為止。</p>
+      <a href="https://store.steampowered.com/app/12345/example/">Example Game</a>
+    </body></html>
+    """
+    result = FourGamersArticleAnalyzer().analyze(observation(), html)
+
+    assert len(result) == 1
+    assert result[0].offer_end_at.isoformat() == "2026-11-10T21:00:00+08:00"
+
+
+def test_shared_deadline_is_applied_to_each_game_in_multi_game_article():
+    html = """
+    <html><body>
+      <p>以下兩款遊戲皆可免費領取至台灣時間 11 月 10 日晚間 9 點。</p>
+      <a href="https://store.steampowered.com/app/12345/one/">Game One</a>
+      <a href="https://store.epicgames.com/p/game-two">Game Two</a>
+    </body></html>
+    """
+    result = FourGamersArticleAnalyzer().analyze(observation(), html)
+
+    assert len(result) == 2
+    assert all(item.offer_end_at.isoformat() == "2026-11-10T21:00:00+08:00" for item in result)
+
+
+def test_ambiguous_or_date_only_deadline_is_not_guessed():
+    html = """
+    <html><body>
+      <p>遊戲 A 領取期限至 11 月 10 日，遊戲 B 領取期限至 11 月 12 日下午。</p>
+      <a href="https://store.steampowered.com/app/12345/one/">Game One</a>
+    </body></html>
+    """
+    result = FourGamersArticleAnalyzer().analyze(observation(), html)
+
+    assert len(result) == 1
+    assert result[0].offer_end_at is None
