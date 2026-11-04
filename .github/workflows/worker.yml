@@ -17,37 +17,20 @@ jobs:
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v4
-      - id: credentials
-        env:
-          CLOUDFLARE_API_TOKEN: ${{ secrets.CLOUDFLARE_API_TOKEN }}
-          CLOUDFLARE_ACCOUNT_ID: ${{ secrets.CLOUDFLARE_ACCOUNT_ID }}
-          FREE_GAME_GITHUB_TOKEN: ${{ secrets.FREE_GAME_GITHUB_TOKEN }}
-          CHI_AUTH_CLIENT_ID: ${{ secrets.CHI_AUTH_CLIENT_ID }}
-        run: |
-          if [ -n "$CLOUDFLARE_API_TOKEN" ] && [ -n "$CLOUDFLARE_ACCOUNT_ID" ] && [ -n "$FREE_GAME_GITHUB_TOKEN" ] && [ -n "$CHI_AUTH_CLIENT_ID" ]; then
-            echo "ready=true" >> "$GITHUB_OUTPUT"
-          else
-            echo "ready=false" >> "$GITHUB_OUTPUT"
-            echo "Worker deployment skipped: required repository secrets are not all configured."
-          fi
       - uses: actions/setup-node@v4
         with:
           node-version: 22
-      - name: Deploy API Worker
-        if: steps.credentials.outputs.ready == "true"
-        env:
-          CLOUDFLARE_API_TOKEN: ${{ secrets.CLOUDFLARE_API_TOKEN }}
-          CLOUDFLARE_ACCOUNT_ID: ${{ secrets.CLOUDFLARE_ACCOUNT_ID }}
-        run: npx --yes wrangler@4 deploy
-      - name: Configure Worker secrets
-        if: steps.credentials.outputs.ready == "true"
+      - name: Deploy Worker when all credentials are configured
         env:
           CLOUDFLARE_API_TOKEN: ${{ secrets.CLOUDFLARE_API_TOKEN }}
           CLOUDFLARE_ACCOUNT_ID: ${{ secrets.CLOUDFLARE_ACCOUNT_ID }}
           FREE_GAME_GITHUB_TOKEN: ${{ secrets.FREE_GAME_GITHUB_TOKEN }}
           CHI_AUTH_CLIENT_ID: ${{ secrets.CHI_AUTH_CLIENT_ID }}
         run: |
-          test -n "$FREE_GAME_GITHUB_TOKEN"
-          test -n "$CHI_AUTH_CLIENT_ID"
+          if [ -z "$CLOUDFLARE_API_TOKEN" ] || [ -z "$CLOUDFLARE_ACCOUNT_ID" ] || [ -z "$FREE_GAME_GITHUB_TOKEN" ] || [ -z "$CHI_AUTH_CLIENT_ID" ]; then
+            echo "Skipped: configure CLOUDFLARE_API_TOKEN, CLOUDFLARE_ACCOUNT_ID, FREE_GAME_GITHUB_TOKEN, and CHI_AUTH_CLIENT_ID first."
+            exit 0
+          fi
+          npx --yes wrangler@4 deploy
           npx --yes wrangler@4 secret put GITHUB_TOKEN --name free-game-api <<< "$FREE_GAME_GITHUB_TOKEN"
           npx --yes wrangler@4 secret put CHI_AUTH_CLIENT_ID --name free-game-api <<< "$CHI_AUTH_CLIENT_ID"
