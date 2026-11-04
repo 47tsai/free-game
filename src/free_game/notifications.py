@@ -40,7 +40,7 @@ class DiscordWebhookSender:
         title = str(game.get("title") or "免費遊戲")[:256]
         claimed = game.get("claim_status") == "claimed"
         if kind == "new":
-            description = f"**平台**　{game.get('platform') or '未知'}\\n**領取狀態**　{'已領取' if claimed else '尚未領取'}"
+            description = f"**平台**　{game.get('platform') or '未知'}\n**領取狀態**　{'已領取' if claimed else '尚未領取'}"
             color = 0x2ECC71 if claimed else 0x5865F2
         elif kind == "claimed":
             description = f"**{title}** 已領取。"
