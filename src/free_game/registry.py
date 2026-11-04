@@ -10,6 +10,7 @@ from urllib.parse import urlparse
 
 from free_game.adapters.base import Adapter
 from free_game.adapters.generic import GenericAdapter, GenericSourceConfig
+from free_game.adapters.steam import SteamAdapter
 
 
 @dataclass(frozen=True, slots=True)
@@ -40,6 +41,7 @@ class SourceRegistry:
         self._definitions: dict[str, SourceDefinition] = {}
         self._factories: dict[str, AdapterFactory] = {
             "generic": self._build_generic,
+            "steam": self._build_steam,
         }
         for definition in definitions or []:
             self.add(definition)
@@ -143,6 +145,13 @@ class SourceRegistry:
                 )
             adapters.append(adapter)
         return tuple(adapters)
+
+    @staticmethod
+    def _build_steam(definition: SourceDefinition) -> SteamAdapter:
+        return SteamAdapter(
+            source_key=definition.source_key,
+            source_url=definition.source_url,
+        )
 
     @staticmethod
     def _build_generic(definition: SourceDefinition) -> GenericAdapter:
