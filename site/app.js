@@ -3,7 +3,7 @@ const AUTH="https://auth.chi.qzz.io";
 let accessToken=null,accessTokenExpiresAt=0,claimEnabled=false,authClientId=null;
 let allGames=[],page=1,viewMode="grid";
 const $=id=>document.getElementById(id);
-function b64url(bytes){return btoa(String.fromCharCode(...new Uint8Array(bytes))).replace(/\\+/g,"-").replace(/\\//g,"_").replace(/=+$/g,"")}
+function b64url(bytes){return btoa(String.fromCharCode(...new Uint8Array(bytes))).replaceAll("+","-").replaceAll("/","_").replace(/=+$/g,"")}
 function say(message){$("notice").textContent=message||""}
 async function digest(value){return b64url(await crypto.subtle.digest("SHA-256",new TextEncoder().encode(value)))}
 async function login(){
