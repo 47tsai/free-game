@@ -89,7 +89,7 @@ class DiscordNotificationService:
             if key in known:
                 skipped += 1
                 return False
-            record = {"id": _stable_id("notification", game["id"], key), "offer_id": game["id"], "notification_type": notification_type, "channel": "discord", "idempotency_key": key, "status": "pending", "attempt_count": 1, "created_at": current.isoformat().replace("+00:00", "Z"), "sent_at": None, "last_error": None}
+            record = {"id": _stable_id("notification", game["id"], key), "game_id": game["id"], "notification_type": notification_type, "channel": "discord", "idempotency_key": key, "status": "pending", "attempt_count": 1, "created_at": current.isoformat().replace("+00:00", "Z"), "sent_at": None, "last_error": None}
             self.writer.write_notification(record)
             known.add(key)
             notification_by_key[key] = record
