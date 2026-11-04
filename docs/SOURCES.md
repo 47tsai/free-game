@@ -282,3 +282,22 @@ The committed configuration intentionally contains an empty `sources` array. No 
 The registry validates required fields, rejects unknown fields and duplicate source keys, requires absolute HTTPS source URLs, and skips disabled definitions when building adapters. The built-in `generic` type constructs the Generic adapter. Dedicated adapters can be added by registering an explicit factory for their adapter type. An unregistered type raises a configuration error; it never silently falls back to Generic.
 
 Registry construction is configuration-only. It does not fetch source URLs, schedule jobs, or persist results. The source runner remains responsible for network policy and passes fetched payloads to the shared `IngestionPipeline`.
+
+
+## 12. Steam adapter
+
+The first dedicated storefront adapter is `SteamAdapter` (`src/free_game/adapters/steam.py`). It currently parses the Steam Store featured-categories response, specifically the `specials.items` bucket.
+
+Configured endpoint shape:
+
+```text
+https://store.steampowered.com/api/featuredcategories/?cc=tw&l=tchinese
+```
+
+This Storefront endpoint is publicly accessible but undocumented by Valve. Treat its response shape as an observed integration contract, not a guaranteed official API. The source runner must use bounded timeouts/retries and retain parser-version/fetch metadata. See the community endpoint description at https://github-wiki-see.page/m/Revadike/InternalSteamWebAPI/wiki/Get-Featured-Categories and an implementation example at https://github.com/mmuffins/SteamStorefrontAPI/blob/main/SteamStorefrontAPI/Endpoints/FeaturedCategories.cs.
+
+The adapter deliberately emits candidates only when an item is a game app, is explicitly marked discounted, has a 100% discount, has a final price of zero, and has a positive original price. It excludes ordinary free-to-play entries (which do not have a positive original price), DLC/bundles, partial discounts, and items with incomplete identity data. It creates the canonical Steam App URL from the numeric App ID.
+
+A matching zero-price item is still only a `candidate`. This response alone does not prove that a user can permanently keep the game, and the adapter does not infer an offer deadline. Storefront verification must distinguish free-to-keep from free weekends, subscription access, regional restrictions, and other temporary access before an offer can be published as verified.
+
+The adapter is registered under `adapter: "steam"` in `config/sources.json`. The committed source list remains empty until the endpoint has been exercised by the source runner and its current response has been captured as a sanitized fixture. No live polling or production source has been enabled by this change.
