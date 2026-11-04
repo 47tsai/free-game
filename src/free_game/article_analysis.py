@@ -167,8 +167,8 @@ class FourGamersArticleAnalyzer:
                 ),
             ))
         if len(results) > 1 and not re.search(
-            r"(?:以下|上述|本篇|這|該)?\\s*(?:兩|三|多)?款?\\s*(?:遊戲|作品).{0,32}(?:皆|均|都|全部)"
-            r"|(?:所有|全部)(?:的)?\\s*(?:遊戲|作品)",
+            r"(?:以下|上述|本篇|這|該)?\s*(?:兩|三|多)?款?\s*(?:遊戲|作品).{0,32}(?:皆|均|都|全部)"
+            r"|(?:所有|全部)(?:的)?\s*(?:遊戲|作品)",
             " ".join(parser.body_text),
         ):
             # A deadline mentioned in a multi-game article is not necessarily
