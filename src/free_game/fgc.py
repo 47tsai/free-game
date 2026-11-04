@@ -14,7 +14,7 @@ _TOPIC_URL = "https://ntfy.sh/47tsai-fgc/json?poll=1&since=24h"
 _HEADER = re.compile(r"^\s*\*\*([^*]+)\*\*\s*\([^)]*\):\s*$")
 _ITEM = re.compile(r"^\s*[•*\-]\s*\*\*\[([^]]+)\]\((https://[^)]+)\)\*\*\s*:\s*(claimed)\s*$", re.I)
 _PLATFORM_HOSTS = {
-    "steam": "steam", "epic": "epic", "epic games": "epic",
+    "steam": "steam", "epic": "epic", "epic games": "epic", "epic games store": "epic",
     "gog": "gog", "ubisoft": "ubisoft", "dlsite": "dlsite",
 }
 
