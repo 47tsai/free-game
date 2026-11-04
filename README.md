@@ -23,7 +23,7 @@ Each game is stored in `data/catalog/games.json`. The record includes its title,
 
 ## Website and manual claim marking
 
-The static website is in `site/` and is deployed to GitHub Pages at `https://fg.chi.qzz.io`. The API Worker is in `worker/index.js` and handles reads and authenticated manual claim updates through GitHub's Contents API.
+The static website is in `site/` and is configured for GitHub Pages at `https://fg.chi.qzz.io` (the first deployment is pending Pages enablement). The API Worker is in `worker/index.js` and handles reads and authenticated manual claim updates through GitHub's Contents API.
 
 The website uses Chi Auth Authorization Code + PKCE. The API Worker checks the short-lived Chi Auth bearer token against `https://auth.chi.qzz.io/api/userinfo` and accepts only the owner subject before updating GitHub JSON. The GitHub token remains in a Cloudflare Worker secret and is never sent to the browser.
 
