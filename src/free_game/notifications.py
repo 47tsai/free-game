@@ -52,7 +52,7 @@ class DiscordWebhookSender:
         if kind == "new" and game.get("cover_image_url"):
             embed["image"] = {"url": game["cover_image_url"]}
         buttons = []
-        for label, url in (("文章連結", game.get("article_url")), ("領取連結", game.get("store_url")), ("開啟網站", f"https://fg.chi.qzz.io/?game={game.get('id', '')}")):
+        for label, url in (("文章", game.get("article_url")), ("網址", f"https://fg.chi.qzz.io/?game={game.get('id', '')}"), ("領取", game.get("store_url"))):
             if isinstance(url, str) and url.startswith("https://"):
                 buttons.append({"type": 2, "style": 5, "label": label, "url": url})
         payload = {"allowed_mentions": {"parse": []}, "embeds": [embed]}
