@@ -166,6 +166,7 @@ class GitHubJsonWriter:
                 "store_url": _https_url_or_none(store_url),
                 "article_url": _https_url_or_none(article_url) or previous.get("article_url"),
                 "cover_image_url": _https_url_or_none(candidate.image_url) or previous.get("cover_image_url"),
+                "offer_end_at": candidate.offer_end_at.isoformat() if candidate.offer_end_at else previous.get("offer_end_at"),
                 "claim_status": previous.get("claim_status", "unclaimed"),
                 "claimed_at": previous.get("claimed_at"),
                 "claim_source": previous.get("claim_source"),
