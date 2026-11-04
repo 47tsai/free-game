@@ -310,3 +310,28 @@ def test_writer_does_not_create_offer_without_existing_product_and_source() -> N
     assert result.offers_created == 0
     assert result.offers_skipped == 1
     assert GitHubJsonWriter.OFFERS_PATH not in store.documents
+
+
+def test_fgc_claim_is_saved_and_matched_to_later_4gamers_game() -> None:
+    store = MemoryStore()
+    writer = GitHubJsonWriter(store)
+    writer.sync_fgc_claims([{
+        "platform": "steam", "external_product_id": "785890",
+        "title": "Hexologic", "store_url": "https://store.steampowered.com/app/785890/Hexologic/",
+    }])
+    fgc_game = store.documents[writer.GAMES_PATH]["records"][0]
+    assert fgc_game["claim_status"] == "claimed"
+    assert fgc_game["claim_source"] == "fgc"
+    writer.write_candidates([candidate(
+        source_key="4gamers:latest-news",
+        source_external_id="4gamers-hexologic",
+        title="Hexologic",
+        product_url="https://store.steampowered.com/app/785890/Hexologic/",
+        article_url="https://www.4gamers.com.tw/news/detail/hexologic",
+        image_url="https://example.com/hexologic.jpg",
+    )])
+    games = store.documents[writer.GAMES_PATH]["records"]
+    assert len(games) == 1
+    assert games[0]["claim_status"] == "claimed"
+    assert games[0]["article_url"] == "https://www.4gamers.com.tw/news/detail/hexologic"
+    assert games[0]["cover_image_url"] == "https://example.com/hexologic.jpg"
