@@ -123,9 +123,8 @@ export default {
     }
     const match = url.pathname.match(/^\/api\/games\/([^/]+)\/claim$/);
     if (request.method === "POST" && match) {
-      if (!env.GITHUB_TOKEN) return json({ error: "github_token_not_configured" }, 503);
       if (!(await requireOwner(request, env))) return json({ error: "authentication_required" }, 401);
-      if (!env.GITHUB_TOKEN) return json({ error: "github_write_not_configured" }, 503);
+      if (!env.GITHUB_TOKEN) return json({ error: "github_token_not_configured" }, 503);
       const gameId = decodeURIComponent(match[1]);
       for (let attempt = 0; attempt < 2; attempt++) {
         try {
