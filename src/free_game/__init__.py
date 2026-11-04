@@ -1,3 +1,5 @@
-"""Core package for the Free Game project."""
+"""Free Game ingestion and claim-tracking package."""
 
-__version__ = "0.1.0"
+from free_game.ingestion import IngestionPipeline, IngestionResult
+
+__all__ = ["IngestionPipeline", "IngestionResult"]
