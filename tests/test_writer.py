@@ -84,6 +84,7 @@ def test_writer_creates_product_and_source_record() -> None:
     assert products[0]["source_record_ids"] == [sources[0]["id"]]
     assert sources[0]["linked_entity_ids"] == [products[0]["id"]]
     validate_dataset({
+        "games": store.documents[GitHubJsonWriter.GAMES_PATH],
         "products": store.documents[GitHubJsonWriter.PRODUCTS_PATH],
         "source_records": store.documents[GitHubJsonWriter.SOURCE_RECORDS_PATH],
     })
@@ -188,3 +189,72 @@ def test_invalid_non_https_product_url_is_skipped() -> None:
 
     assert result.candidates_skipped == 1
     assert store.writes == []
+
+
+
+def test_reconciliation_creates_one_provisional_game_per_product() -> None:
+    store = MemoryStore()
+    writer = GitHubJsonWriter(store)
+
+    result = writer.write_candidates([
+        candidate(),
+        candidate(
+            platform="epic",
+            external_product_id="epic-123",
+            source_key="epic:free-games",
+            source_external_id="epic-123",
+            product_url="https://store.epicgames.com/p/example",
+        ),
+    ])
+
+    games = store.documents[writer.GAMES_PATH]["records"]
+    products = store.documents[writer.PRODUCTS_PATH]["records"]
+    assert result.games_created == 2
+    assert result.products_linked_to_games == 2
+    assert len(games) == 2
+    assert len({product["game_id"] for product in products}) == 2
+    assert all(game["normalized_title"] == "example game" for game in games)
+    validate_dataset({
+        "games": store.documents[writer.GAMES_PATH],
+        "products": store.documents[writer.PRODUCTS_PATH],
+        "source_records": store.documents[writer.SOURCE_RECORDS_PATH],
+    })
+
+
+def test_reconciliation_is_idempotent_and_does_not_merge_same_titles() -> None:
+    store = MemoryStore()
+    writer = GitHubJsonWriter(store)
+    writer.write_candidates([
+        candidate(),
+        candidate(
+            platform="epic",
+            external_product_id="epic-123",
+            source_key="epic:free-games",
+            source_external_id="epic-123",
+            product_url="https://store.epicgames.com/p/example",
+        ),
+    ])
+    first_game_ids = {
+        item["id"] for item in store.documents[writer.GAMES_PATH]["records"]
+    }
+
+    result = writer.reconcile_products_to_games()
+
+    second_game_ids = {
+        item["id"] for item in store.documents[writer.GAMES_PATH]["records"]
+    }
+    assert result[0] == (0, 0)
+    assert result[3] == 0
+    assert second_game_ids == first_game_ids
+    assert len(second_game_ids) == 2
+
+
+def test_discovery_only_source_record_does_not_create_game() -> None:
+    store = MemoryStore()
+    writer = GitHubJsonWriter(store)
+    writer.write_candidates([
+        candidate(platform=None, external_product_id=None, product_url=None)
+    ])
+
+    assert writer.GAMES_PATH not in store.documents
+    assert writer.PRODUCTS_PATH not in store.documents
