@@ -47,6 +47,6 @@ Requires Python 3.12 or newer.
 ```bash
 python -m pip install -e ".[dev]"
 python -m pytest
-free-game ingest --config config/sources.json
+free-game ingest
 free-game fgc-sync
 ```
