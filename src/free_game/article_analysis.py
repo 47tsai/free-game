@@ -11,6 +11,11 @@ from urllib.parse import urljoin, urlparse, urlunparse
 from free_game.adapters.base import NormalizedCandidate, SourceObservation
 
 
+_IGNORED_HOSTS = {
+    "4gamers.com.tw", "facebook.com", "instagram.com", "twitter.com",
+    "x.com", "youtube.com", "youtu.be", "discord.gg", "discord.com",
+    "line.me", "twitch.tv", "google.com", "apple.com",
+}
 _STORE_HOSTS = {
     "store.steampowered.com": "steam",
     "store.epicgames.com": "epic",
@@ -51,7 +56,10 @@ class _ArticleHTMLParser(HTMLParser):
             absolute = urljoin(self.base_url, unescape(attrs_map["href"]))
             parsed = urlparse(absolute)
             host = (parsed.hostname or "").lower().rstrip(".")
-            if parsed.scheme == "https" and self._platform(host):
+            article_host = (urlparse(self.base_url).hostname or "").lower().rstrip(".")
+            ignored = any(host == domain or host.endswith("." + domain) for domain in _IGNORED_HOSTS)
+            same_site = host == article_host or host.endswith("." + article_host)
+            if parsed.scheme == "https" and host and not ignored and not same_site:
                 self._active_url = urlunparse(parsed._replace(query="", fragment=""))
                 self._active_text = []
 
@@ -103,15 +111,13 @@ class FourGamersArticleAnalyzer:
         for url, anchor_text in links:
             parsed = urlparse(url)
             platform = _ArticleHTMLParser._platform((parsed.hostname or "").lower())
-            if not platform:
-                continue
             title = self._clean_name(anchor_text)
             if not title and len(links) == 1 and len(headline_titles) == 1:
                 title = self._clean_name(headline_titles[0])
             if not title:
                 continue
-            external_id = self._external_product_id(platform, parsed.path)
-            key = (platform, url)
+            external_id = self._external_product_id(platform, parsed.path) if platform else None
+            key = (platform or "unknown", url)
             if key in seen:
                 continue
             seen.add(key)
@@ -126,7 +132,11 @@ class FourGamersArticleAnalyzer:
                 observed_at=observation.observed_at,
                 verification_status="candidate",
                 source_external_id=source_external_id,
-                warnings=() if external_id else ("store_product_id_unresolved",),
+                warnings=(
+                    () if external_id
+                    else ("store_product_id_unresolved",) if platform
+                    else ("unknown_storefront_platform",)
+                ),
             ))
         return tuple(results)
 
