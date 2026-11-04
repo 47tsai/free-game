@@ -1,15 +1,6 @@
-"""Source adapter implementations."""
+"""4Gamers RSS adapter and shared game data structures."""
 
-from free_game.adapters.base import Adapter, FetchResult, NormalizedCandidate, SourceObservation
-from free_game.adapters.generic import GenericAdapter, GenericSourceConfig
+from free_game.adapters.base import NormalizedCandidate, SourceObservation
 from free_game.adapters.fourgamers import FourGamersAdapter
 
-__all__ = [
-    "Adapter",
-    "FetchResult",
-    "FourGamersAdapter",
-    "GenericAdapter",
-    "GenericSourceConfig",
-    "NormalizedCandidate",
-    "SourceObservation",
-]
+__all__ = ["FourGamersAdapter", "NormalizedCandidate", "SourceObservation"]
