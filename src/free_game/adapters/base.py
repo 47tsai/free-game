@@ -43,6 +43,8 @@ class NormalizedCandidate:
     verification_status: str = "candidate"
     source_external_id: str | None = None
     warnings: tuple[str, ...] = field(default_factory=tuple)
+    article_url: str | None = None
+    image_url: str | None = None
 
 
 class Adapter(Protocol):
