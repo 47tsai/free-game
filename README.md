@@ -11,9 +11,10 @@ The repository now includes:
 - A shared parse/normalize/validate/deduplicate pipeline.
 - An idempotent GitHub JSON writer for Product, Game, and SourceRecord collections.
 - Conservative Product-to-Game reconciliation that creates one provisional Game per Product without unsafe cross-platform title merges.
+- Exact-match Epic promotion verification for active Taiwan-region zero-price offers, with only verified results eligible for Offer persistence.
 - Deterministic identifiers, JSON Schema validation, SHA conflict retries, and automated tests.
 
-The configured primary source is 4Gamers latest-news RSS. The current ingestion run filters articles by free-game keywords, fetches matching article pages, extracts supported storefront links, and writes Product/Game/SourceRecord data to GitHub JSON. Storefront offer verification and notification delivery are the next workflow stages. Generic RSS/Atom/JSON parsing remains available for explicitly configured sources and unknown platforms.
+The configured primary source is 4Gamers latest-news RSS. The current ingestion run filters articles by free-game keywords, fetches matching article pages, extracts supported storefront links, and writes Product/Game/SourceRecord data to GitHub JSON. Epic active promotions are now checked against the Taiwan storefront promotion feed. Steam and other platforms remain unverified until their own evidence can prove claimability. Notification delivery is still a later stage. Generic RSS/Atom/JSON parsing remains available for explicitly configured sources and unknown platforms.
 
 ## Development
 
@@ -30,7 +31,7 @@ Run the configured ingestion command:
 free-game ingest --config config/sources.json
 ```
 
-The command exits successfully without network requests when no sources are enabled. When enabled sources produce persistable candidates, set `GITHUB_TOKEN` (or `GH_TOKEN`) with repository Contents write permission. The command fetches enabled sources, analyzes matching 4Gamers article pages, persists extracted Product identities and SourceRecord provenance, and creates provisional Game links. It does not merge products across platforms, create Offers, advance cursors, or send notifications.
+The command exits successfully without network requests when no sources are enabled. When enabled sources produce persistable candidates, set `GITHUB_TOKEN` (or `GH_TOKEN`) with repository Contents write permission. The command fetches enabled sources, analyzes matching 4Gamers article pages, persists extracted Product identities and SourceRecord provenance, and creates provisional Game links. It does not merge products across platforms, advance cursors, or send notifications. It creates Offer records only when the Epic verifier confirms an exact product match, an active promotion, and a zero promotional price.
 
 The canonical persisted-data schema is in `schemas/collection.schema.json`. Use `free_game.validation` to validate one collection's structure, and `free_game.semantic_validation.validate_dataset` to validate references and uniqueness across a mapping of collection names to collection documents.
 
