@@ -279,3 +279,18 @@ The initial `GitHubJsonWriter` persists only `Product` and `SourceRecord` collec
 - On a blob-SHA conflict, the writer rereads the latest collection, reapplies the deterministic upsert, and retries a bounded number of times.
 
 The Products and SourceRecords files are written separately because GitHub Contents API does not provide multi-file transactions. A workflow rerun safely completes a partially applied pair of writes. The writer does not advance source cursors; cursor advancement must happen only after all required collection writes have succeeded.
+
+
+## 9. Initial Product-to-Game reconciliation
+
+The current writer creates a provisional Game for each Product that does not yet reference a Game. The provisional Game ID is deterministic from the Product ID, and the Product is updated to reference it.
+
+This is intentionally a one-to-one starting point, not cross-platform deduplication:
+
+- Products on different platforms are never merged merely because their titles match.
+- Title normalization uses Unicode NFKC, case folding, and punctuation/whitespace normalization. It is descriptive metadata, not proof of identity.
+- Existing Game links are preserved. The writer does not silently move a Product between Games.
+- SourceRecord IDs are copied to the provisional Game as provenance.
+- A future reviewed mapping operation may link multiple Products to one canonical Game. It must preserve the old IDs or provide an explicit migration plan for any existing references.
+
+The writer persists the Game collection before updating Product.game_id. If the Product update fails, the unreferenced Game is harmless and the next run can safely finish the link. This is necessary because GitHub Contents API does not support atomic multi-file commits through the current writer.
