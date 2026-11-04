@@ -20,17 +20,13 @@ jobs:
       - uses: actions/setup-node@v4
         with:
           node-version: 22
-      - name: Deploy Worker when all credentials are configured
+      - name: Deploy Worker when Cloudflare credentials are configured
         env:
           CLOUDFLARE_API_TOKEN: ${{ secrets.CLOUDFLARE_API_TOKEN }}
           CLOUDFLARE_ACCOUNT_ID: ${{ secrets.CLOUDFLARE_ACCOUNT_ID }}
-          FREE_GAME_GITHUB_TOKEN: ${{ secrets.FREE_GAME_GITHUB_TOKEN }}
-          CHI_AUTH_CLIENT_ID: ${{ secrets.CHI_AUTH_CLIENT_ID }}
         run: |
-          if [ -z "$CLOUDFLARE_API_TOKEN" ] || [ -z "$CLOUDFLARE_ACCOUNT_ID" ] || [ -z "$FREE_GAME_GITHUB_TOKEN" ] || [ -z "$CHI_AUTH_CLIENT_ID" ]; then
-            echo "Skipped: configure CLOUDFLARE_API_TOKEN, CLOUDFLARE_ACCOUNT_ID, FREE_GAME_GITHUB_TOKEN, and CHI_AUTH_CLIENT_ID first."
-            exit 0
+          if [ -z "$CLOUDFLARE_API_TOKEN" ] || [ -z "$CLOUDFLARE_ACCOUNT_ID" ]; then
+            echo "::error::Configure CLOUDFLARE_API_TOKEN and CLOUDFLARE_ACCOUNT_ID repository secrets."
+            exit 1
           fi
           npx --yes wrangler@4 deploy
-          npx --yes wrangler@4 secret put GITHUB_TOKEN --name free-game-api <<< "$FREE_GAME_GITHUB_TOKEN"
-          npx --yes wrangler@4 secret put CHI_AUTH_CLIENT_ID --name free-game-api <<< "$CHI_AUTH_CLIENT_ID"
