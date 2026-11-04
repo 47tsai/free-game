@@ -118,6 +118,20 @@ def test_shared_deadline_is_applied_to_each_game_in_multi_game_article():
     assert all(item.offer_end_at.isoformat() == "2026-11-10T21:00:00+08:00" for item in result)
 
 
+def test_single_game_deadline_is_not_applied_to_other_games_in_same_article():
+    html = """
+    <html><body>
+      <p>《Game One》免費領取至台灣時間 11 月 10 日晚間 9 點。</p>
+      <a href="https://store.steampowered.com/app/12345/one/">Game One</a>
+      <a href="https://store.epicgames.com/p/game-two">Game Two</a>
+    </body></html>
+    """
+    result = FourGamersArticleAnalyzer().analyze(observation(), html)
+
+    assert len(result) == 2
+    assert all(item.offer_end_at is None for item in result)
+
+
 def test_ambiguous_or_date_only_deadline_is_not_guessed():
     html = """
     <html><body>
