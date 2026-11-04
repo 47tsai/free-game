@@ -1,0 +1,8 @@
+name = "free-game-api"
+main = "worker/index.js"
+compatibility_date = "2026-11-04"
+workers_dev = false
+
+routes = [
+  { pattern = "fg.chi.qzz.io/api/*", zone_name = "chi.qzz.io" }
+]
