@@ -6,3 +6,6 @@ workers_dev = false
 routes = [
   { pattern = "fg.chi.qzz.io/api/*", zone_name = "chi.qzz.io" }
 ]
+
+[vars]
+CHI_AUTH_CLIENT_ID = "MN7nps4p8bc9oFVHwR1TdZejZyaUmXLt"
