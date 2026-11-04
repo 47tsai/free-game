@@ -194,7 +194,7 @@ class GitHubJsonWriter:
                 "source": candidate.source_key,
                 "external_id": candidate.source_external_id,
                 "record_type": "store_product" if product_id else "discovery",
-                "url": candidate.product_url,
+                "url": _https_url_or_none(candidate.product_url),
                 "content_hash": _candidate_hash(candidate),
                 "linked_entity_ids": [product_id] if product_id else [],
             }
@@ -375,3 +375,13 @@ def _merge_product(existing: dict[str, Any], incoming: dict[str, Any]) -> dict[s
         merged["product_url"] = incoming["product_url"]
         merged["updated_at"] = incoming["updated_at"]
     return merged
+
+
+
+def _https_url_or_none(value: str | None) -> str | None:
+    if value is None:
+        return None
+    from urllib.parse import urlparse
+
+    parsed = urlparse(value)
+    return value if parsed.scheme == "https" and parsed.netloc else None
