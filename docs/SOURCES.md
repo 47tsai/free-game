@@ -255,7 +255,7 @@ These decisions should be resolved with evidence before writing production adapt
 
 ## 11. Primary 4Gamers RSS source
 
-The active discovery source is `https://www.4gamers.com.tw/rss/latest-news`. `FourGamersAdapter` filters feed items whose title or description contains `限免`, `限時免費`, or `紳士限免`. Matching articles are stored as discovery candidates; they are not yet treated as verified storefront offers. The next stage fetches each article page, extracts game/store links, and verifies the offer before notification.
+The active discovery source is `https://www.4gamers.com.tw/rss/latest-news`. `FourGamersAdapter` filters feed items whose title or description contains `限免`, `限時免費`, or `紳士限免`. The CLI fetches each matching article page and `FourGamersArticleAnalyzer` extracts recognized Steam, Epic, GOG, Ubisoft, and DLsite links. Product IDs are extracted only from recognized URL patterns. Articles with no recognized storefront product remain discovery records. Extracted candidates are still unverified and cannot trigger notifications.
 
 ## 12. Source registry configuration
 
