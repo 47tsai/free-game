@@ -91,16 +91,17 @@ function populatePlatforms(){
 }
 function setupControls(){
  ["search","page-size"].forEach(id=>$(id).addEventListener(id==="search"?"input":"change",()=>{page=1;render()}));
- ["status-filter","platform-filter"].forEach(id=>$(id).addEventListener("click",event=>{const button=event.target.closest("button");if(!button)return;$(id).querySelectorAll("button").forEach(item=>{const active=item===button;item.classList.toggle("is-active",active);item.setAttribute("aria-pressed",String(active))});page=1;render()}));
+ ["status-filter","platform-filter"].forEach(id=>$(id).addEventListener("click",event=>{const target=event.target instanceof Element?event.target:null;const button=target?.closest("button");if(!button||!$(id).contains(button))return;$(id).querySelectorAll("button").forEach(item=>{const active=item===button;item.classList.toggle("is-active",active);item.setAttribute("aria-pressed",String(active))});page=1;render()}));
  $("view-grid").addEventListener("click",()=>setView("grid"));$("view-list").addEventListener("click",()=>setView("list"));
 }
 function setView(mode){viewMode=mode;$("view-grid").classList.toggle("is-active",mode==="grid");$("view-list").classList.toggle("is-active",mode==="list");$("view-grid").setAttribute("aria-pressed",String(mode==="grid"));$("view-list").setAttribute("aria-pressed",String(mode==="list"));render()}
 async function init(){
+ setupControls();
  try{
   const configResponse=await fetch(API+"/config");if(!configResponse.ok)throw new Error("無法讀取網站設定");const config=await configResponse.json();authClientId=config.auth_client_id;claimEnabled=Boolean(config.claim_enabled);
   if(!authClientId){$("login").disabled=true;$("login").textContent="Chi Auth 尚未設定"}
   const result=await fetch(API+"/games").then(r=>r.json());if(!result.games)throw new Error("無法讀取遊戲資料");
-  allGames=result.games;populatePlatforms();setupControls();render();await finishLogin();
+  allGames=result.games;populatePlatforms();render();await finishLogin();
   if(accessToken){$("login").textContent="已登入 Chi Auth";const pendingId=sessionStorage.getItem("fg_pending_claim");if(pendingId){sessionStorage.removeItem("fg_pending_claim");const game=allGames.find(item=>item.id===pendingId);if(game)await markClaimed(game,document.querySelector("#game-"+CSS.escape(pendingId)+" .game-card__claim"))}}
   if(!claimEnabled)say("目前尚未設定 GitHub 寫入權限，手動標記暫時不可用。");
  }catch(error){$("summary").textContent="目前無法載入資料";say(error.message)}
