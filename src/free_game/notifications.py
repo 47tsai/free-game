@@ -80,7 +80,8 @@ class DiscordNotificationService:
         notifications = self.writer.store.read(GitHubJsonWriter.NOTIFICATIONS_PATH).document.get("records")
         if not isinstance(games, list) or not isinstance(notifications, list):
             raise ValueError("game_or_notification_records_invalid")
-        known = {item.get("idempotency_key") for item in notifications if isinstance(item, dict)}
+        notification_by_key = {item.get("idempotency_key"): item for item in notifications if isinstance(item, dict)}
+        known = set(notification_by_key)
         sent = skipped = failed = 0
 
         def deliver(game: dict, kind: str, key: str, notification_type: str) -> bool:
@@ -91,17 +92,20 @@ class DiscordNotificationService:
             record = {"id": _stable_id("notification", game["id"], key), "offer_id": game["id"], "notification_type": notification_type, "channel": "discord", "idempotency_key": key, "status": "pending", "attempt_count": 1, "created_at": current.isoformat().replace("+00:00", "Z"), "sent_at": None, "last_error": None}
             self.writer.write_notification(record)
             known.add(key)
+            notification_by_key[key] = record
             try:
                 self.sender.send_game(game, kind)
             except Exception as exc:
                 record["status"] = "failed"
                 record["last_error"] = str(exc)[:200] if isinstance(exc, DiscordDeliveryError) else "discord_delivery_outcome_unknown"
                 self.writer.write_notification(record)
+                notification_by_key[key] = record
                 failed += 1
                 return False
             record["status"] = "sent"
             record["sent_at"] = datetime.now(timezone.utc).isoformat().replace("+00:00", "Z")
             self.writer.write_notification(record)
+            notification_by_key[key] = record
             sent += 1
             return True
 
@@ -112,15 +116,20 @@ class DiscordNotificationService:
             if not isinstance(game_id, str):
                 continue
             new_key = f"new_game:{game_id}:discord"
-            was_announced = new_key in known
-            if not was_announced:
-                deliver(game, "new", new_key, "new_offer")
-                was_announced = new_key in known
+            was_announced = notification_by_key.get(new_key, {}).get("status") == "sent"
+            sent_new_now = False
+            if not was_announced and new_key not in known:
+                sent_new_now = deliver(game, "new", new_key, "new_offer")
             if game.get("claim_notification_pending"):
                 if was_announced:
                     claim_key = f"claimed:{game_id}:{game.get('claimed_at') or 'claimed'}:discord"
-                    deliver(game, "claimed", claim_key, "offer_updated")
-                self.writer.update_game(game_id, {"claim_notification_pending": False})
+                    claim_sent = notification_by_key.get(claim_key, {}).get("status") == "sent"
+                    if not claim_sent and claim_key not in known:
+                        claim_sent = deliver(game, "claimed", claim_key, "offer_updated")
+                    if claim_sent:
+                        self.writer.update_game(game_id, {"claim_notification_pending": False})
+                elif sent_new_now:
+                    self.writer.update_game(game_id, {"claim_notification_pending": False})
             if game.get("claim_status", "unclaimed") != "claimed":
                 added = _parse_time(game.get("added_at") or game.get("created_at"))
                 last = _parse_time(game.get("reminder_last_sent_at"))
