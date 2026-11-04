@@ -16,7 +16,7 @@
 body.chi-page{min-height:100vh;min-height:100dvh;display:flex;flex-direction:column}
 .fg-header__inner{min-height:64px;display:flex;align-items:center;justify-content:space-between;gap:var(--chi-space-4)}
 .fg-brand{display:inline-flex;align-items:center;gap:var(--chi-space-3);color:var(--chi-color-text-strong);font-weight:750;text-decoration:none}
-.fg-brand img{width:2.25rem;height:2.25rem;object-fit:contain}
+.fg-brand__logo{width:2.25rem;height:2.25rem;object-fit:contain}.fg-brand__logo-dark{display:none}[data-chi-theme="dark"] .fg-brand__logo-light{display:none}[data-chi-theme="dark"] .fg-brand__logo-dark{display:block}
 .fg-brand__name{font-size:var(--chi-text-lg);letter-spacing:-.025em}
 .fg-header__actions{display:flex;align-items:center;gap:var(--chi-space-3)}
 .fg-theme{width:auto;min-width:7.5rem;min-height:var(--chi-control-height);font-size:var(--chi-text-sm)}
@@ -55,7 +55,7 @@ body.chi-page{min-height:100vh;min-height:100dvh;display:flex;flex-direction:col
 <header class="chi-site-header">
   <div class="chi-container fg-header__inner">
     <a class="fg-brand" href="/" aria-label="Free Game 首頁">
-      <img src="https://raw.githubusercontent.com/47tsai/chi-design-system/main/logo/blue-b.png" alt="">
+      <img class="fg-brand__logo fg-brand__logo-light" src="https://raw.githubusercontent.com/47tsai/chi-design-system/main/logo/blue-b.png" alt=""><img class="fg-brand__logo fg-brand__logo-dark" src="https://raw.githubusercontent.com/47tsai/chi-design-system/main/logo/blue-w.png" alt="">
       <span class="fg-brand__name">Free Game</span>
     </a>
     <div class="fg-header__actions">
