@@ -79,7 +79,7 @@ def test_writer_creates_product_and_source_record() -> None:
     products = store.documents[GitHubJsonWriter.PRODUCTS_PATH]["records"]
     sources = store.documents[GitHubJsonWriter.SOURCE_RECORDS_PATH]["records"]
     assert len(products) == len(sources) == 1
-    assert products[0]["game_id"] is None
+    assert isinstance(products[0]["game_id"], str)
     assert products[0]["external_product_id"] == "12345"
     assert products[0]["source_record_ids"] == [sources[0]["id"]]
     assert sources[0]["linked_entity_ids"] == [products[0]["id"]]
