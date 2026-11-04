@@ -64,3 +64,20 @@ def test_unresolved_store_product_id_remains_discovery_candidate() -> None:
     assert result[0].platform is None
     assert result[0].external_product_id is None
     assert "store_product_id_unresolved" in result[0].warnings
+
+
+def test_unknown_storefront_is_preserved_as_discovery_candidate() -> None:
+    html = """
+    <html><body>
+      <a href="https://new-store.example/products/abc">Mystery Game</a>
+      <a href="https://www.4gamers.com.tw/news/detail/other">Related article</a>
+      <a href="https://www.youtube.com/watch?v=abc">Trailer</a>
+    </body></html>
+    """
+    result = FourGamersArticleAnalyzer().analyze(observation(), html)
+
+    assert len(result) == 1
+    assert result[0].platform is None
+    assert result[0].external_product_id is None
+    assert result[0].title == "Mystery Game"
+    assert "unknown_storefront_platform" in result[0].warnings
