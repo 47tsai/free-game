@@ -254,8 +254,9 @@ class GitHubJsonWriter:
             )
 
         game_stats, game_sha, linked_product_sha, linked_count = self.reconcile_products_to_games()
+        final_product_sha = linked_product_sha or product_sha
         commits = tuple(
-            sha for sha in (source_sha, product_sha, game_sha, linked_product_sha)
+            sha for sha in (source_sha, game_sha, final_product_sha)
             if sha is not None
         )
         return WriteResult(
