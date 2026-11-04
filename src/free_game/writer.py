@@ -393,8 +393,14 @@ class GitHubJsonWriter:
                 # A verifier may confirm an active promotion without exposing
                 # a trustworthy start or end timestamp.
                 offer_status = "active"
-            offer_id = _stable_id("offer", result.platform, result.external_product_id,
-                                  result.source_external_id)
+            campaign_identity = (
+                f"{starts_at or ''}|{ends_at or ''}|{result.region or ''}"
+                if starts_at or ends_at
+                else result.source_external_id
+            )
+            offer_id = _stable_id(
+                "offer", result.platform, result.external_product_id, campaign_identity
+            )
             changes[offer_id] = {
                 "id": offer_id,
                 "product_id": product_id,
