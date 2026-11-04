@@ -62,8 +62,8 @@ def test_claimed_game_sends_short_update_and_stops_reminders():
     game.update({"claim_status": "claimed", "claimed_at": "2026-11-04T00:00:00Z", "claim_notification_pending": True})
     sender = FakeSender()
     summary = DiscordNotificationService(GitHubJsonWriter(store), sender).process_games(now=datetime(2026, 11, 4, 2, tzinfo=timezone.utc))
-    assert summary.sent == 2  # new-game card, then short claimed update
-    assert sender.calls == [("game_123", "new"), ("game_123", "claimed")]
+    assert summary.sent == 1  # full new-game card already shows claimed
+    assert sender.calls == [("game_123", "new")]
     assert store.documents[GitHubJsonWriter.GAMES_PATH]["records"][0]["claim_notification_pending"] is False
 
 
