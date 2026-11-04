@@ -216,7 +216,10 @@ class GitHubJsonWriter:
                 "created_at": previous.get("created_at", now),
                 "updated_at": now,
             }
-            changes[game_id] = _merge_game(previous, incoming)
+            merged = _merge_game(previous, incoming)
+            if previous and all(previous.get(key) == value for key, value in merged.items() if key != "updated_at"):
+                continue
+            changes[game_id] = merged
         if not changes:
             return (0, 0), None
         return self._upsert(self.GAMES_PATH, changes, _merge_game)
