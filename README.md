@@ -29,15 +29,13 @@ The website uses Chi Auth Authorization Code + PKCE. The API Worker checks the s
 
 Before enabling manual marking:
 
-1. In Chi Auth, register an application named **Free Game**.
-2. Set its exact redirect URI to `https://fg.chi.qzz.io/` and allowed origin to `https://fg.chi.qzz.io`.
-3. Add these GitHub repository Actions secrets:
+1. Reuse the existing Chi Auth OAuth client from `47tsai/free-game-old` (Client ID `MN7nps4p8bc9oFVHwR1TdZejZyaUmXLt`). Its redirect URI is `https://fg.chi.qzz.io/`.
+2. Add these GitHub repository Actions secrets:
    - `CLOUDFLARE_ACCOUNT_ID`
    - `CLOUDFLARE_API_TOKEN`
    - `FREE_GAME_GITHUB_TOKEN` (Contents read/write access to this repository)
-   - `CHI_AUTH_CLIENT_ID` (the Client ID issued by Chi Auth)
 4. In repository Settings → Pages, select **GitHub Actions** as the build and deployment source. Then run the **Free Game Website** workflow once from the Actions tab.
-5. After the four Worker secrets are configured, pushes affecting `worker/` or `wrangler.toml` deploy the API Worker automatically.
+5. After the Worker secrets are configured, pushes affecting `worker/` or `wrangler.toml` deploy the API Worker automatically.
 
 The Discord workflow requires the `DISCORD_WEBHOOK_URL` repository Actions secret.
 
