@@ -7,7 +7,7 @@ on:
   workflow_dispatch:
 
 concurrency:
-  group: free-game-fgc
+  group: free-game-data
   cancel-in-progress: false
 
 permissions:
