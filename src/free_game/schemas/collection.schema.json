@@ -102,6 +102,12 @@
         "cover_image_url": {
           "$ref": "#/$defs/NullableHttpsUrl"
         },
+        "offer_end_at": {
+          "oneOf": [
+            { "$ref": "#/$defs/Timestamp" },
+            { "type": "null" }
+          ]
+        },
         "claim_status": {
           "enum": [
             "unclaimed",
