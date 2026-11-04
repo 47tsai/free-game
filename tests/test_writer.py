@@ -325,6 +325,7 @@ def test_fgc_claim_is_saved_and_matched_to_later_4gamers_game() -> None:
     writer.write_candidates([candidate(
         source_key="4gamers:latest-news",
         source_external_id="4gamers-hexologic",
+        external_product_id="785890",
         title="Hexologic",
         product_url="https://store.steampowered.com/app/785890/Hexologic/",
         article_url="https://www.4gamers.com.tw/news/detail/hexologic",
