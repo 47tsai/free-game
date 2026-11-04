@@ -1,20 +1,18 @@
 # Free Game
 
-A multi-platform free-game discovery and claim-tracking project.
+A 4Gamers RSS-driven free-game discovery and claim-tracking project.
 
 ## Project status
 
 The repository now includes:
 - A configuration-driven source registry and Generic RSS/Atom/JSON adapter.
-- A dedicated Steam featured-categories candidate adapter.
 - A bounded, per-source-isolated HTTP ingestion runner.
 - A shared parse/normalize/validate/deduplicate pipeline.
 - An idempotent GitHub JSON writer for Product, Game, and SourceRecord collections.
 - Conservative Product-to-Game reconciliation that creates one provisional Game per Product without unsafe cross-platform title merges.
-- A Steam appdetails price assessor that distinguishes free-to-play, paid, zero-price-discount, and inconclusive results without falsely asserting permanent claimability.
 - Deterministic identifiers, JSON Schema validation, SHA conflict retries, and automated tests.
 
-No production source is enabled in `config/sources.json` yet. Candidates are not Offers: authoritative storefront verification and catalog reconciliation must be implemented before free promotions can be published or notifications sent.
+The intended main flow is 4Gamers RSS discovery, content analysis, catalog updates, storefront verification, and notification delivery. Generic RSS/Atom/JSON parsing remains available for supported sources and unknown platforms. Production ingestion is not enabled yet.
 
 ## Development
 
