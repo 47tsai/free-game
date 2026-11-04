@@ -3,7 +3,7 @@ from __future__ import annotations
 from free_game.adapters.fourgamers import FourGamersAdapter
 
 
-RSS = b"""<?xml version="1.0"?>
+RSS = """<?xml version="1.0"?>
 <rss version="2.0"><channel>
   <item><title>Steam 限時免費遊戲《Example》</title><link>https://www.4gamers.com.tw/news/detail/123</link><guid>article-123</guid><description>限免至本週末</description></item>
   <item><title>新遊戲上市消息</title><link>https://www.4gamers.com.tw/news/detail/456</link><guid>article-456</guid><description>遊戲上市資訊</description></item>
