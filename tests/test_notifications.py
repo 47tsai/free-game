@@ -54,6 +54,8 @@ def test_sends_new_game_once_and_reminds_every_24_hours():
     assert second.sent == 0
     assert third.sent == 1
     assert sender.calls == [("game_123", "new"), ("game_123", "reminder"), ("game_123", "reminder")]
+    records = store.documents[GitHubJsonWriter.NOTIFICATIONS_PATH]["records"]
+    assert all(item["status"] == "sent" for item in records)
 
 
 def test_claimed_game_sends_short_update_and_stops_reminders():
@@ -84,3 +86,19 @@ def test_webhook_url_must_be_discord_https_endpoint():
         DiscordWebhookSender("https://example.com/api/webhooks/123/token")
     sender = DiscordWebhookSender("https://discord.com/api/webhooks/123/token")
     assert "wait=true" in sender.webhook_url
+
+
+def test_already_announced_game_sends_short_claimed_update_next_run():
+    store = MemoryStore()
+    writer = GitHubJsonWriter(store)
+    sender = FakeSender()
+    service = DiscordNotificationService(writer, sender)
+    first = service.process_games(now=datetime(2026, 11, 4, 1, tzinfo=timezone.utc))
+    assert first.sent == 2  # new-game embed and overdue reminder
+    game = store.documents[writer.GAMES_PATH]["records"][0]
+    writer.update_game(game["id"], {"claim_status": "claimed", "claimed_at": "2026-11-04T02:00:00Z", "claim_source": "manual", "claim_notification_pending": True})
+    second = service.process_games(now=datetime(2026, 11, 4, 3, tzinfo=timezone.utc))
+    assert second.sent == 1
+    assert sender.calls[-1] == ("game_123", "claimed")
+    updated = store.documents[writer.GAMES_PATH]["records"][0]
+    assert updated["claim_notification_pending"] is False
