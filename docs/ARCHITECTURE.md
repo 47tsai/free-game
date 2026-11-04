@@ -28,7 +28,12 @@ Each integration is isolated behind an adapter contract. An adapter fetches sour
 Initial adapter families:
 - Storefronts: Steam, Epic Games, GOG, Ubisoft, DLsite.
 - Discovery/editorial sources: 4Gamers RSS and future sources.
+- Generic adapter: a configurable fallback for supported feed and structured-data formats from platforms that do not yet have a dedicated adapter.
 - Claim-status source: FGC/ntfy.
+
+Dedicated adapters handle platform-specific retrieval and parsing. They all emit the same normalized observations for the shared ingestion pipeline. The Generic adapter uses the same contract, but is deliberately conservative: it may ingest configured RSS/Atom feeds, JSON feeds, or explicitly configured page parsers where the format is understood. It must preserve source evidence and mark uncertain results as candidates or unresolved observations. It must not invent product identifiers, offer deadlines, or claim that an offer is verified without adequate storefront evidence. Unsupported or ambiguous formats remain stored as raw source records for later parser work or manual review.
+
+The Generic adapter is a fallback, not a replacement for dedicated adapters. Once a source has stable, platform-specific behavior or requires specialized identity, pagination, authentication, or offer semantics, it should receive a dedicated adapter.
 
 A source must not be treated as authoritative for fields it does not provide. Missing or unknown deadlines must remain explicitly unknown rather than being fabricated.
 
@@ -42,7 +47,7 @@ A source must not be treated as authoritative for fields it does not provide. Mi
 6. Persist changes through the repository data writer.
 7. Emit domain events for notification evaluation.
 
-A failure in one adapter should not prevent successful adapters from completing. Raw source evidence and parse errors should be retained where practical for diagnosis.
+A failure in one adapter should not prevent successful adapters from completing. Raw source evidence and parse errors should be retained where practical for diagnosis. The Generic adapter follows the same isolation and validation rules; a generic parse result must never bypass the common verification and validation pipeline.
 
 ### Core domain
 
