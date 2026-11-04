@@ -301,3 +301,12 @@ The adapter deliberately emits candidates only when an item is a game app, is ex
 A matching zero-price item is still only a `candidate`. This response alone does not prove that a user can permanently keep the game, and the adapter does not infer an offer deadline. Storefront verification must distinguish free-to-keep from free weekends, subscription access, regional restrictions, and other temporary access before an offer can be published as verified.
 
 The adapter is registered under `adapter: "steam"` in `config/sources.json`. The committed source list remains empty until the endpoint has been exercised by the source runner and its current response has been captured as a sanitized fixture. No live polling or production source has been enabled by this change.
+
+
+## 13. Source runner and HTTP fetch policy
+
+`SourceRunner` (`src/free_game/runner.py`) iterates enabled definitions from the registry and runs each source independently. `HTTPFetcher` uses the Python standard library, HTTPS-only initial URLs, a finite request timeout, a bounded response size, and a fixed User-Agent. Redirects to non-HTTPS URLs are rejected. Non-2xx HTTP responses and network errors are treated as source failures.
+
+For successful fetches, the runner records the source key, UTC fetch time, HTTP status, SHA-256 payload hash, and request URL. Query parameters whose names indicate tokens, keys, authentication, passwords, secrets, or signatures are redacted in the recorded URL. Raw exception text is not included in run results because upstream exceptions may contain credentials.
+
+Each source produces its own result. A fetch or parse failure is recorded for that source and does not stop later sources from running. Disabled sources are not fetched. The runner currently returns results in memory only; it does not write GitHub JSON, advance cursors, reconcile catalog entities, verify offers, or send notifications. Those operations remain separate stages.
