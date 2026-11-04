@@ -5,6 +5,7 @@ A 4Gamers RSS-driven free-game discovery and claim-tracking project.
 ## Project status
 
 The repository now includes:
+- A 4Gamers RSS adapter that selects free-game announcements from the latest-news feed.
 - A configuration-driven source registry and Generic RSS/Atom/JSON adapter.
 - A bounded, per-source-isolated HTTP ingestion runner.
 - A shared parse/normalize/validate/deduplicate pipeline.
@@ -12,7 +13,7 @@ The repository now includes:
 - Conservative Product-to-Game reconciliation that creates one provisional Game per Product without unsafe cross-platform title merges.
 - Deterministic identifiers, JSON Schema validation, SHA conflict retries, and automated tests.
 
-The intended main flow is 4Gamers RSS discovery, content analysis, catalog updates, storefront verification, and notification delivery. Generic RSS/Atom/JSON parsing remains available for supported sources and unknown platforms. Production ingestion is not enabled yet.
+The configured primary source is 4Gamers latest-news RSS. The current ingestion run filters articles by free-game keywords and stores discovery provenance. Article-page extraction, storefront verification, and notification delivery are the next workflow stages. Generic RSS/Atom/JSON parsing remains available for explicitly configured sources and unknown platforms.
 
 ## Development
 
