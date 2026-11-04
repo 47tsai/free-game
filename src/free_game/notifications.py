@@ -41,6 +41,10 @@ class DiscordWebhookSender:
         claimed = game.get("claim_status") == "claimed"
         if kind == "new":
             description = f"**平台**　{game.get('platform') or '未知'}\n**領取狀態**　{'已領取' if claimed else '尚未領取'}"
+            deadline = _parse_time(game.get("offer_end_at"))
+            if deadline:
+                local_deadline = deadline.astimezone(timezone(timedelta(hours=8)))
+                description += "\n**領取期限**　" + local_deadline.strftime("%Y/%m/%d %H:%M") + "（台灣時間）"
             color = 0x2ECC71 if claimed else 0x5865F2
         elif kind == "claimed":
             description = f"**{title}** 已領取。"
