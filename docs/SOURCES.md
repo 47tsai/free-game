@@ -14,6 +14,7 @@ Sources are divided by the kind of evidence they provide. A source must not be t
 | Ubisoft | Storefront adapter | Discover and verify Ubisoft products and promotional offers | User claim state |
 | DLsite | Storefront adapter | Discover and verify relevant product and campaign information | Inferring that an age warning alone means a listing is adult content |
 | 4Gamers RSS | Discovery/editorial source | Surface possible free-game announcements for investigation | Final offer truth, product identity, or claim state |
+| Generic adapter | Configurable fallback adapter | Ingest supported feeds or explicitly configured structured sources for platforms without a dedicated adapter | Guessing unsupported formats, product identity, offer deadlines, or verified offer state |
 | FGC via ntfy | Claim-status integration | Report claim attempts and observed claim outcomes | Discovering storefront offers |
 
 ### 1.1 Storefront adapters
@@ -26,7 +27,25 @@ Do not assume that a platform has a stable public API. Before implementation, re
 
 Discovery sources provide leads, not canonical offer records. A 4Gamers item may identify a game or promotion worth checking, but the corresponding storefront must be checked before an offer is published as verified.
 
-### 1.3 Claim-status provider
+### 1.3 Generic fallback adapter
+
+The Generic adapter is the fallback path for an otherwise unsupported platform or source. It must use an explicitly configured source definition; it is not an unrestricted web crawler and must not guess how an unknown site works.
+
+Initial supported input types should be limited to formats with predictable structure, such as RSS/Atom and JSON. A page-specific HTML parser may be enabled only when its selectors and behavior have been reviewed and covered by fixtures. The Generic adapter should:
+
+- Assign a stable, namespaced source key to each configured source.
+- Preserve the original source URL, external identifiers, retrieval time, and sanitized raw evidence.
+- Extract only fields that are directly supported by the source.
+- Emit unresolved or candidate observations when product identity, platform, price, or offer dates are ambiguous.
+- Pass all normalized candidates through the same validation, matching, and storefront-verification pipeline as dedicated adapters.
+- Never fabricate platform product IDs, deadlines, or claim outcomes.
+- Retain unsupported records with parse warnings for later manual review or a dedicated adapter.
+
+The Generic adapter does not automatically make an unknown platform eligible for FGC claim synchronization. Claim synchronization requires a separately verified platform/product mapping and an explicit integration contract.
+
+A dedicated adapter should replace the generic path when a source needs platform-specific authentication, pagination, identity rules, offer semantics, or more reliable parsing. Both paths must continue to emit the same platform-independent domain entities.
+
+### 1.4 Claim-status provider
 
 FGC reports claim activity and outcomes. Its events must be reconciled against known users and platform products. An FGC failure event is evidence of an unsuccessful attempt, not proof that the product is unclaimed.
 
@@ -133,6 +152,7 @@ The following table is an implementation checklist, not a claim that the listed 
 | Ubisoft | Product identity, title, product URL, promotion state, dates | To be researched and verified | Confirm current offer against the storefront |
 | DLsite | Product identity, title, product URL, price, campaign state, dates where available | To be researched and verified | Confirm the listing and campaign on DLsite; do not infer content category from an age-warning label alone |
 | 4Gamers RSS | Article ID, title, URL, publication time, extracted game/platform references | RSS feed and feed format must be verified | Resolve the article to a storefront product and verify the offer there |
+| Generic configured source | Source ID, external ID when available, title, URL, directly observed offer fields, raw evidence reference | Per-source feed or parser configuration; only supported formats are enabled | Confirm source identity, parser behavior, product mapping, and storefront evidence before publishing a verified offer |
 | FGC / ntfy | Event ID, platform, external product reference, event type, event time, execution result | Existing deployment payload must be inspected | Authenticate the sender and reconcile the event to a known user and product |
 
 Before implementing a source, add a source-specific note recording:
@@ -231,5 +251,6 @@ The following items remain explicitly open:
 6. Define source-specific polling intervals and rate limits from verified platform behavior.
 7. Define exact deterministic keys for offers and FGC events.
 8. Confirm whether any source requires manual review before an offer can become `verified`.
+9. Define the configuration format and allowlist for Generic adapter sources, including which feed types and reviewed page parsers are enabled.
 
 These decisions should be resolved with evidence before writing production adapters. Until then, unknown details must remain marked as unknown rather than being filled with guessed endpoints or behavior.
