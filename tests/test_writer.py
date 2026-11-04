@@ -136,7 +136,6 @@ def test_candidate_without_product_identity_only_persists_discovery() -> None:
     source = store.documents[GitHubJsonWriter.SOURCE_RECORDS_PATH]["records"][0]
     assert source["record_type"] == "discovery"
     assert source["url"] is None
-    assert store.PRODUCTS_PATH if hasattr(store, "PRODUCTS_PATH") else True
 
 
 def test_candidate_without_source_external_id_is_skipped() -> None:
