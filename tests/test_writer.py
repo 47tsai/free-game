@@ -153,3 +153,18 @@ def test_rejects_exhausted_sha_conflicts():
             raise ContentsConflictError("conflict")
     with pytest.raises(ContentsConflictError):
         GitHubJsonWriter(AlwaysConflict(), max_conflict_retries=0).write_candidates([candidate()])
+
+
+def test_writer_persists_offer_end_at_and_keeps_existing_deadline():
+    from datetime import timedelta
+
+    store = MemoryStore()
+    writer = GitHubJsonWriter(store)
+    deadline = datetime(2026, 11, 10, 21, tzinfo=timezone(timedelta(hours=8)))
+    writer.write_candidates([candidate(offer_end_at=deadline)])
+    game = store.documents[writer.GAMES_PATH]["records"][0]
+    assert game["offer_end_at"] == "2026-11-10T21:00:00+08:00"
+
+    writer.write_candidates([candidate(offer_end_at=None)])
+    game = store.documents[writer.GAMES_PATH]["records"][0]
+    assert game["offer_end_at"] == "2026-11-10T21:00:00+08:00"
