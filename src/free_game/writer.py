@@ -149,6 +149,8 @@ class WriteResult:
     source_records_updated: int
     candidates_skipped: int
     commit_shas: tuple[str, ...]
+    games_created: int = 0
+    products_linked_to_games: int = 0
 
 
 class GitHubJsonWriter:
@@ -251,7 +253,10 @@ class GitHubJsonWriter:
                 self.PRODUCTS_PATH, product_changes, _merge_product
             )
 
-        commits = tuple(sha for sha in (source_sha, product_sha) if sha is not None)
+        game_stats, game_sha, linked_count = self.reconcile_products_to_games()
+        commits = tuple(
+            sha for sha in (source_sha, product_sha, game_sha) if sha is not None
+        )
         return WriteResult(
             products_created=product_stats[0],
             products_updated=product_stats[1],
@@ -259,7 +264,67 @@ class GitHubJsonWriter:
             source_records_updated=source_stats[1],
             candidates_skipped=skipped,
             commit_shas=commits,
+            games_created=game_stats[0],
+            products_linked_to_games=linked_count,
         )
+
+    GAMES_PATH = "data/catalog/games.json"
+
+    def reconcile_products_to_games(self) -> tuple[tuple[int, int], str | None, int]:
+        """Create one provisional Game per Product; never merge across platforms.
+
+        Cross-platform title similarity is not sufficient evidence for an
+        automatic merge. A future reviewed mapping stage can merge these
+        provisional groups without changing Product identity.
+        """
+        products = self.store.read(self.PRODUCTS_PATH)
+        records = products.document.get("records")
+        if not isinstance(records, list):
+            raise ContentsStoreError("products:records_must_be_array")
+        pending = [item for item in records if isinstance(item, dict) and item.get("game_id") is None]
+        if not pending:
+            return (0, 0), None, 0
+
+        game_changes: dict[str, dict[str, Any]] = {}
+        product_links: dict[str, str] = {}
+        for product in pending:
+            product_id = product.get("id")
+            title = product.get("title")
+            if not isinstance(product_id, str) or not isinstance(title, str) or not title.strip():
+                raise ContentsStoreError("products:cannot_reconcile_invalid_product")
+            game_id = _stable_id("game", product_id)
+            product_links[product_id] = game_id
+            game_changes[game_id] = {
+                "id": game_id,
+                "title": title.strip(),
+                "normalized_title": _normalize_title(title),
+                "created_at": product["created_at"],
+                "updated_at": product["updated_at"],
+                "source_record_ids": sorted(set(product.get("source_record_ids", []))),
+            }
+
+        game_stats, game_sha = self._upsert(self.GAMES_PATH, game_changes, _merge_game)
+
+        # Write Games first, then attach Products. A failed second write leaves
+        # harmless unreferenced Games and is safe to retry.
+        linked_products = {
+            product_id: {"game_id": game_id}
+            for product_id, game_id in product_links.items()
+        }
+
+        def merge_product_link(existing: dict[str, Any], incoming: dict[str, Any]) -> dict[str, Any]:
+            merged = dict(existing)
+            if merged.get("game_id") is None:
+                merged["game_id"] = incoming["game_id"]
+            elif merged["game_id"] != incoming["game_id"]:
+                raise ContentsStoreError("products:game_link_conflict")
+            return merged
+
+        product_stats, product_sha = self._upsert(
+            self.PRODUCTS_PATH, linked_products, merge_product_link
+        )
+        # Report actual links assigned, not all products examined.
+        return game_stats, product_sha or game_sha, product_stats[0] + product_stats[1]
 
     def _upsert(
         self,
@@ -385,3 +450,31 @@ def _https_url_or_none(value: str | None) -> str | None:
 
     parsed = urlparse(value)
     return value if parsed.scheme == "https" and parsed.netloc else None
+
+
+
+def _normalize_title(value: str) -> str:
+    import unicodedata
+
+    normalized = unicodedata.normalize("NFKC", value).casefold()
+    output: list[str] = []
+    previous_space = True
+    for character in normalized:
+        category = unicodedata.category(character)
+        if category[0] in {"L", "N"}:
+            output.append(character)
+            previous_space = False
+        elif not previous_space:
+            output.append(" ")
+            previous_space = True
+    return "".join(output).strip()
+
+
+def _merge_game(existing: dict[str, Any], incoming: dict[str, Any]) -> dict[str, Any]:
+    merged = dict(existing)
+    merged["source_record_ids"] = sorted(
+        set(existing.get("source_record_ids", [])) | set(incoming.get("source_record_ids", []))
+    )
+    # Preserve the first accepted canonical title until a future reviewed
+    # reconciliation operation explicitly changes it.
+    return merged
