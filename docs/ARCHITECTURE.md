@@ -2,9 +2,9 @@
 
 ## 1. Project purpose
 
-Free Game is a multi-platform free-game discovery and claim-tracking service. It collects free offers from multiple sources, normalizes them into a shared catalog, sends Discord notifications, synchronizes automatic claim results from Free Games Claimer (FGC), and provides a website for browsing offers and manually managing claim status.
+Free Game is a 4Gamers RSS-driven free-game discovery and claim-tracking service. It reads announcements, extracts game and storefront details, creates or updates catalog records, verifies the offer on the relevant storefront, and sends Discord notifications. It also synchronizes automatic claim results from Free Games Claimer (FGC) and provides a website for browsing offers and manually managing claim status.
 
-Supported platform integrations are designed to be extensible. Initial targets include Steam, Epic Games, GOG, Ubisoft, and DLsite. Discovery sources such as 4Gamers RSS are distinct from storefront integrations, and FGC is a claim-status source rather than an offer-discovery source.
+The 4Gamers RSS feed is the primary discovery source. Storefront-specific verification is performed only after an RSS item identifies a possible offer. Generic parsing remains available for supported formats and platforms without a dedicated verifier. FGC is a claim-status source, not an offer-discovery source.
 
 ## 2. Confirmed architectural decisions
 
@@ -26,9 +26,9 @@ Supported platform integrations are designed to be extensible. Initial targets i
 Each integration is isolated behind an adapter contract. An adapter fetches source-specific data and emits raw records with source identity and retrieval metadata.
 
 Initial adapter families:
-- Storefronts: Steam, Epic Games, GOG, Ubisoft, DLsite.
-- Discovery/editorial sources: 4Gamers RSS and future sources.
-- Generic adapter: a configurable fallback for supported feed and structured-data formats from platforms that do not yet have a dedicated adapter.
+- Primary discovery source: 4Gamers RSS.
+- Storefront verification: platform-specific checks invoked for games discovered through RSS.
+- Generic adapter: a configurable fallback for supported RSS/Atom/JSON sources and unknown platforms.
 - Claim-status source: FGC/ntfy.
 
 Dedicated adapters handle platform-specific retrieval and parsing. They all emit the same normalized observations for the shared ingestion pipeline. The Generic adapter uses the same contract, but is deliberately conservative: it may ingest configured RSS/Atom feeds, JSON feeds, or explicitly configured page parsers where the format is understood. It must preserve source evidence and mark uncertain results as candidates or unresolved observations. It must not invent product identifiers, offer deadlines, or claim that an offer is verified without adequate storefront evidence. Unsupported or ambiguous formats remain stored as raw source records for later parser work or manual review.
@@ -47,7 +47,7 @@ A source must not be treated as authoritative for fields it does not provide. Mi
 6. A repository writer persists accepted changes to GitHub JSON with optimistic concurrency and idempotent updates.
 7. Domain events are emitted for notification evaluation.
 
-The current Python implementation covers the adapter contract, Generic RSS/Atom/JSON parsing, the Steam featured-categories candidate parser, a configuration-driven SourceRegistry, a bounded HTTPFetcher, a per-source-isolated SourceRunner, an idempotent GitHubJsonWriter, conservative Product-to-Game reconciliation, and a Steam appdetails price assessor. The runner fetches enabled sources, records response metadata and a payload hash, then passes bytes to the side-effect-free parse/normalize/validate/deduplicate pipeline. The writer persists source provenance and platform Product identities with deterministic UUIDv5 IDs, collection schema validation, GitHub Contents API blob-SHA checks, and bounded conflict retries. A conservative reconciliation pass creates one provisional Game per Product and links it without merging across platforms based on title similarity. The Steam assessor can distinguish free-to-play apps, paid apps, zero-price discounts, and insufficient evidence, but a zero-price discount is not proof of permanent claimability. Authoritative claimability verification, Offer creation, and notification delivery remain separate implementation stages. The pipeline returns observations, accepted candidates, and structured issues; it does not write data or mark offers as verified.
+The current Python implementation covers the adapter contract, Generic RSS/Atom/JSON parsing, a configuration-driven SourceRegistry, a bounded HTTPFetcher, a per-source-isolated SourceRunner, an idempotent GitHubJsonWriter, and conservative Product-to-Game reconciliation. The runner fetches enabled sources, records response metadata and a payload hash, then passes bytes to the side-effect-free parse/normalize/validate/deduplicate pipeline. The writer persists source provenance and platform Product identities with deterministic UUIDv5 IDs, collection schema validation, GitHub Contents API blob-SHA checks, and bounded conflict retries. A conservative reconciliation pass creates one provisional Game per Product and links it without merging across platforms based on title similarity. Authoritative claimability verification, Offer creation, and notification delivery remain separate implementation stages. The pipeline returns observations, accepted candidates, and structured issues; it does not write data or mark offers as verified.
 
 A failure in one adapter should not prevent successful adapters from completing. Raw source evidence and parse errors should be retained where practical for diagnosis. The Generic adapter follows the same isolation and validation rules; a generic parse result must never bypass the common verification and validation pipeline.
 
