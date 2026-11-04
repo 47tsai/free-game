@@ -47,7 +47,7 @@ function renderGames(games){
  $("summary").textContent="共 "+games.length+" 款遊戲 · 已領取 "+games.filter(g=>g.claim_status==="claimed").length+" 款";
  if(!games.length){$("games").append(element("div","empty","目前還沒有遊戲資料。"));return}
  for(const game of games){
-  const card=element("article","card");
+  const card=element("article","card");card.id="game-"+game.id;
   if(game.cover_image_url){const img=element("img","cover");img.src=game.cover_image_url;img.alt=game.title;img.loading="lazy";card.append(img)}
   else card.append(element("div","cover"));
   const body=element("div","body"),row=element("div","title-row"),info=element("div","");
@@ -61,6 +61,8 @@ function renderGames(games){
   else if(game.claim_source)body.append(element("div","platform",game.claim_source==="fgc"?"由 FGC 自動同步領取":"手動標記領取"));
   card.append(body);$("games").append(card);
  }
+ const focusId=new URLSearchParams(location.search).get("game");
+ if(focusId){const target=document.getElementById("game-"+focusId);if(target){target.classList.add("focused");target.scrollIntoView({behavior:"smooth",block:"center"});}}
 }
 async function init(){
  try{const config=await fetch(API+"/config").then(r=>r.json());authClientId=config.auth_client_id;
