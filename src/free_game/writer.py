@@ -240,6 +240,7 @@ class GitHubJsonWriter:
                     "external_product_id": candidate.external_product_id,
                     "title": candidate.title.strip(),
                     "product_url": candidate.product_url,
+                    "cover_image_url": _https_url_or_none(candidate.image_url),
                     "created_at": _iso(candidate.observed_at),
                     "updated_at": now,
                     "source_record_ids": [source_id],
