@@ -72,5 +72,5 @@ class FourGamersAdapter:
                 article_url=item.source_url,
             )
             for item in observations
-            if item.raw_title and item.raw_title.strip() and item.source_external_id
+            if item.raw_title and item.raw_title.strip() and item.external_id
         ]
