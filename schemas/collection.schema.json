@@ -180,6 +180,9 @@
               "type": "null"
             }
           ]
+        },
+        "claim_notification_pending": {
+          "type": "boolean"
         }
       },
       "additionalProperties": false
@@ -232,6 +235,9 @@
         },
         "source_record_ids": {
           "$ref": "#/$defs/StringArray"
+        },
+        "cover_image_url": {
+          "$ref": "#/$defs/NullableHttpsUrl"
         }
       },
       "additionalProperties": false
