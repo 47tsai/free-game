@@ -262,3 +262,20 @@ The following require implementation-level evidence or a separate decision:
 - Exact FGC event payload mapping and external event ID availability.
 - Whether platform product matching can use official cross-store identifiers.
 - How ambiguous game merges are reviewed or reversed.
+
+
+## 8. Current writer behavior
+
+The initial `GitHubJsonWriter` persists only `Product` and `SourceRecord` collections:
+
+- Product identity is deterministic UUIDv5 over the canonical `platform + external_product_id` pair. Rediscovery therefore reuses the same Product ID across runs and across sources.
+- SourceRecord identity is deterministic UUIDv5 over `source_key + source_external_id`.
+- A candidate without a reliable platform product identity may still be retained as a `discovery` SourceRecord when it has a source external ID. It does not create a Product.
+- Candidate records with no source external ID are skipped because the current SourceRecord schema requires one.
+- New Products begin with `game_id: null`. The writer does not merge conceptual Games by title.
+- Unverified candidates never create Offers. An Offer requires a separate authoritative verification stage.
+- Product and SourceRecord provenance links are accumulated idempotently. Existing first-seen and creation timestamps are preserved.
+- Collection writes validate against the canonical JSON Schema before calling GitHub Contents API.
+- On a blob-SHA conflict, the writer rereads the latest collection, reapplies the deterministic upsert, and retries a bounded number of times.
+
+The Products and SourceRecords files are written separately because GitHub Contents API does not provide multi-file transactions. A workflow rerun safely completes a partially applied pair of writes. The writer does not advance source cursors; cursor advancement must happen only after all required collection writes have succeeded.
