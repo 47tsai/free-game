@@ -33,7 +33,7 @@ async function finishLogin(){
  }catch(error){say(error.message)}
 }
 function element(tag,className,text){const node=document.createElement(tag);if(className)node.className=className;if(text!==undefined)node.textContent=text;return node}
-function safeLink(label,url){if(!url||!/^https:\/\//i.test(url))return null;const a=element("a","",label);a.href=url;a.target="_blank";a.rel="noopener noreferrer";return a}
+function safeLink(label,url){if(!url||!/^https:\/\//i.test(url))return null;const a=element("a","chi-button",label);a.href=url;a.target="_blank";a.rel="noopener noreferrer";return a}
 async function markClaimed(game,button){
  if(!accessToken){say("請先使用 Chi Auth 登入。");return}
  button.disabled=true;
@@ -45,7 +45,7 @@ async function markClaimed(game,button){
 function renderGames(games){
  window.currentGames=games;$("games").replaceChildren();
  $("summary").textContent="共 "+games.length+" 款遊戲 · 已領取 "+games.filter(g=>g.claim_status==="claimed").length+" 款";
- if(!games.length){$("games").append(element("div","empty","目前還沒有遊戲資料。"));return}
+ if(!games.length){$("games").append(element("div","empty chi-empty","目前還沒有遊戲資料。"));return}
  for(const game of games){
   const card=element("article","card");card.id="game-"+game.id;
   if(game.cover_image_url){const img=element("img","cover");img.src=game.cover_image_url;img.alt=game.title;img.loading="lazy";card.append(img)}
@@ -57,7 +57,7 @@ function renderGames(games){
   const links=element("div","links");
   for(const [label,url] of [["商店",game.store_url],["4Gamer 文章",game.article_url]]){const link=safeLink(label,url);if(link)links.append(link)}
   body.append(links);
-  if(game.claim_status!=="claimed"){const button=element("button","claim primary",accessToken?"標記已領取":"登入後可手動標記");button.disabled=!accessToken;button.addEventListener("click",()=>markClaimed(game,button));body.append(button)}
+  if(game.claim_status!=="claimed"){const button=element("button","chi-button chi-button--primary claim",accessToken?"標記已領取":"登入後可手動標記");button.disabled=!accessToken;button.addEventListener("click",()=>markClaimed(game,button));body.append(button)}
   else if(game.claim_source)body.append(element("div","platform",game.claim_source==="fgc"?"由 FGC 自動同步領取":"手動標記領取"));
   card.append(body);$("games").append(card);
  }
