@@ -90,8 +90,10 @@ class EpicPromotionVerifier:
         if original <= 0 or discounted != 0:
             return self._result(candidate, "rejected", "epic_active_offer_not_free")
 
-        starts: list[datetime] = []
-        ends: list[datetime] = []
+        current = now.astimezone(timezone.utc)
+        active_windows: list[tuple[datetime | None, datetime | None]] = []
+        expired_windows = 0
+        future_windows = 0
         for group in groups:
             if not isinstance(group, dict):
                 continue
@@ -103,15 +105,25 @@ class EpicPromotionVerifier:
                     continue
                 start = self._parse_date(offer.get("startDate"))
                 end = self._parse_date(offer.get("endDate"))
-                if start:
-                    starts.append(start)
-                if end:
-                    ends.append(end)
+                if start is not None and start > current:
+                    future_windows += 1
+                    continue
+                if end is not None and end <= current:
+                    expired_windows += 1
+                    continue
+                active_windows.append((start, end))
 
+        if not active_windows:
+            if future_windows:
+                return self._result(candidate, "needs_review", "epic_offer_not_active_yet")
+            if expired_windows:
+                return self._result(candidate, "rejected", "epic_offer_expired")
+            return self._result(candidate, "needs_review", "epic_active_window_unconfirmed")
+
+        starts = [start for start, _ in active_windows if start is not None]
+        ends = [end for _, end in active_windows if end is not None]
         start_at = min(starts) if starts else None
         end_at = min(ends) if ends else None
-        if end_at is not None and end_at <= now.astimezone(timezone.utc):
-            return self._result(candidate, "rejected", "epic_offer_expired")
         return self._result(
             candidate,
             "verified",
