@@ -2,10 +2,12 @@
 
 from free_game.ingestion import IngestionPipeline, IngestionResult
 from free_game.registry import SourceDefinition, SourceRegistry
+from free_game.adapters.steam import SteamAdapter
 
 __all__ = [
     "IngestionPipeline",
     "IngestionResult",
     "SourceDefinition",
     "SourceRegistry",
+    "SteamAdapter",
 ]
