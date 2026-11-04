@@ -48,6 +48,7 @@ def offer() -> dict:
         "ends_at": NOW,
         "deadline_status": "known",
         "status": "active",
+        "verification_status": "verified",
         "first_seen_at": NOW,
         "last_seen_at": NOW,
         "created_at": NOW,
