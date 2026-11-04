@@ -103,12 +103,8 @@ def test_cli_persists_candidates_and_reports_summary(
         def write_candidates(self, candidates):
             assert tuple(candidates) == (candidate,)
             return type("WriteResult", (), {
-                "products_created": 1,
-                "products_updated": 0,
                 "games_created": 1,
-                "products_linked_to_games": 1,
-                "source_records_created": 1,
-                "source_records_updated": 0,
+                "games_updated": 0,
                 "candidates_skipped": 0,
             })()
 
@@ -120,7 +116,6 @@ def test_cli_persists_candidates_and_reports_summary(
     output = json.loads(capsys.readouterr().out)
     assert exit_code == 0
     assert output["status"] == "success"
-    assert output["write"]["products_created"] == 1
     assert output["write"]["games_created"] == 1
 
 
