@@ -43,5 +43,5 @@ jobs:
               games = json.load(file)
           assert config.get("auth_client_id"), "Chi Auth client ID missing from API config"
           assert isinstance(games.get("games"), list), "Games API did not return a game list"
-          print(f"API smoke test passed; {len(games['games'])} games available.")
+          print(f"API smoke test passed; {len(games['games'])} games available; claim_enabled={config.get('claim_enabled')}.")
           PY
