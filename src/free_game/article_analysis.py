@@ -109,10 +109,17 @@ class FourGamersArticleAnalyzer:
         parser = _ArticleHTMLParser(observation.source_url)
         parser.feed(text)
         links = list(dict.fromkeys(parser.links))
-        if not links:
-            return ()
-
         headline_titles = self._headline_titles(observation.raw_title or "")
+        if not links:
+            title = headline_titles[0] if headline_titles else self._clean_name(observation.raw_title or "")
+            if not title:
+                return ()
+            return (NormalizedCandidate(
+                source_key=observation.source_key, platform=None, external_product_id=None,
+                title=title, product_url=observation.source_url, observed_at=observation.observed_at,
+                source_external_id=observation.external_id, article_url=observation.source_url,
+                image_url=parser.image_url,
+            ),)
         results: list[NormalizedCandidate] = []
         seen: set[tuple[str, str]] = set()
         for url, anchor_text in links:
@@ -151,6 +158,15 @@ class FourGamersArticleAnalyzer:
                     else ("unknown_storefront_platform",)
                 ),
             ))
+        if not results:
+            title = headline_titles[0] if headline_titles else self._clean_name(observation.raw_title or "")
+            if title:
+                results.append(NormalizedCandidate(
+                    source_key=observation.source_key, platform=None, external_product_id=None,
+                    title=title, product_url=observation.source_url, observed_at=observation.observed_at,
+                    source_external_id=observation.external_id, article_url=observation.source_url,
+                    image_url=parser.image_url,
+                ))
         return tuple(results)
 
     @staticmethod
