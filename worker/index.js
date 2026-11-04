@@ -38,7 +38,7 @@ async function githubRequest(env, method = "GET", body) {
     method,
     headers: {
       Accept: "application/vnd.github+json",
-      Authorization: "Bearer " + env.GITHUB_TOKEN,
+      ...(env.GITHUB_TOKEN ? { Authorization: "Bearer " + env.GITHUB_TOKEN } : {}),
       "X-GitHub-Api-Version": "2022-11-28",
       "User-Agent": "FreeGameWebsite",
       ...(body ? { "Content-Type": "application/json" } : {}),
@@ -113,6 +113,7 @@ export default {
     }
     const match = url.pathname.match(/^\/api\/games\/([^/]+)\/claim$/);
     if (request.method === "POST" && match) {
+      if (!env.GITHUB_TOKEN) return json({ error: "github_token_not_configured" }, 503);
       if (!(await requireOwner(request, env))) return json({ error: "authentication_required" }, 401);
       const gameId = decodeURIComponent(match[1]);
       for (let attempt = 0; attempt < 2; attempt++) {
