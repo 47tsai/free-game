@@ -298,6 +298,7 @@ class GitHubJsonWriter:
         sources = source_doc.get("records")
         source_by_id = {item.get("id"): item for item in sources if isinstance(item, dict)}
         changes = {}
+        product_links = {}
         for product in products:
             if not isinstance(product, dict):
                 continue
@@ -330,10 +331,17 @@ class GitHubJsonWriter:
                 "reminder_last_sent_at": existing.get("reminder_last_sent_at"),
             }
             changes[game_id] = incoming
+            product_links[product["id"]] = game_id
         if not changes:
             return (0, 0), None, None, 0
         stats, sha = self._upsert(self.GAMES_PATH, changes, _merge_game)
-        return stats, sha, None, stats[0] + stats[1]
+        link_changes = {product_id: {"game_id": game_id} for product_id, game_id in product_links.items()}
+        def merge_link(existing, incoming):
+            merged = dict(existing)
+            merged["game_id"] = incoming["game_id"]
+            return merged
+        _, product_sha = self._upsert(self.PRODUCTS_PATH, link_changes, merge_link)
+        return stats, sha, product_sha, len(product_links)
 
     def update_game(self, game_id, changes):
         """Update a single game while preserving its stable identity."""
@@ -608,6 +616,8 @@ def _merge_product(existing: dict[str, Any], incoming: dict[str, Any]) -> dict[s
         merged["title"] = incoming["title"]
         merged["product_url"] = incoming["product_url"]
         merged["updated_at"] = incoming["updated_at"]
+    if incoming.get("cover_image_url"):
+        merged["cover_image_url"] = incoming["cover_image_url"]
     return merged
 
 
