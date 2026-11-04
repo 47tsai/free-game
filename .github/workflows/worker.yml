@@ -20,16 +20,22 @@ jobs:
       - uses: actions/setup-node@v4
         with:
           node-version: 22
-      - name: Deploy Worker when Cloudflare credentials are configured
+      - name: Deploy Worker and sync GitHub write token
         env:
           CLOUDFLARE_API_TOKEN: ${{ secrets.CLOUDFLARE_API_TOKEN }}
           CLOUDFLARE_ACCOUNT_ID: ${{ secrets.CLOUDFLARE_ACCOUNT_ID }}
+          FREE_GAME_GITHUB_TOKEN: ${{ secrets.FREE_GAME_GITHUB_TOKEN }}
         run: |
           if [ -z "$CLOUDFLARE_API_TOKEN" ] || [ -z "$CLOUDFLARE_ACCOUNT_ID" ]; then
             echo "::error::Configure CLOUDFLARE_API_TOKEN and CLOUDFLARE_ACCOUNT_ID repository secrets."
             exit 1
           fi
+          if [ -z "$FREE_GAME_GITHUB_TOKEN" ]; then
+            echo "::error::Configure FREE_GAME_GITHUB_TOKEN repository secret."
+            exit 1
+          fi
           npx --yes wrangler@4 deploy
+          printf '%s' "$FREE_GAME_GITHUB_TOKEN" | npx --yes wrangler@4 secret put GITHUB_TOKEN
 
       - name: Verify public API and GitHub data access
         run: |
@@ -42,6 +48,7 @@ jobs:
           with open("/tmp/games.json", encoding="utf-8") as file:
               games = json.load(file)
           assert config.get("auth_client_id"), "Chi Auth client ID missing from API config"
+          assert config.get("claim_enabled") is True, "GitHub write token is not configured in Worker"
           assert isinstance(games.get("games"), list), "Games API did not return a game list"
-          print(f"API smoke test passed; {len(games['games'])} games available; claim_enabled={config.get('claim_enabled')}.")
+          print(f"API smoke test passed; {len(games['games'])} games available; claim_enabled=true.")
           PY
