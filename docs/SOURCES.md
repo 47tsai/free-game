@@ -279,12 +279,6 @@ The registry validates required fields, rejects unknown fields and duplicate sou
 Registry construction is configuration-only. It does not fetch source URLs, schedule jobs, or persist results. The source runner remains responsible for network policy and passes fetched payloads to the shared `IngestionPipeline`.
 
 
-## 12. Removed Steam-specific prototype
-
-The standalone Steam featured-categories discovery adapter and the disconnected Steam appdetails price assessor were removed. Game discovery is driven by 4Gamers RSS; storefront verification should be implemented as a step in that flow when its evidence and behavior are ready.
-
-<!-- former Steam adapter details removed -->
-
 ## 13. Source runner and HTTP fetch policy
 
 The first dedicated storefront adapter is `SteamAdapter` (`src/free_game/adapters/steam.py`). It currently parses the Steam Store featured-categories response, specifically the `specials.items` bucket.
@@ -313,25 +307,6 @@ For successful fetches, the runner records the source key, UTC fetch time, HTTP 
 Each source produces its own result. A fetch or parse failure is recorded for that source and does not stop later sources from running. Disabled sources are not fetched. The runner currently returns results in memory only; it does not write GitHub JSON, advance cursors, reconcile catalog entities, verify offers, or send notifications. Those operations remain separate stages.
 
 
-<!-- Steam appdetails prototype removed -->
-
 ## 14. Deferred storefront verification
 
-Steam-specific price-only assessment is not part of the current implementation. A future verifier must be connected to the RSS-driven offer workflow and must distinguish permanent claim entitlement from temporary free access before an offer can be marked verified.
-SteamAppDetailsAssessor (src/free_game/steam_price.py) parses a sanitized Steam App Details response for one expected App ID. It checks the response success flag, matching App ID, app type, free-to-play flag, and the regional price_overview fields.
-
-The assessor distinguishes:
-- free_to_play: Steam explicitly marks the app as free.
-- paid: the current final price is non-zero.
-- zero_price_discount: a positive initial price, zero final price, and 100% discount are present.
-- inconclusive: required price evidence is absent or insufficient.
-- unavailable: Steam reports the app lookup as unsuccessful.
-- invalid: the response shape, identity, app type, or price fields are invalid.
-
-A zero_price_discount result is price evidence only. It is not a verified free-to-keep offer and cannot create a verified Offer or trigger a notification. Steam documents Free to Keep as a time-limited promotion that grants a permanent license, while Free Weekends grant temporary access; the current appdetails price fields alone do not establish which entitlement package is active. See the official Steamworks documentation for Free to Keep (https://partner.steamgames.com/doc/marketing/discounts/freetokeep) and Free Weekends (https://partner.steamgames.com/doc/marketing/discounts/freeweekends).
-
-The Storefront App Details endpoint is undocumented and must be treated as an observed integration contract, not an official stable API. Community references describe the response shape and the is_free / price_overview fields:
-- https://github-wiki-see.page/m/Revadike/InternalSteamWebAPI/wiki/Get-App-Details
-- https://stackoverflow.com/questions/13784059/how-to-get-the-price-of-an-app-in-steam-webapi
-
-The assessor is currently a pure parser with fixture tests. It does not make network requests, persist assessments, or claim that an offer is verified. A separate claimability check is still required before a Steam Offer can be created as verified.
+Storefront verification will be implemented as part of the RSS-driven offer workflow. It must confirm that an offer is genuinely claimable, distinguish permanent ownership from temporary free access, and only then allow notification delivery.
