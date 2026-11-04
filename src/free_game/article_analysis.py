@@ -181,15 +181,15 @@ class FourGamersArticleAnalyzer:
     def _extract_offer_end_at(article_text: str, observed_at: datetime) -> datetime | None:
         """Extract one unambiguous Taiwan-local deadline with an explicit clock time."""
         pattern = re.compile(
-            r"(?:期限)?(?:至|到|截止於|截止至)\\s*(?:台灣時間|台北時間)?\\s*"
-            r"(?:(?P<year>20\\d{2})年)?(?P<month>1[0-2]|0?[1-9])月"
-            r"(?P<day>3[01]|[12]\\d|0?[1-9])日(?P<tail>[^。；;\\n]{0,28})"
+            r"(?:期限)?(?:至|到|截止於|截止至)\s*(?:台灣時間|台北時間)?\s*"
+            r"(?:(?P<year>20\d{2})年)?(?P<month>1[0-2]|0?[1-9])月"
+            r"(?P<day>3[01]|[12]\d|0?[1-9])日(?P<tail>[^。；;\n]{0,28})"
         )
         matches = []
         for match in pattern.finditer(article_text):
             clock = re.search(
-                r"(?P<period>凌晨|早上|上午|中午|下午|傍晚|晚上|晚間)?\\s*"
-                r"(?P<hour>2[0-3]|1[0-2]|0?[1-9])(?:[:：](?P<minute>[0-5]\\d))?\\s*點",
+                r"(?P<period>凌晨|早上|上午|中午|下午|傍晚|晚上|晚間)?\s*"
+                r"(?P<hour>2[0-3]|1[0-2]|0?[1-9])(?:[:：](?P<minute>[0-5]\d))?\s*點",
                 match.group("tail"),
             )
             if not clock:
