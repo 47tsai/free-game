@@ -367,7 +367,7 @@ class GitHubJsonWriter:
                 continue
             game_id = _stable_id("game", platform, external_id)
             existing = existing_by_id.get(game_id, {})
-            changes[game_id] = {
+            incoming = {
                 "id": game_id, "title": existing.get("title") or title,
                 "normalized_title": existing.get("normalized_title") or _normalize_title(title),
                 "created_at": existing.get("created_at", now), "updated_at": now,
@@ -380,6 +380,8 @@ class GitHubJsonWriter:
                 "claim_source": existing.get("claim_source") or "fgc", "claim_notification_pending": existing.get("claim_notification_pending", False) or existing.get("claim_status") != "claimed", "added_at": existing.get("added_at") or now,
                 "reminder_last_sent_at": existing.get("reminder_last_sent_at"),
             }
+            if not existing or any(existing.get(key) != value for key, value in incoming.items() if key != "updated_at"):
+                changes[game_id] = incoming
         if not changes:
             return (0, 0), None
         return self._upsert(self.GAMES_PATH, changes, _merge_game)
