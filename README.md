@@ -32,7 +32,7 @@ Run the configured ingestion command:
 free-game ingest --config config/sources.json
 ```
 
-The command exits successfully without network requests when no sources are enabled. When enabled sources produce persistable candidates, set `GITHUB_TOKEN` (or `GH_TOKEN`) with repository Contents write permission. The command fetches enabled sources, analyzes matching 4Gamers article pages, persists extracted Product identities and SourceRecord provenance, and creates provisional Game links. It does not merge products across platforms or advance source cursors. When `DISCORD_WEBHOOK_URL` is configured, it sends one Discord notification per verified active Offer and records the result in `data/operations/notifications.json`. It creates Offer records only when the Epic verifier confirms an exact product match, an active promotion, and a zero promotional price.
+The command exits successfully without network requests when no sources are enabled. When enabled sources produce persistable candidates, set `GITHUB_TOKEN` (or `GH_TOKEN`) with repository Contents write permission. The command fetches enabled sources, analyzes matching 4Gamers article pages, persists extracted Product identities and SourceRecord provenance, and creates provisional Game links. It does not merge products across platforms or advance source cursors. When `DISCORD_WEBHOOK_URL` is configured, it sends one Discord notification per verified active Offer and records the result in `data/operations/notifications.json`. Add that value as a repository Actions secret to enable Discord delivery. It creates Offer records only when the Epic verifier confirms an exact product match, an active promotion, and a zero promotional price.
 
 The canonical persisted-data schema is in `schemas/collection.schema.json`. Use `free_game.validation` to validate one collection's structure, and `free_game.semantic_validation.validate_dataset` to validate references and uniqueness across a mapping of collection names to collection documents.
 
@@ -47,7 +47,7 @@ The canonical persisted-data schema is in `schemas/collection.schema.json`. Use 
 ## Current boundaries
 
 - GitHub is the initial JSON persistence layer; Cloudflare D1 is not used.
-- GitHub Actions runs CI; a production ingestion schedule is not enabled yet.
+- GitHub Actions runs CI and the ingestion workflow every six hours, with manual dispatch available.
 - Cloudflare Workers is the intended API and CHIAuth boundary.
 - GitHub Pages is the intended frontend host.
 - Secrets and private account credentials must never be committed to this public repository.
