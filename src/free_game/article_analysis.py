@@ -191,19 +191,23 @@ class FourGamersArticleAnalyzer:
         """Extract one unambiguous Taiwan-local deadline with an explicit clock time."""
         pattern = re.compile(
             r"(?:期限)?(?:至|到|截止於|截止至)\s*(?:台灣時間|台北時間)?\s*"
-            r"(?:(?P<year>20\d{2})\s*年)?(?P<month>1[0-2]|0?[1-9])\s*月\s*"
-            r"(?P<day>3[01]|[12]\d|0?[1-9])\s*日(?P<tail>[^。；;\n]{0,28})"
+            r"(?:(?P<year>20\d{2})\s*(?:年|/)\s*)?"
+            r"(?P<month>1[0-2]|0?[1-9])\s*(?:月|/)\s*"
+            r"(?P<day>3[01]|[12]\d|0?[1-9])\s*(?:日|號)?"
+            r"(?P<tail>[^。；;\n]{0,28})"
         )
         matches = []
         for match in pattern.finditer(article_text):
             clock = re.search(
                 r"(?P<period>凌晨|早上|上午|中午|下午|傍晚|晚上|晚間)?\s*"
-                r"(?P<hour>2[0-3]|1[0-2]|0?[1-9])(?:[:：](?P<minute>[0-5]\d))?\s*點",
+                r"(?P<hour>2[0-3]|1[0-2]|0?[1-9])"
+                r"(?:[:：](?P<minute>[0-5]\d)|\s*點(?:\s*(?P<point_minute>[0-5]\d)\s*分)?)",
                 match.group("tail"),
             )
             if not clock:
                 continue
             hour = int(clock.group("hour"))
+            minute = int(clock.group("minute") or clock.group("point_minute") or 0)
             period = clock.group("period")
             if period in {"下午", "傍晚", "晚上", "晚間"} and hour < 12:
                 hour += 12
@@ -216,8 +220,10 @@ class FourGamersArticleAnalyzer:
             local_tz = timezone(timedelta(hours=8))
             year = int(match.group("year")) if match.group("year") else observed_at.astimezone(local_tz).year
             try:
-                deadline = datetime(year, int(match.group("month")), int(match.group("day")),
-                                    hour, int(clock.group("minute") or 0), tzinfo=local_tz)
+                deadline = datetime(
+                    year, int(match.group("month")), int(match.group("day")),
+                    hour, minute, tzinfo=local_tz,
+                )
                 if not match.group("year") and deadline <= observed_at.astimezone(local_tz):
                     deadline = deadline.replace(year=year + 1)
             except ValueError:
