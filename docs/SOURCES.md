@@ -324,7 +324,7 @@ The assessor distinguishes:
 - unavailable: Steam reports the app lookup as unsuccessful.
 - invalid: the response shape, identity, app type, or price fields are invalid.
 
-A zero_price_discount result is price evidence only. It is not a verified free-to-keep offer and cannot create a verified Offer or trigger a notification. Steam documents Free Weekends as temporary access, distinct from Free to Play; the current appdetails price fields alone do not establish whether a zero-price promotion grants a permanent license. See the official Steamworks Free Weekends documentation: https://partner.steamgames.com/doc/marketing/discounts/freeweekends.
+A zero_price_discount result is price evidence only. It is not a verified free-to-keep offer and cannot create a verified Offer or trigger a notification. Steam documents Free to Keep as a time-limited promotion that grants a permanent license, while Free Weekends grant temporary access; the current appdetails price fields alone do not establish which entitlement package is active. See the official Steamworks documentation for Free to Keep (https://partner.steamgames.com/doc/marketing/discounts/freetokeep) and Free Weekends (https://partner.steamgames.com/doc/marketing/discounts/freeweekends).
 
 The Storefront App Details endpoint is undocumented and must be treated as an observed integration contract, not an official stable API. Community references describe the response shape and the is_free / price_overview fields:
 - https://github-wiki-see.page/m/Revadike/InternalSteamWebAPI/wiki/Get-App-Details
