@@ -15,6 +15,7 @@ from urllib.parse import quote
 from urllib.request import Request, urlopen
 
 from free_game.adapters.base import NormalizedCandidate
+from free_game.verification import OfferVerification
 from free_game.validation import validate_collection
 
 _ID_NAMESPACE = uuid.UUID("a53b3d7c-cd0a-4d1e-96df-7d36e5e1d80f")
@@ -139,6 +140,14 @@ class GitHubContentsStore:
         if not isinstance(result_sha, str):
             raise ContentsStoreError("github_contents_write_sha_missing")
         return result_sha
+
+
+@dataclass(frozen=True, slots=True)
+class OfferWriteResult:
+    offers_created: int
+    offers_updated: int
+    offers_skipped: int
+    commit_sha: str | None
 
 
 @dataclass(frozen=True, slots=True)
@@ -330,6 +339,80 @@ class GitHubJsonWriter:
         # Report actual links assigned, not all products examined.
         return game_stats, game_sha, product_sha, product_stats[0] + product_stats[1]
 
+
+    OFFERS_PATH = "data/catalog/offers.json"
+
+    def write_verified_offers(
+        self,
+        verifications: tuple[OfferVerification, ...] | list[OfferVerification],
+    ) -> OfferWriteResult:
+        """Persist only offers whose storefront verifier returned verified."""
+        now = _now()
+        products = self.store.read(self.PRODUCTS_PATH).document.get("records")
+        sources = self.store.read(self.SOURCE_RECORDS_PATH).document.get("records")
+        if not isinstance(products, list) or not isinstance(sources, list):
+            raise ContentsStoreError("catalog:records_must_be_arrays")
+        product_ids = {item.get("id") for item in products if isinstance(item, dict)}
+        source_ids = {item.get("id") for item in sources if isinstance(item, dict)}
+
+        changes: dict[str, dict[str, Any]] = {}
+        skipped = 0
+        for result in verifications:
+            if result.status != "verified":
+                skipped += 1
+                continue
+            if not all((result.platform.strip(), result.external_product_id.strip(),
+                        result.source_key.strip(), result.source_external_id.strip(),
+                        result.title.strip())):
+                skipped += 1
+                continue
+            product_id = _stable_id("product", result.platform, result.external_product_id)
+            source_id = _stable_id("source", result.source_key, result.source_external_id)
+            if product_id not in product_ids or source_id not in source_ids:
+                skipped += 1
+                continue
+            if not result.claim_url.startswith("https://"):
+                skipped += 1
+                continue
+
+            starts_at = _iso(result.starts_at) if result.starts_at else None
+            ends_at = _iso(result.ends_at) if result.ends_at else None
+            current = datetime.now(timezone.utc)
+            if result.starts_at and result.starts_at > current:
+                offer_status = "upcoming"
+            elif result.ends_at and result.ends_at <= current:
+                offer_status = "ended"
+            elif result.starts_at or result.ends_at:
+                offer_status = "active"
+            else:
+                offer_status = "unknown"
+            offer_id = _stable_id("offer", result.platform, result.external_product_id,
+                                  result.source_external_id)
+            changes[offer_id] = {
+                "id": offer_id,
+                "product_id": product_id,
+                "platform": result.platform,
+                "source_record_ids": [source_id],
+                "title": result.title.strip(),
+                "claim_url": result.claim_url,
+                "starts_at": starts_at,
+                "ends_at": ends_at,
+                "deadline_status": "known" if ends_at else "unknown",
+                "status": offer_status,
+                "region": result.region,
+                "terms": None,
+                "verification_status": "verified",
+                "first_seen_at": now,
+                "last_seen_at": now,
+                "created_at": now,
+                "updated_at": now,
+            }
+
+        if not changes:
+            return OfferWriteResult(0, 0, skipped, None)
+        stats, sha = self._upsert(self.OFFERS_PATH, changes, _merge_offer)
+        return OfferWriteResult(stats[0], stats[1], skipped, sha)
+
     def _upsert(
         self,
         path: str,
@@ -390,6 +473,19 @@ class GitHubJsonWriter:
 
         parsed = urlparse(candidate.product_url)
         return parsed.scheme == "https" and bool(parsed.netloc)
+
+
+def _merge_offer(existing: dict[str, Any], incoming: dict[str, Any]) -> dict[str, Any]:
+    merged = dict(existing)
+    merged["source_record_ids"] = sorted(
+        set(existing.get("source_record_ids", [])) | set(incoming["source_record_ids"])
+    )
+    merged["last_seen_at"] = max(existing["last_seen_at"], incoming["last_seen_at"])
+    for key in ("title", "claim_url", "starts_at", "ends_at", "deadline_status",
+                "status", "region", "terms", "verification_status"):
+        merged[key] = incoming[key]
+    merged["updated_at"] = incoming["updated_at"]
+    return merged
 
 
 def _stable_id(kind: str, *parts: str) -> str:
