@@ -382,10 +382,10 @@ class GitHubJsonWriter:
                 offer_status = "upcoming"
             elif result.ends_at and result.ends_at <= current:
                 offer_status = "ended"
-            elif result.starts_at or result.ends_at:
-                offer_status = "active"
             else:
-                offer_status = "unknown"
+                # A verifier may confirm an active promotion without exposing
+                # a trustworthy start or end timestamp.
+                offer_status = "active"
             offer_id = _stable_id("offer", result.platform, result.external_product_id,
                                   result.source_external_id)
             changes[offer_id] = {
