@@ -6,6 +6,7 @@ import hashlib
 import re
 from html import unescape
 from html.parser import HTMLParser
+from datetime import datetime, timedelta, timezone
 from urllib.parse import urljoin, urlparse, urlunparse
 
 from free_game.adapters.base import NormalizedCandidate, SourceObservation
@@ -43,6 +44,7 @@ class _ArticleHTMLParser(HTMLParser):
         self.in_body = False
         self.skip_depth = 0
         self.links: list[tuple[str, str]] = []
+        self.body_text: list[str] = []
         self.image_url: str | None = None
         self._active_url: str | None = None
         self._active_text: list[str] = []
@@ -82,10 +84,12 @@ class _ArticleHTMLParser(HTMLParser):
             self.in_body = False
 
     def handle_data(self, data: str) -> None:
-        if self.in_body and not self.skip_depth and self._active_url:
+        if self.in_body and not self.skip_depth:
             value = " ".join(data.split())
             if value:
-                self._active_text.append(value)
+                self.body_text.append(value)
+                if self._active_url:
+                    self._active_text.append(value)
 
     @staticmethod
     def _platform(host: str) -> str | None:
@@ -109,6 +113,7 @@ class FourGamersArticleAnalyzer:
         parser = _ArticleHTMLParser(observation.source_url)
         parser.feed(text)
         links = list(dict.fromkeys(parser.links))
+        offer_end_at = self._extract_offer_end_at(" ".join(parser.body_text), observation.observed_at)
         headline_titles = self._headline_titles(observation.raw_title or "")
         if not links:
             title = headline_titles[0] if headline_titles else self._clean_name(observation.raw_title or "")
@@ -119,6 +124,7 @@ class FourGamersArticleAnalyzer:
                 title=title, product_url=observation.source_url, observed_at=observation.observed_at,
                 source_external_id=observation.external_id, article_url=observation.source_url,
                 image_url=parser.image_url,
+                offer_end_at=offer_end_at,
             ),)
         results: list[NormalizedCandidate] = []
         seen: set[tuple[str, str]] = set()
@@ -152,6 +158,7 @@ class FourGamersArticleAnalyzer:
                 source_external_id=source_external_id,
                 article_url=observation.source_url,
                 image_url=parser.image_url,
+                offer_end_at=offer_end_at,
                 warnings=(
                     () if external_id
                     else ("store_product_id_unresolved",) if platform
@@ -166,8 +173,49 @@ class FourGamersArticleAnalyzer:
                     title=title, product_url=observation.source_url, observed_at=observation.observed_at,
                     source_external_id=observation.external_id, article_url=observation.source_url,
                     image_url=parser.image_url,
+                    offer_end_at=offer_end_at,
                 ))
         return tuple(results)
+
+    @staticmethod
+    def _extract_offer_end_at(article_text: str, observed_at: datetime) -> datetime | None:
+        """Extract one unambiguous Taiwan-local deadline with an explicit clock time."""
+        pattern = re.compile(
+            r"(?:期限)?(?:至|到|截止於|截止至)\\s*(?:台灣時間|台北時間)?\\s*"
+            r"(?:(?P<year>20\\d{2})年)?(?P<month>1[0-2]|0?[1-9])月"
+            r"(?P<day>3[01]|[12]\\d|0?[1-9])日(?P<tail>[^。；;\\n]{0,28})"
+        )
+        matches = []
+        for match in pattern.finditer(article_text):
+            clock = re.search(
+                r"(?P<period>凌晨|早上|上午|中午|下午|傍晚|晚上|晚間)?\\s*"
+                r"(?P<hour>2[0-3]|1[0-2]|0?[1-9])(?:[:：](?P<minute>[0-5]\\d))?\\s*點",
+                match.group("tail"),
+            )
+            if not clock:
+                continue
+            hour = int(clock.group("hour"))
+            period = clock.group("period")
+            if period in {"下午", "傍晚", "晚上", "晚間"} and hour < 12:
+                hour += 12
+            elif period in {"凌晨", "早上", "上午"} and hour == 12:
+                hour = 0
+            elif period == "中午" and hour < 11:
+                hour += 12
+            elif period is None and hour < 13:
+                continue
+            local_tz = timezone(timedelta(hours=8))
+            year = int(match.group("year")) if match.group("year") else observed_at.astimezone(local_tz).year
+            try:
+                deadline = datetime(year, int(match.group("month")), int(match.group("day")),
+                                    hour, int(clock.group("minute") or 0), tzinfo=local_tz)
+                if not match.group("year") and deadline <= observed_at.astimezone(local_tz):
+                    deadline = deadline.replace(year=year + 1)
+            except ValueError:
+                continue
+            matches.append(deadline)
+        unique = list(dict.fromkeys(matches))
+        return unique[0] if len(unique) == 1 else None
 
     @staticmethod
     def _clean_name(value: str) -> str:
