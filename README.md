@@ -23,21 +23,29 @@ Each game is stored in `data/catalog/games.json`. The record includes its title,
 
 ## Website and manual claim marking
 
-The static website is in `site/` and is configured for GitHub Pages at `https://fg.chi.qzz.io` (the first deployment is pending Pages enablement). The API Worker is in `worker/index.js` and handles reads and authenticated manual claim updates through GitHub's Contents API.
+The static website is in `site/` and is configured for GitHub Pages at `https://fg.chi.qzz.io`. The API Worker is in `worker/index.js` and handles reads and authenticated manual claim updates through GitHub's Contents API.
 
-The website uses Chi Auth Authorization Code + PKCE. The API Worker checks the short-lived Chi Auth bearer token against `https://auth.chi.qzz.io/api/userinfo` and accepts only the owner subject before updating GitHub JSON. The GitHub token remains in a Cloudflare Worker secret and is never sent to the browser.
+The website uses the existing Chi Auth Authorization Code + PKCE client (`MN7nps4p8bc9oFVHwR1TdZejZyaUmXLt`). The API Worker checks the short-lived Chi Auth bearer token against `https://auth.chi.qzz.io/api/userinfo` and accepts only the owner subject before updating GitHub JSON. The Client ID is public configuration in `wrangler.toml`; it is not a secret. The GitHub token remains in a Cloudflare Worker secret and is never sent to the browser.
 
-Before enabling manual marking:
+### Required configuration
 
-1. Reuse the existing Chi Auth OAuth client from `47tsai/free-game-old` (Client ID `MN7nps4p8bc9oFVHwR1TdZejZyaUmXLt`). Its redirect URI is `https://fg.chi.qzz.io/`.
-2. Add these GitHub repository Actions secrets:
-   - `CLOUDFLARE_ACCOUNT_ID`
-   - `CLOUDFLARE_API_TOKEN`
-   - `FREE_GAME_GITHUB_TOKEN` (Contents read/write access to this repository)
-4. In repository Settings → Pages, select **GitHub Actions** as the build and deployment source. Then run the **Free Game Website** workflow once from the Actions tab.
-5. After the Worker secrets are configured, pushes affecting `worker/` or `wrangler.toml` deploy the API Worker automatically.
+**GitHub repository Actions secrets:**
 
-The Discord workflow requires the `DISCORD_WEBHOOK_URL` repository Actions secret.
+- `CLOUDFLARE_ACCOUNT_ID`
+- `CLOUDFLARE_API_TOKEN`
+- `DISCORD_WEBHOOK_URL`
+
+**Cloudflare Worker secret:**
+
+- `GITHUB_TOKEN`: the fine-grained GitHub token with Contents read/write access, restricted to `47tsai/free-game`.
+
+Set `GITHUB_TOKEN` in the Cloudflare dashboard under Workers & Pages → `free-game-api` → Settings → Variables and Secrets. Do not add this token to the repository, source code, or browser configuration.
+
+The existing Chi Auth client redirect URI must include `https://fg.chi.qzz.io/`.
+
+In repository Settings → Pages, select **GitHub Actions** as the build and deployment source. Run the **Free Game Website** workflow once from the Actions tab if the site has not yet been deployed.
+
+After the two Cloudflare Actions secrets are configured, pushes affecting `worker/` or `wrangler.toml` deploy the API Worker automatically. The deploy workflow does not overwrite Worker secrets.
 
 ## Development
 
