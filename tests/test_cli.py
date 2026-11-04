@@ -122,3 +122,96 @@ def test_cli_persists_candidates_and_reports_summary(
     assert output["status"] == "success"
     assert output["write"]["products_created"] == 1
     assert output["write"]["games_created"] == 1
+
+
+def test_cli_expands_4gamers_articles_into_store_products(monkeypatch) -> None:
+    from free_game.adapters.base import SourceObservation
+
+    observation = SourceObservation(
+        source_key="4gamers:latest-news",
+        external_id="article-123",
+        observed_at=datetime(2026, 11, 4, tzinfo=timezone.utc),
+        source_url="https://www.4gamers.com.tw/news/detail/123",
+        raw_title="限時免費《Example Game》",
+        raw_description="本週限免",
+    )
+    fallback = NormalizedCandidate(
+        source_key="4gamers:latest-news",
+        platform=None,
+        external_product_id=None,
+        title=observation.raw_title,
+        product_url=observation.source_url,
+        observed_at=observation.observed_at,
+        source_external_id=observation.external_id,
+    )
+    result = SourceRunResult(
+        source_key="4gamers:latest-news",
+        fetch_result=None,
+        ingestion_result=IngestionResult(
+            source_key="4gamers:latest-news",
+            observations=(observation,),
+            candidates=(fallback,),
+            issues=(),
+        ),
+    )
+
+    class FakeFetcher:
+        def fetch(self, url):
+            assert url == observation.source_url
+            return type("Response", (), {
+                "body": b'<html><body><a href="https://store.steampowered.com/app/12345/example/">Example Game</a></body></html>'
+            })()
+
+    monkeypatch.setattr("free_game.cli.HTTPFetcher", FakeFetcher)
+    from free_game.cli import collect_candidates
+
+    candidates, failures = collect_candidates((result,))
+
+    assert failures == []
+    assert len(candidates) == 1
+    assert candidates[0].platform == "steam"
+    assert candidates[0].external_product_id == "12345"
+    assert candidates[0].title == "Example Game"
+
+
+def test_cli_keeps_discovery_record_when_article_has_no_store_link(monkeypatch) -> None:
+    from free_game.adapters.base import SourceObservation
+
+    observation = SourceObservation(
+        source_key="4gamers:latest-news",
+        external_id="article-123",
+        observed_at=datetime(2026, 11, 4, tzinfo=timezone.utc),
+        source_url="https://www.4gamers.com.tw/news/detail/123",
+        raw_title="限時免費情報",
+    )
+    fallback = NormalizedCandidate(
+        source_key="4gamers:latest-news",
+        platform=None,
+        external_product_id=None,
+        title=observation.raw_title,
+        product_url=observation.source_url,
+        observed_at=observation.observed_at,
+        source_external_id=observation.external_id,
+    )
+    result = SourceRunResult(
+        source_key="4gamers:latest-news",
+        fetch_result=None,
+        ingestion_result=IngestionResult(
+            source_key="4gamers:latest-news",
+            observations=(observation,),
+            candidates=(fallback,),
+            issues=(),
+        ),
+    )
+
+    class FakeFetcher:
+        def fetch(self, url):
+            return type("Response", (), {"body": b"<html><body>No store links</body></html>"})()
+
+    monkeypatch.setattr("free_game.cli.HTTPFetcher", FakeFetcher)
+    from free_game.cli import collect_candidates
+
+    candidates, failures = collect_candidates((result,))
+
+    assert failures == []
+    assert candidates == [fallback]
