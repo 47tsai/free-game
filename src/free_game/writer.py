@@ -143,6 +143,13 @@ class GitHubContentsStore:
 
 
 @dataclass(frozen=True, slots=True)
+class NotificationWriteResult:
+    created: int
+    updated: int
+    commit_sha: str | None
+
+
+@dataclass(frozen=True, slots=True)
 class OfferWriteResult:
     offers_created: int
     offers_updated: int
@@ -413,6 +420,20 @@ class GitHubJsonWriter:
         stats, sha = self._upsert(self.OFFERS_PATH, changes, _merge_offer)
         return OfferWriteResult(stats[0], stats[1], skipped, sha)
 
+
+    NOTIFICATIONS_PATH = "data/operations/notifications.json"
+
+    def write_notification(self, notification: dict[str, Any]) -> NotificationWriteResult:
+        """Upsert one notification lifecycle record by its deterministic ID."""
+        if not isinstance(notification, dict) or not isinstance(notification.get("id"), str):
+            raise ValueError("notification must contain a stable id")
+        stats, sha = self._upsert(
+            self.NOTIFICATIONS_PATH,
+            {notification["id"]: notification},
+            _merge_notification,
+        )
+        return NotificationWriteResult(stats[0], stats[1], sha)
+
     def _upsert(
         self,
         path: str,
@@ -473,6 +494,19 @@ class GitHubJsonWriter:
 
         parsed = urlparse(candidate.product_url)
         return parsed.scheme == "https" and bool(parsed.netloc)
+
+
+def _merge_notification(existing: dict[str, Any], incoming: dict[str, Any]) -> dict[str, Any]:
+    merged = dict(existing)
+    # Once a logical notification has been attempted, do not reset it to
+    # pending on a later ingestion run. This prevents duplicate Discord posts.
+    if existing.get("status") in {"pending", "sent", "failed"}:
+        if existing.get("status") == "sent":
+            return merged
+        if existing.get("status") == "pending" and incoming.get("status") == "pending":
+            return merged
+    merged.update(incoming)
+    return merged
 
 
 def _merge_offer(existing: dict[str, Any], incoming: dict[str, Any]) -> dict[str, Any]:
