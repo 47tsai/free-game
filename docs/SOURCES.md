@@ -256,3 +256,29 @@ The following items remain explicitly open:
 9. Define the configuration format and allowlist for Generic adapter sources, including which feed types and reviewed page parsers are enabled.
 
 These decisions should be resolved with evidence before writing production adapters. Until then, unknown details must remain marked as unknown rather than being filled with guessed endpoints or behavior.
+
+
+## 11. Source registry configuration
+
+The Python implementation now includes a configuration-driven `SourceRegistry`. Source definitions live in `config/sources.json` and use this shape:
+
+```json
+{
+  "sources": [
+    {
+      "source_key": "example-shop:promotions",
+      "adapter": "generic",
+      "enabled": true,
+      "source_url": "https://example.test/feed",
+      "platform": "example-shop",
+      "feed_format": "auto"
+    }
+  ]
+}
+```
+
+The committed configuration intentionally contains an empty `sources` array. No production endpoint is added until its URL and behavior have been verified.
+
+The registry validates required fields, rejects unknown fields and duplicate source keys, requires absolute HTTPS source URLs, and skips disabled definitions when building adapters. The built-in `generic` type constructs the Generic adapter. Dedicated adapters can be added by registering an explicit factory for their adapter type. An unregistered type raises a configuration error; it never silently falls back to Generic.
+
+Registry construction is configuration-only. It does not fetch source URLs, schedule jobs, or persist results. The source runner remains responsible for network policy and passes fetched payloads to the shared `IngestionPipeline`.
