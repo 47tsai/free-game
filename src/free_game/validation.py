@@ -8,7 +8,7 @@ from typing import Any
 
 from jsonschema import Draft202012Validator, FormatChecker
 
-SCHEMA_PATH = Path(__file__).resolve().parents[2] / "schemas" / "collection.schema.json"
+SCHEMA_PATH = Path(__file__).resolve().parent / "schemas" / "collection.schema.json"
 _FORMAT_CHECKER = FormatChecker()
 
 
