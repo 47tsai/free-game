@@ -66,8 +66,6 @@
         "id",
         "title",
         "normalized_title",
-        "claim_status",
-        "added_at",
         "created_at",
         "updated_at"
       ],
@@ -144,6 +142,34 @@
         },
         "updated_at": {
           "$ref": "#/$defs/Timestamp"
+        },
+        "source_record_ids": {
+          "type": "array",
+          "items": {
+            "type": "string"
+          },
+          "uniqueItems": true
+        },
+        "description": {
+          "$ref": "#/$defs/NullableString"
+        },
+        "developers": {
+          "type": "array",
+          "items": {
+            "type": "string"
+          }
+        },
+        "publishers": {
+          "type": "array",
+          "items": {
+            "type": "string"
+          }
+        },
+        "genres": {
+          "type": "array",
+          "items": {
+            "type": "string"
+          }
         }
       },
       "additionalProperties": false
@@ -152,7 +178,6 @@
       "type": "object",
       "required": [
         "id",
-        "game_id",
         "notification_type",
         "channel",
         "idempotency_key",
@@ -208,6 +233,9 @@
         },
         "last_error": {
           "$ref": "#/$defs/NullableString"
+        },
+        "offer_id": {
+          "$ref": "#/$defs/Id"
         }
       },
       "additionalProperties": false
