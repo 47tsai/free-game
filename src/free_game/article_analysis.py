@@ -117,13 +117,14 @@ class FourGamersArticleAnalyzer:
         seen: set[tuple[str, str]] = set()
         for url, anchor_text in links:
             parsed = urlparse(url)
-            platform = _ArticleHTMLParser._platform((parsed.hostname or "").lower())
+            host = (parsed.hostname or "").lower()
+            platform = _ArticleHTMLParser._platform(host) or host.removeprefix("www.")
             title = self._clean_name(anchor_text)
             if not title and len(links) == 1 and len(headline_titles) == 1:
                 title = self._clean_name(headline_titles[0])
             if not title:
                 continue
-            external_id = self._external_product_id(platform, parsed.path) if platform else None
+            external_id = self._external_product_id(platform, parsed.path) or parsed.path.rstrip("/").split("/")[-1]
             key = (platform or "unknown", url)
             if key in seen:
                 continue
