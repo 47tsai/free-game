@@ -253,9 +253,10 @@ class GitHubJsonWriter:
                 self.PRODUCTS_PATH, product_changes, _merge_product
             )
 
-        game_stats, game_sha, linked_count = self.reconcile_products_to_games()
+        game_stats, game_sha, linked_product_sha, linked_count = self.reconcile_products_to_games()
         commits = tuple(
-            sha for sha in (source_sha, product_sha, game_sha) if sha is not None
+            sha for sha in (source_sha, product_sha, game_sha, linked_product_sha)
+            if sha is not None
         )
         return WriteResult(
             products_created=product_stats[0],
@@ -270,7 +271,9 @@ class GitHubJsonWriter:
 
     GAMES_PATH = "data/catalog/games.json"
 
-    def reconcile_products_to_games(self) -> tuple[tuple[int, int], str | None, int]:
+    def reconcile_products_to_games(
+        self,
+    ) -> tuple[tuple[int, int], str | None, str | None, int]:
         """Create one provisional Game per Product; never merge across platforms.
 
         Cross-platform title similarity is not sufficient evidence for an
@@ -283,7 +286,7 @@ class GitHubJsonWriter:
             raise ContentsStoreError("products:records_must_be_array")
         pending = [item for item in records if isinstance(item, dict) and item.get("game_id") is None]
         if not pending:
-            return (0, 0), None, 0
+            return (0, 0), None, None, 0
 
         game_changes: dict[str, dict[str, Any]] = {}
         product_links: dict[str, str] = {}
@@ -324,7 +327,7 @@ class GitHubJsonWriter:
             self.PRODUCTS_PATH, linked_products, merge_product_link
         )
         # Report actual links assigned, not all products examined.
-        return game_stats, product_sha or game_sha, product_stats[0] + product_stats[1]
+        return game_stats, game_sha, product_sha, product_stats[0] + product_stats[1]
 
     def _upsert(
         self,
