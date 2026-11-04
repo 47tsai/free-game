@@ -5,7 +5,7 @@ build-backend = "setuptools.build_meta"
 [project]
 name = "free-game"
 version = "0.1.0"
-description = "Multi-platform free game discovery and claim tracking"
+description = "4Gamers free game catalog with FGC claim sync"
 readme = "README.md"
 requires-python = ">=3.12"
 dependencies = [
