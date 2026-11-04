@@ -6,43 +6,27 @@ from datetime import datetime, timezone
 import pytest
 
 from free_game.adapters.base import NormalizedCandidate
-from free_game.writer import (
-    ContentsConflictError,
-    GitHubJsonWriter,
-    StoredCollection,
-)
+from free_game.writer import ContentsConflictError, GitHubJsonWriter, StoredCollection
 
 
 class MemoryStore:
-    def __init__(self) -> None:
-        self.documents: dict[str, dict] = {}
-        self.shas: dict[str, str] = {}
-        self.writes: list[tuple[str, dict, str | None]] = []
+    def __init__(self):
+        self.documents = {}
+        self.shas = {}
+        self.writes = []
         self.conflict_once = False
         self.counter = 0
 
-    def read(self, path: str) -> StoredCollection:
-        return StoredCollection(
-            document=deepcopy(self.documents.get(path, {
-                "schema_version": 1,
-                "updated_at": "2026-11-04T00:00:00Z",
-                "records": [],
-            })),
-            sha=self.shas.get(path),
-        )
+    def read(self, path):
+        return StoredCollection(deepcopy(self.documents.get(path, {"schema_version": 1, "updated_at": "2026-11-04T00:00:00Z", "records": []})), self.shas.get(path))
 
-    def write(self, path: str, document: dict, sha: str | None) -> str:
+    def write(self, path, document, sha):
         if self.conflict_once:
             self.conflict_once = False
-            self.documents[path] = {
-                "schema_version": 1,
-                "updated_at": "2026-11-04T00:00:00Z",
-                "records": [],
-            }
-            self.shas[path] = "concurrent-change"
+            self.documents[path] = {"schema_version": 1, "updated_at": "2026-11-04T00:00:00Z", "records": []}
+            self.shas[path] = "concurrent"
             raise ContentsConflictError("conflict")
-        current = self.shas.get(path)
-        if current != sha:
+        if self.shas.get(path) != sha:
             raise ContentsConflictError("stale sha")
         self.counter += 1
         next_sha = f"sha-{self.counter}"
@@ -52,287 +36,120 @@ class MemoryStore:
         return next_sha
 
 
-def candidate(**overrides) -> NormalizedCandidate:
+def candidate(**overrides):
     values = {
-        "source_key": "steam:featured-categories",
+        "source_key": "4gamers:latest-news",
         "platform": "steam",
-        "external_product_id": "12345",
-        "title": "Example Game",
-        "product_url": "https://store.steampowered.com/app/12345/",
+        "external_product_id": "785890",
+        "title": "Hexologic",
+        "product_url": "https://store.steampowered.com/app/785890/Hexologic/",
         "observed_at": datetime(2026, 11, 4, tzinfo=timezone.utc),
-        "verification_status": "candidate",
-        "source_external_id": "12345",
+        "source_external_id": "4gamers-hexologic",
+        "article_url": "https://www.4gamers.com.tw/news/detail/hexologic",
+        "image_url": "https://example.com/hexologic.jpg",
     }
     values.update(overrides)
     return NormalizedCandidate(**values)
 
 
-def test_writer_creates_product_and_source_record() -> None:
+def test_writer_creates_one_complete_game_record():
     store = MemoryStore()
-
     result = GitHubJsonWriter(store).write_candidates([candidate()])
+    assert result.games_created == 1
+    assert result.games_updated == 0
+    games = store.documents[GitHubJsonWriter.GAMES_PATH]["records"]
+    assert len(games) == 1
+    game = games[0]
+    assert game["title"] == "Hexologic"
+    assert game["platform"] == "steam"
+    assert game["store_url"].endswith("/785890/Hexologic/")
+    assert game["article_url"].endswith("/hexologic")
+    assert game["cover_image_url"] == "https://example.com/hexologic.jpg"
+    assert game["claim_status"] == "unclaimed"
+    assert game["added_at"] == game["created_at"]
 
-    assert result.products_created == 1
-    assert result.source_records_created == 1
-    assert len(result.commit_shas) == 3
-    products = store.documents[GitHubJsonWriter.PRODUCTS_PATH]["records"]
-    sources = store.documents[GitHubJsonWriter.SOURCE_RECORDS_PATH]["records"]
-    assert len(products) == len(sources) == 1
-    assert isinstance(products[0]["game_id"], str)
-    assert products[0]["external_product_id"] == "12345"
-    assert products[0]["source_record_ids"] == [sources[0]["id"]]
-    assert sources[0]["linked_entity_ids"] == [products[0]["id"]]
 
-
-def test_repeated_run_is_idempotent() -> None:
+def test_repeated_ingestion_is_idempotent():
     store = MemoryStore()
     writer = GitHubJsonWriter(store)
-
     first = writer.write_candidates([candidate()])
     second = writer.write_candidates([candidate()])
-
-    assert first.products_created == 1
-    assert second.products_created == 0
-    assert second.products_updated == 1
-    assert second.source_records_created == 0
-    assert second.source_records_updated == 1
-    assert len(store.documents[writer.PRODUCTS_PATH]["records"]) == 1
-    assert len(store.documents[writer.SOURCE_RECORDS_PATH]["records"]) == 1
+    assert first.games_created == 1
+    assert second.games_created == second.games_updated == 0
+    assert len(store.documents[writer.GAMES_PATH]["records"]) == 1
 
 
-def test_same_product_from_multiple_sources_keeps_both_provenance_links() -> None:
+def test_same_store_product_from_multiple_articles_stays_one_game():
     store = MemoryStore()
     writer = GitHubJsonWriter(store)
-
-    writer.write_candidates([
-        candidate(),
-        candidate(
-            source_key="steam:another-feed",
-            source_external_id="feed-item-9",
-            title="Example Game Updated",
-        ),
-    ])
-
-    products = store.documents[writer.PRODUCTS_PATH]["records"]
-    sources = store.documents[writer.SOURCE_RECORDS_PATH]["records"]
-    assert len(products) == 1
-    assert len(sources) == 2
-    assert len(products[0]["source_record_ids"]) == 2
-
-
-def test_candidate_without_product_identity_only_persists_discovery() -> None:
-    store = MemoryStore()
-    result = GitHubJsonWriter(store).write_candidates([
-        candidate(platform=None, external_product_id=None, product_url="http://example.test/item")
-    ])
-
-    assert result.products_created == 0
-    assert result.source_records_created == 1
-    source = store.documents[GitHubJsonWriter.SOURCE_RECORDS_PATH]["records"][0]
-    assert source["record_type"] == "discovery"
-    assert source["url"] is None
-
-
-def test_candidate_without_source_external_id_is_skipped() -> None:
-    store = MemoryStore()
-    result = GitHubJsonWriter(store).write_candidates([
-        candidate(source_external_id=None)
-    ])
-
-    assert result.candidates_skipped == 1
-    assert store.writes == []
-
-
-def test_non_candidate_verification_state_is_skipped() -> None:
-    store = MemoryStore()
-    result = GitHubJsonWriter(store).write_candidates([
-        candidate(verification_status="verified")
-    ])
-
-    assert result.candidates_skipped == 1
-    assert store.writes == []
-
-
-def test_retries_sha_conflict_after_rereading() -> None:
-    store = MemoryStore()
-    store.conflict_once = True
-
-    result = GitHubJsonWriter(store).write_candidates([candidate()])
-
-    assert result.products_created == 1
-    assert result.source_records_created == 1
-    assert len(store.writes) == 4
-
-
-def test_rejects_exhausted_conflicts() -> None:
-    class AlwaysConflict(MemoryStore):
-        def write(self, path: str, document: dict, sha: str | None) -> str:
-            raise ContentsConflictError("conflict")
-
-    with pytest.raises(ContentsConflictError):
-        GitHubJsonWriter(AlwaysConflict(), max_conflict_retries=0).write_candidates([
-            candidate()
-        ])
-
-
-def test_invalid_non_https_product_url_is_skipped() -> None:
-    store = MemoryStore()
-    result = GitHubJsonWriter(store).write_candidates([
-        candidate(product_url="http://store.steampowered.com/app/12345/")
-    ])
-
-    assert result.candidates_skipped == 1
-    assert store.writes == []
-
-
-
-def test_reconciliation_creates_one_provisional_game_per_product() -> None:
-    store = MemoryStore()
-    writer = GitHubJsonWriter(store)
-
-    result = writer.write_candidates([
-        candidate(),
-        candidate(
-            platform="epic",
-            external_product_id="epic-123",
-            source_key="epic:free-games",
-            source_external_id="epic-123",
-            product_url="https://store.epicgames.com/p/example",
-        ),
-    ])
-
+    writer.write_candidates([candidate(), candidate(source_external_id="second-article", article_url="https://www.4gamers.com.tw/news/detail/second")])
     games = store.documents[writer.GAMES_PATH]["records"]
-    products = store.documents[writer.PRODUCTS_PATH]["records"]
-    assert result.games_created == 2
-    assert result.products_linked_to_games == 2
-    assert len(games) == 2
-    assert len({product["game_id"] for product in products}) == 2
-    assert all(game["normalized_title"] == "example game" for game in games)
+    assert len(games) == 1
+    assert games[0]["added_at"] == games[0]["created_at"]
 
 
-def test_reconciliation_is_idempotent_and_does_not_merge_same_titles() -> None:
+def test_discovery_without_store_link_is_still_saved():
+    store = MemoryStore()
+    result = GitHubJsonWriter(store).write_candidates([candidate(platform=None, external_product_id=None, product_url="https://www.4gamers.com.tw/news/detail/discovery", article_url=None, image_url=None)])
+    assert result.games_created == 1
+    game = store.documents[GitHubJsonWriter.GAMES_PATH]["records"][0]
+    assert game["platform"] is None
+    assert game["store_url"] is None
+    assert game["article_url"].endswith("/discovery")
+
+
+def test_candidate_without_source_identity_is_skipped():
+    store = MemoryStore()
+    result = GitHubJsonWriter(store).write_candidates([candidate(source_external_id=None)])
+    assert result.candidates_skipped == 1
+    assert store.writes == []
+
+
+def test_invalid_store_url_is_skipped():
+    store = MemoryStore()
+    result = GitHubJsonWriter(store).write_candidates([candidate(product_url="http://store.steampowered.com/app/785890/")])
+    assert result.candidates_skipped == 1
+    assert store.writes == []
+
+
+def test_fgc_claim_is_saved_and_matched_to_later_4gamers_game():
     store = MemoryStore()
     writer = GitHubJsonWriter(store)
-    writer.write_candidates([
-        candidate(),
-        candidate(
-            platform="epic",
-            external_product_id="epic-123",
-            source_key="epic:free-games",
-            source_external_id="epic-123",
-            product_url="https://store.epicgames.com/p/example",
-        ),
-    ])
-    first_game_ids = {
-        item["id"] for item in store.documents[writer.GAMES_PATH]["records"]
-    }
-
-    result = writer.reconcile_products_to_games()
-
-    second_game_ids = {
-        item["id"] for item in store.documents[writer.GAMES_PATH]["records"]
-    }
-    assert result[0] == (0, 0)
-    assert result[3] == 0
-    assert second_game_ids == first_game_ids
-    assert len(second_game_ids) == 2
-
-
-def test_discovery_only_source_record_does_not_create_game() -> None:
-    store = MemoryStore()
-    writer = GitHubJsonWriter(store)
-    writer.write_candidates([
-        candidate(platform=None, external_product_id=None, product_url=None)
-    ])
-
-    assert writer.GAMES_PATH not in store.documents
-    assert writer.PRODUCTS_PATH not in store.documents
-
-
-def test_writer_persists_only_verified_offers() -> None:
-    from free_game.verification import OfferVerification
-
-    store = MemoryStore()
-    writer = GitHubJsonWriter(store)
-    source_candidate = candidate()
-    writer.write_candidates([source_candidate])
-    verified = OfferVerification(
-        status="verified",
-        platform="steam",
-        external_product_id="12345",
-        title="Example Game",
-        claim_url="https://store.steampowered.com/app/12345/",
-        source_key=source_candidate.source_key,
-        source_external_id=source_candidate.source_external_id,
-        starts_at=datetime(2026, 11, 1, tzinfo=timezone.utc),
-        ends_at=datetime(2026, 11, 10, tzinfo=timezone.utc),
-        region="TW",
-        reason="fixture_verified",
-    )
-    unverified = OfferVerification(
-        status="needs_review",
-        platform="steam",
-        external_product_id="12345",
-        title="Example Game",
-        claim_url="https://store.steampowered.com/app/12345/",
-        source_key=source_candidate.source_key,
-        source_external_id=source_candidate.source_external_id,
-        reason="insufficient_evidence",
-    )
-
-    result = writer.write_verified_offers([verified, unverified])
-
-    assert result.offers_created == 1
-    assert result.offers_skipped == 1
-    offers = store.documents[writer.OFFERS_PATH]["records"]
-    assert len(offers) == 1
-    assert offers[0]["verification_status"] == "verified"
-    assert offers[0]["deadline_status"] == "known"
-
-
-def test_writer_does_not_create_offer_without_existing_product_and_source() -> None:
-    from free_game.verification import OfferVerification
-
-    store = MemoryStore()
-    result = GitHubJsonWriter(store).write_verified_offers([
-        OfferVerification(
-            status="verified",
-            platform="steam",
-            external_product_id="12345",
-            title="Example Game",
-            claim_url="https://store.steampowered.com/app/12345/",
-            source_key="4gamers:latest-news",
-            source_external_id="article-1:123",
-            reason="fixture_verified",
-        )
-    ])
-
-    assert result.offers_created == 0
-    assert result.offers_skipped == 1
-    assert GitHubJsonWriter.OFFERS_PATH not in store.documents
-
-
-def test_fgc_claim_is_saved_and_matched_to_later_4gamers_game() -> None:
-    store = MemoryStore()
-    writer = GitHubJsonWriter(store)
-    writer.sync_fgc_claims([{
-        "platform": "steam", "external_product_id": "785890",
-        "title": "Hexologic", "store_url": "https://store.steampowered.com/app/785890/Hexologic/",
-    }])
-    fgc_game = store.documents[writer.GAMES_PATH]["records"][0]
-    assert fgc_game["claim_status"] == "claimed"
-    assert fgc_game["claim_source"] == "fgc"
-    writer.write_candidates([candidate(
-        source_key="4gamers:latest-news",
-        source_external_id="4gamers-hexologic",
-        external_product_id="785890",
-        title="Hexologic",
-        product_url="https://store.steampowered.com/app/785890/Hexologic/",
-        article_url="https://www.4gamers.com.tw/news/detail/hexologic",
-        image_url="https://example.com/hexologic.jpg",
-    )])
+    writer.sync_fgc_claims([{"platform": "steam", "external_product_id": "785890", "title": "Hexologic", "store_url": "https://store.steampowered.com/app/785890/Hexologic/"}])
+    placeholder = store.documents[writer.GAMES_PATH]["records"][0]
+    assert placeholder["claim_status"] == "claimed"
+    assert placeholder["claim_source"] == "fgc"
+    writer.write_candidates([candidate()])
     games = store.documents[writer.GAMES_PATH]["records"]
     assert len(games) == 1
     assert games[0]["claim_status"] == "claimed"
-    assert games[0]["article_url"] == "https://www.4gamers.com.tw/news/detail/hexologic"
+    assert games[0]["article_url"].endswith("/hexologic")
     assert games[0]["cover_image_url"] == "https://example.com/hexologic.jpg"
+
+
+def test_manual_claim_state_is_not_overwritten_by_fgc_sync():
+    store = MemoryStore()
+    writer = GitHubJsonWriter(store)
+    writer.write_candidates([candidate()])
+    game = store.documents[writer.GAMES_PATH]["records"][0]
+    writer.update_game(game["id"], {"claim_status": "claimed", "claimed_at": "2026-11-04T01:00:00Z", "claim_source": "manual", "claim_notification_pending": True})
+    writer.sync_fgc_claims([{"platform": "steam", "external_product_id": "785890", "title": "Hexologic", "store_url": candidate().product_url}])
+    game = store.documents[writer.GAMES_PATH]["records"][0]
+    assert game["claim_source"] == "manual"
+    assert game["claim_notification_pending"] is True
+
+
+def test_retries_sha_conflict_after_rereading():
+    store = MemoryStore()
+    store.conflict_once = True
+    result = GitHubJsonWriter(store).write_candidates([candidate()])
+    assert result.games_created == 1
+    assert len(store.writes) == 1
+
+
+def test_rejects_exhausted_sha_conflicts():
+    class AlwaysConflict(MemoryStore):
+        def write(self, path, document, sha):
+            raise ContentsConflictError("conflict")
+    with pytest.raises(ContentsConflictError):
+        GitHubJsonWriter(AlwaysConflict(), max_conflict_retries=0).write_candidates([candidate()])
