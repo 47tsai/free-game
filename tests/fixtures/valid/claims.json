@@ -1,0 +1,16 @@
+{
+  "schema_version": 1,
+  "updated_at": "2026-11-04T00:00:00Z",
+  "records": [
+    {
+      "id": "claim_example",
+      "user_id": "chi-auth-subject",
+      "product_id": "product_example",
+      "status": "claimed",
+      "source": "manual",
+      "claimed_at": "2026-11-04T00:00:00Z",
+      "updated_at": "2026-11-04T00:00:00Z",
+      "note": null
+    }
+  ]
+}
