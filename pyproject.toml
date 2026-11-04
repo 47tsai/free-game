@@ -12,6 +12,9 @@ dependencies = [
   "jsonschema[format]>=4.23,<5"
 ]
 
+[project.scripts]
+free-game = "free_game.cli:main"
+
 [project.optional-dependencies]
 dev = [
   "pytest>=8.3,<9"
