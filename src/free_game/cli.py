@@ -8,8 +8,9 @@ import os
 import sys
 from pathlib import Path
 
+from free_game.article_analysis import FourGamersArticleAnalyzer
 from free_game.registry import SourceRegistry
-from free_game.runner import SourceRunner
+from free_game.runner import HTTPFetcher, SourceRunner
 from free_game.writer import GitHubContentsStore, GitHubJsonWriter
 
 
@@ -30,6 +31,46 @@ def build_parser() -> argparse.ArgumentParser:
     return parser
 
 
+
+def collect_candidates(results):
+    """Expand 4Gamers discovery records into platform product candidates."""
+    analyzer = FourGamersArticleAnalyzer()
+    article_fetcher = HTTPFetcher()
+    candidates = []
+    failed_articles = []
+
+    for result in results:
+        ingestion = result.ingestion_result
+        if not result.succeeded or ingestion is None:
+            continue
+        if result.source_key != "4gamers:latest-news":
+            candidates.extend(ingestion.candidates)
+            continue
+
+        candidates_by_id = {
+            candidate.source_external_id: candidate
+            for candidate in ingestion.candidates
+        }
+        for observation in ingestion.observations:
+            fallback = candidates_by_id.get(observation.external_id)
+            try:
+                if not observation.source_url:
+                    raise ValueError("article_url_missing")
+                response = article_fetcher.fetch(observation.source_url)
+                extracted = analyzer.analyze(observation, response.body)
+                candidates.extend(extracted or ((fallback,) if fallback else ()))
+            except Exception:
+                failed_articles.append({
+                    "source_key": result.source_key,
+                    "article_id": observation.external_id,
+                    "error": "article_fetch_or_analysis_failed",
+                })
+                if fallback:
+                    candidates.append(fallback)
+
+    return candidates, failed_articles
+
+
 def main(argv: list[str] | None = None) -> int:
     args = build_parser().parse_args(argv)
     if args.command != "ingest":
@@ -47,12 +88,7 @@ def main(argv: list[str] | None = None) -> int:
             return 0
 
         results = SourceRunner(registry).run_all()
-        candidates = [
-            candidate
-            for result in results
-            if result.succeeded and result.ingestion_result is not None
-            for candidate in result.ingestion_result.candidates
-        ]
+        candidates, failed_articles = collect_candidates(results)
 
         write_summary = None
         if candidates:
@@ -79,13 +115,14 @@ def main(argv: list[str] | None = None) -> int:
 
         failures = [result for result in results if not result.succeeded]
         print(json.dumps({
-            "status": "partial_failure" if failures else "success",
+            "status": "partial_failure" if failures or failed_articles else "success",
             "sources": len(results),
             "successful_sources": len(results) - len(failures),
             "failed_sources": [
                 {"source_key": result.source_key, "error": result.error}
                 for result in failures
             ],
+            "failed_articles": failed_articles,
             "candidates": len(candidates),
             "write": write_summary,
         }, ensure_ascii=False))
