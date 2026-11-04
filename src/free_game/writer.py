@@ -317,7 +317,7 @@ class GitHubJsonWriter:
             incoming = {
                 "id": game_id, "title": title.strip(),
                 "normalized_title": _normalize_title(title),
-                "created_at": existing.get("created_at", now), "updated_at": now,
+                "created_at": existing.get("created_at", now), "updated_at": existing.get("updated_at", now),
                 "source_record_ids": sorted(set(existing.get("source_record_ids", [])) | set(source_ids)),
                 "platform": platform, "external_product_id": external_id,
                 "store_url": product.get("product_url"),
@@ -327,10 +327,12 @@ class GitHubJsonWriter:
                 "claimed_at": existing.get("claimed_at"),
                 "claim_source": existing.get("claim_source"),
                 "claim_notification_pending": existing.get("claim_notification_pending", False),
-                "added_at": existing.get("added_at") or now,
+                "added_at": existing.get("added_at") if existing.get("article_url") else now,
                 "reminder_last_sent_at": existing.get("reminder_last_sent_at"),
             }
-            changes[game_id] = incoming
+            if not existing or any(existing.get(key) != value for key, value in incoming.items() if key != "updated_at"):
+                incoming["updated_at"] = now
+                changes[game_id] = incoming
             product_links[product["id"]] = game_id
         if not changes:
             return (0, 0), None, None, 0
