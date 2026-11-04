@@ -109,7 +109,7 @@ export default {
       });
     }
     if (request.method === "GET" && url.pathname === "/api/config") {
-      return json({ auth_client_id: env.CHI_AUTH_CLIENT_ID || null });
+      return json({ auth_client_id: env.CHI_AUTH_CLIENT_ID || null, claim_enabled: Boolean(env.GITHUB_TOKEN) });
     }
     if (request.method === "GET" && url.pathname === "/api/games") {
       try {
@@ -144,6 +144,9 @@ export default {
           return json({ ok: true, game: game });
         } catch (error) {
           if (attempt === 0 && String(error.message).includes("github_409")) continue;
+          const reason = String(error?.message || "");
+          if (reason === "github_401" || reason === "github_403") return json({ error: "github_write_forbidden" }, 503);
+          if (reason === "github_409") return json({ error: "github_write_conflict" }, 409);
           return json({ error: "claim_update_failed" }, 502);
         }
       }
