@@ -39,6 +39,7 @@ def collect_candidates(results):
         if not result.succeeded or ingestion is None:
             continue
         if result.source_key != "4gamers:latest-news":
+            candidates.extend(ingestion.candidates)
             continue
         candidates_by_id = {item.source_external_id: item for item in ingestion.candidates}
         for observation in ingestion.observations:
