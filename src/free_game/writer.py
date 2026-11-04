@@ -212,7 +212,7 @@ class GitHubJsonWriter:
                 "source": candidate.source_key,
                 "external_id": candidate.source_external_id,
                 "record_type": "store_product" if product_id else "discovery",
-                "url": _https_url_or_none(candidate.product_url),
+                "url": _https_url_or_none(candidate.article_url or candidate.product_url),
                 "content_hash": _candidate_hash(candidate),
                 "linked_entity_ids": [product_id] if product_id else [],
             }
@@ -325,6 +325,7 @@ class GitHubJsonWriter:
                 "claim_status": existing.get("claim_status", "unclaimed"),
                 "claimed_at": existing.get("claimed_at"),
                 "claim_source": existing.get("claim_source"),
+                "claim_notification_pending": existing.get("claim_notification_pending", False),
                 "added_at": existing.get("added_at") or now,
                 "reminder_last_sent_at": existing.get("reminder_last_sent_at"),
             }
@@ -333,6 +334,16 @@ class GitHubJsonWriter:
             return (0, 0), None, None, 0
         stats, sha = self._upsert(self.GAMES_PATH, changes, _merge_game)
         return stats, sha, None, stats[0] + stats[1]
+
+    def update_game(self, game_id, changes):
+        """Update a single game while preserving its stable identity."""
+        current = self.store.read(self.GAMES_PATH).document.get("records", [])
+        existing = next((item for item in current if isinstance(item, dict) and item.get("id") == game_id), None)
+        if existing is None:
+            raise ContentsStoreError("game_not_found")
+        merged = dict(existing)
+        merged.update(changes)
+        self._upsert(self.GAMES_PATH, {game_id: merged}, _merge_game)
 
     def sync_fgc_claims(self, claims):
         """Apply claimed items parsed from FGC ntfy messages to Game records."""
@@ -356,7 +367,7 @@ class GitHubJsonWriter:
                 "article_url": existing.get("article_url"),
                 "cover_image_url": existing.get("cover_image_url"),
                 "claim_status": "claimed", "claimed_at": existing.get("claimed_at") or now,
-                "claim_source": "fgc", "added_at": existing.get("added_at") or now,
+                "claim_source": "fgc", "claim_notification_pending": existing.get("claim_status") != "claimed", "added_at": existing.get("added_at") or now,
                 "reminder_last_sent_at": existing.get("reminder_last_sent_at"),
             }
         if not changes:
@@ -634,8 +645,10 @@ def _merge_game(existing: dict[str, Any], incoming: dict[str, Any]) -> dict[str,
     for key in ("title", "normalized_title", "platform", "external_product_id", "store_url", "article_url", "cover_image_url"):
         if incoming.get(key) is not None:
             merged[key] = incoming[key]
-    for key in ("claim_status", "claimed_at", "claim_source", "added_at", "reminder_last_sent_at"):
-        if key in incoming and (key not in merged or merged.get(key) is None or key == "reminder_last_sent_at"):
+    for key in ("claim_status", "claimed_at", "claim_source", "added_at", "reminder_last_sent_at", "claim_notification_pending"):
+        if key in incoming:
+            if key in {"claim_status", "claimed_at", "claim_source"} and merged.get("claim_status") == "claimed" and incoming.get(key) in (None, "unclaimed"):
+                continue
             merged[key] = incoming[key]
     merged["updated_at"] = incoming.get("updated_at", merged.get("updated_at"))
     return merged
