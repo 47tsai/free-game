@@ -258,3 +258,72 @@ def test_discovery_only_source_record_does_not_create_game() -> None:
 
     assert writer.GAMES_PATH not in store.documents
     assert writer.PRODUCTS_PATH not in store.documents
+
+
+def test_writer_persists_only_verified_offers() -> None:
+    from free_game.verification import OfferVerification
+
+    store = MemoryStore()
+    writer = GitHubJsonWriter(store)
+    source_candidate = candidate()
+    writer.write_candidates([source_candidate])
+    verified = OfferVerification(
+        status="verified",
+        platform="steam",
+        external_product_id="12345",
+        title="Example Game",
+        claim_url="https://store.steampowered.com/app/12345/",
+        source_key=source_candidate.source_key,
+        source_external_id=source_candidate.source_external_id,
+        starts_at=datetime(2026, 11, 1, tzinfo=timezone.utc),
+        ends_at=datetime(2026, 11, 10, tzinfo=timezone.utc),
+        region="TW",
+        reason="fixture_verified",
+    )
+    unverified = OfferVerification(
+        status="needs_review",
+        platform="steam",
+        external_product_id="12345",
+        title="Example Game",
+        claim_url="https://store.steampowered.com/app/12345/",
+        source_key=source_candidate.source_key,
+        source_external_id=source_candidate.source_external_id,
+        reason="insufficient_evidence",
+    )
+
+    result = writer.write_verified_offers([verified, unverified])
+
+    assert result.offers_created == 1
+    assert result.offers_skipped == 1
+    offers = store.documents[writer.OFFERS_PATH]["records"]
+    assert len(offers) == 1
+    assert offers[0]["verification_status"] == "verified"
+    assert offers[0]["deadline_status"] == "known"
+    validate_dataset({
+        "products": store.documents[writer.PRODUCTS_PATH],
+        "source_records": store.documents[writer.SOURCE_RECORDS_PATH],
+        "offers": store.documents[writer.OFFERS_PATH],
+        "games": store.documents[writer.GAMES_PATH],
+    })
+
+
+def test_writer_does_not_create_offer_without_existing_product_and_source() -> None:
+    from free_game.verification import OfferVerification
+
+    store = MemoryStore()
+    result = GitHubJsonWriter(store).write_verified_offers([
+        OfferVerification(
+            status="verified",
+            platform="steam",
+            external_product_id="12345",
+            title="Example Game",
+            claim_url="https://store.steampowered.com/app/12345/",
+            source_key="4gamers:latest-news",
+            source_external_id="article-1:123",
+            reason="fixture_verified",
+        )
+    ])
+
+    assert result.offers_created == 0
+    assert result.offers_skipped == 1
+    assert GitHubJsonWriter.OFFERS_PATH not in store.documents
