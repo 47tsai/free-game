@@ -36,7 +36,7 @@ Before enabling manual marking:
    - `CLOUDFLARE_API_TOKEN`
    - `FREE_GAME_GITHUB_TOKEN` (Contents read/write access to this repository)
    - `CHI_AUTH_CLIENT_ID` (the Client ID issued by Chi Auth)
-4. Pushes to `main` deploy the Pages website and API Worker when their respective files change.
+4. In repository Settings → Pages, select **GitHub Actions** as the build and deployment source. Then run the **Free Game Website** workflow once from the Actions tab.\n5. After the four Worker secrets are configured, pushes affecting `worker/` or `wrangler.toml` deploy the API Worker automatically.
 
 The Discord workflow requires the `DISCORD_WEBHOOK_URL` repository Actions secret.
 
