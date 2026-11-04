@@ -310,3 +310,24 @@ The adapter is registered under `adapter: "steam"` in `config/sources.json`. The
 For successful fetches, the runner records the source key, UTC fetch time, HTTP status, SHA-256 payload hash, and request URL. Query parameters whose names indicate tokens, keys, authentication, passwords, secrets, or signatures are redacted in the recorded URL. Raw exception text is not included in run results because upstream exceptions may contain credentials.
 
 Each source produces its own result. A fetch or parse failure is recorded for that source and does not stop later sources from running. Disabled sources are not fetched. The runner currently returns results in memory only; it does not write GitHub JSON, advance cursors, reconcile catalog entities, verify offers, or send notifications. Those operations remain separate stages.
+
+
+## 14. Steam appdetails price assessment
+
+SteamAppDetailsAssessor (src/free_game/steam_price.py) parses a sanitized Steam App Details response for one expected App ID. It checks the response success flag, matching App ID, app type, free-to-play flag, and the regional price_overview fields.
+
+The assessor distinguishes:
+- free_to_play: Steam explicitly marks the app as free.
+- paid: the current final price is non-zero.
+- zero_price_discount: a positive initial price, zero final price, and 100% discount are present.
+- inconclusive: required price evidence is absent or insufficient.
+- unavailable: Steam reports the app lookup as unsuccessful.
+- invalid: the response shape, identity, app type, or price fields are invalid.
+
+A zero_price_discount result is price evidence only. It is not a verified free-to-keep offer and cannot create a verified Offer or trigger a notification. Steam documents Free Weekends as temporary access, distinct from Free to Play; the current appdetails price fields alone do not establish whether a zero-price promotion grants a permanent license. See the official Steamworks Free Weekends documentation: https://partner.steamgames.com/doc/marketing/discounts/freeweekends.
+
+The Storefront App Details endpoint is undocumented and must be treated as an observed integration contract, not an official stable API. Community references describe the response shape and the is_free / price_overview fields:
+- https://github-wiki-see.page/m/Revadike/InternalSteamWebAPI/wiki/Get-App-Details
+- https://stackoverflow.com/questions/13784059/how-to-get-the-price-of-an-app-in-steam-webapi
+
+The assessor is currently a pure parser with fixture tests. It does not make network requests, persist assessments, or claim that an offer is verified. A separate claimability check is still required before a Steam Offer can be created as verified.
