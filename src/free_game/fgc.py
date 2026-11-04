@@ -44,17 +44,20 @@ def parse_fgc_messages(payload: str | bytes) -> list[dict]:
                 platform = _PLATFORM_HOSTS.get(header.group(1).strip().casefold())
                 continue
             item = _ITEM.match(item_line)
-            if not item or not platform:
+            if not item:
                 continue
             title, url, _ = item.groups()
             parsed = urlparse(url)
-            external_id = FourGamersArticleAnalyzer._external_product_id(platform, parsed.path)
+            item_platform = platform or (parsed.hostname or "").lower().removeprefix("www.")
+            if not item_platform:
+                continue
+            external_id = FourGamersArticleAnalyzer._external_product_id(item_platform, parsed.path)
             if not external_id:
                 external_id = parsed.path.rstrip("/").split("/")[-1]
             if not external_id:
                 continue
-            claims[(platform, external_id)] = {
-                "platform": platform,
+            claims[(item_platform, external_id)] = {
+                "platform": item_platform,
                 "external_product_id": external_id,
                 "title": title.strip(),
                 "store_url": url,
