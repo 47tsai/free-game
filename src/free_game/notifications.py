@@ -1,10 +1,10 @@
-"""Idempotent Discord delivery for newly verified active offers."""
+"""Discord notifications for new games, claim changes, and 24-hour reminders."""
 
 from __future__ import annotations
 
 import json
 from dataclasses import dataclass
-from datetime import datetime, timezone
+from datetime import datetime, timedelta, timezone
 from urllib.error import HTTPError, URLError
 from urllib.parse import parse_qsl, urlencode, urlparse, urlunparse
 from urllib.request import Request, urlopen
@@ -13,7 +13,7 @@ from free_game.writer import GitHubJsonWriter, _stable_id
 
 
 class DiscordDeliveryError(RuntimeError):
-    """Safe Discord delivery failure without leaking the webhook URL."""
+    pass
 
 
 @dataclass(frozen=True, slots=True)
@@ -25,15 +25,9 @@ class NotificationSummary:
 
 
 class DiscordWebhookSender:
-    """Send a single Discord embed through a configured webhook."""
-
     def __init__(self, webhook_url: str, *, timeout_seconds: float = 20.0) -> None:
         parsed = urlparse(webhook_url)
-        if (
-            parsed.scheme != "https"
-            or parsed.hostname not in {"discord.com", "discordapp.com"}
-            or not parsed.path.startswith("/api/webhooks/")
-        ):
+        if parsed.scheme != "https" or parsed.hostname not in {"discord.com", "discordapp.com"} or not parsed.path.startswith("/api/webhooks/"):
             raise ValueError("discord_webhook_url_invalid")
         if timeout_seconds <= 0:
             raise ValueError("timeout_seconds_must_be_positive")
@@ -42,35 +36,29 @@ class DiscordWebhookSender:
         self.webhook_url = urlunparse(parsed._replace(query=urlencode(query)))
         self.timeout_seconds = timeout_seconds
 
-    def send_offer(self, offer: dict) -> None:
-        embed = {
-            "title": str(offer.get("title") or "免費遊戲")[:256],
-            "url": offer.get("claim_url"),
-            "description": f"**平台**　{str(offer.get('platform') or '未知')[:100]}",
-            "color": 0x5865F2,
-            "footer": {"text": "Free Game"},
-            "timestamp": datetime.now(timezone.utc).isoformat(),
-        }
-        fields = []
-        if offer.get("region"):
-            fields.append({"name": "地區", "value": str(offer["region"])[:100], "inline": True})
-        if offer.get("ends_at"):
-            fields.append({"name": "領取期限", "value": str(offer["ends_at"]), "inline": True})
-        if fields:
-            embed["fields"] = fields
-        payload = json.dumps({
-            "allowed_mentions": {"parse": []},
-            "embeds": [embed],
-        }, ensure_ascii=False).encode("utf-8")
-        request = Request(
-            self.webhook_url,
-            data=payload,
-            method="POST",
-            headers={
-                "Content-Type": "application/json",
-                "User-Agent": "FreeGameAggregator/0.1",
-            },
-        )
+    def send_game(self, game: dict, kind: str) -> None:
+        title = str(game.get("title") or "免費遊戲")[:256]
+        claimed = game.get("claim_status") == "claimed"
+        if kind == "new":
+            description = f"**平台**　{game.get('platform') or '未知'}\\n**領取狀態**　{'已領取' if claimed else '尚未領取'}"
+            color = 0x2ECC71 if claimed else 0x5865F2
+        elif kind == "claimed":
+            description = f"**{title}** 已領取。"
+            color = 0x2ECC71
+        else:
+            description = f"**{title}** 尚未領取，已加入超過 24 小時。"
+            color = 0xF1C40F
+        embed = {"title": title, "description": description, "color": color, "footer": {"text": "Free Game"}, "timestamp": datetime.now(timezone.utc).isoformat()}
+        if kind == "new" and game.get("cover_image_url"):
+            embed["image"] = {"url": game["cover_image_url"]}
+        buttons = []
+        for label, url in (("文章連結", game.get("article_url")), ("領取連結", game.get("store_url")), ("開啟網站", f"https://fg.chi.qzz.io/?game={game.get('id', '')}")):
+            if isinstance(url, str) and url.startswith("https://"):
+                buttons.append({"type": 2, "style": 5, "label": label, "url": url})
+        payload = {"allowed_mentions": {"parse": []}, "embeds": [embed]}
+        if kind == "new" and buttons:
+            payload["components"] = [{"type": 1, "components": buttons}]
+        request = Request(self.webhook_url, data=json.dumps(payload, ensure_ascii=False).encode("utf-8"), method="POST", headers={"Content-Type": "application/json", "User-Agent": "FreeGameAggregator/0.1"})
         try:
             with urlopen(request, timeout=self.timeout_seconds) as response:
                 if response.status < 200 or response.status >= 300:
@@ -82,74 +70,73 @@ class DiscordWebhookSender:
 
 
 class DiscordNotificationService:
-    """Queue before sending, then persist the delivery result.
-
-    A pending or failed idempotency key is not sent again automatically. This
-    deliberately favors avoiding duplicate posts when a delivery outcome is
-    ambiguous, including a process crash after Discord accepted the request.
-    """
-
     def __init__(self, writer: GitHubJsonWriter, sender: DiscordWebhookSender) -> None:
         self.writer = writer
         self.sender = sender
 
-    def send_new_active_offers(self) -> NotificationSummary:
-        offers = self.writer.store.read(GitHubJsonWriter.OFFERS_PATH).document.get("records")
+    def process_games(self, *, now: datetime | None = None) -> NotificationSummary:
+        current = now or datetime.now(timezone.utc)
+        games = self.writer.store.read(GitHubJsonWriter.GAMES_PATH).document.get("records")
         notifications = self.writer.store.read(GitHubJsonWriter.NOTIFICATIONS_PATH).document.get("records")
-        if not isinstance(offers, list) or not isinstance(notifications, list):
-            raise ValueError("catalog_or_notification_records_invalid")
-
-        known_keys = {
-            item.get("idempotency_key")
-            for item in notifications
-            if isinstance(item, dict)
-        }
+        if not isinstance(games, list) or not isinstance(notifications, list):
+            raise ValueError("game_or_notification_records_invalid")
+        known = {item.get("idempotency_key") for item in notifications if isinstance(item, dict)}
         sent = skipped = failed = 0
-        for offer in offers:
-            if not isinstance(offer, dict):
-                continue
-            if offer.get("verification_status") != "verified" or offer.get("status") != "active":
-                continue
-            offer_id = offer.get("id")
-            if not isinstance(offer_id, str) or not offer_id:
-                continue
-            key = f"new_offer:{offer_id}:discord"
-            if key in known_keys:
-                skipped += 1
-                continue
 
-            now = datetime.now(timezone.utc).isoformat().replace("+00:00", "Z")
-            notification_id = _stable_id("notification", offer_id, "new_offer", "discord")
-            record = {
-                "id": notification_id,
-                "offer_id": offer_id,
-                "notification_type": "new_offer",
-                "channel": "discord",
-                "idempotency_key": key,
-                "status": "pending",
-                "attempt_count": 1,
-                "created_at": now,
-                "sent_at": None,
-                "last_error": None,
-            }
-            # Persist the idempotency key before the external side effect.
+        def deliver(game: dict, kind: str, key: str, notification_type: str) -> bool:
+            nonlocal sent, skipped, failed
+            if key in known:
+                skipped += 1
+                return False
+            record = {"id": _stable_id("notification", game["id"], key), "offer_id": game["id"], "notification_type": notification_type, "channel": "discord", "idempotency_key": key, "status": "pending", "attempt_count": 1, "created_at": current.isoformat().replace("+00:00", "Z"), "sent_at": None, "last_error": None}
             self.writer.write_notification(record)
-            known_keys.add(key)
+            known.add(key)
             try:
-                self.sender.send_offer(offer)
+                self.sender.send_game(game, kind)
             except Exception as exc:
                 record["status"] = "failed"
-                record["last_error"] = (
-                    str(exc) if isinstance(exc, DiscordDeliveryError)
-                    else "discord_delivery_outcome_unknown"
-                )[:200]
+                record["last_error"] = str(exc)[:200] if isinstance(exc, DiscordDeliveryError) else "discord_delivery_outcome_unknown"
                 self.writer.write_notification(record)
                 failed += 1
-                continue
-
+                return False
             record["status"] = "sent"
             record["sent_at"] = datetime.now(timezone.utc).isoformat().replace("+00:00", "Z")
             self.writer.write_notification(record)
             sent += 1
+            return True
 
+        for game in games:
+            if not isinstance(game, dict) or not game.get("article_url"):
+                continue
+            game_id = game.get("id")
+            if not isinstance(game_id, str):
+                continue
+            new_key = f"new_game:{game_id}:discord"
+            was_announced = new_key in known
+            if not was_announced:
+                deliver(game, "new", new_key, "new_offer")
+                was_announced = new_key in known
+            if game.get("claim_notification_pending"):
+                if was_announced:
+                    claim_key = f"claimed:{game_id}:{game.get('claimed_at') or 'claimed'}:discord"
+                    deliver(game, "claimed", claim_key, "offer_updated")
+                self.writer.update_game(game_id, {"claim_notification_pending": False})
+            if game.get("claim_status", "unclaimed") != "claimed":
+                added = _parse_time(game.get("added_at") or game.get("created_at"))
+                last = _parse_time(game.get("reminder_last_sent_at"))
+                if added and current >= added + timedelta(hours=24) and (last is None or current >= last + timedelta(hours=24)):
+                    reminder_number = int((current - added).total_seconds() // 86400)
+                    key = f"reminder:{game_id}:{reminder_number}:discord"
+                    if deliver(game, "reminder", key, "deadline_reminder"):
+                        self.writer.update_game(game_id, {"reminder_last_sent_at": current.isoformat().replace("+00:00", "Z")})
         return NotificationSummary(sent, skipped, failed, "success" if not failed else "partial_failure")
+
+
+def _parse_time(value: object) -> datetime | None:
+    if not isinstance(value, str):
+        return None
+    try:
+        parsed = datetime.fromisoformat(value.replace("Z", "+00:00"))
+    except ValueError:
+        return None
+    return parsed.astimezone(timezone.utc) if parsed.tzinfo else None
