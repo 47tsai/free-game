@@ -16,6 +16,7 @@ __all__ = [
     "DiscordNotificationService",
     "DiscordWebhookSender",
     "NotificationSummary",
+    "NotificationWriteResult",
     "EpicPromotionVerifier",
     "OfferVerification",
     "OfferWriteResult",
