@@ -32,7 +32,7 @@ class DiscordWebhookSender:
         if timeout_seconds <= 0:
             raise ValueError("timeout_seconds_must_be_positive")
         query = parse_qsl(parsed.query, keep_blank_values=True)
-        query.append(("wait", "true"))
+        query.extend((("wait", "true"), ("with_components", "true")))
         self.webhook_url = urlunparse(parsed._replace(query=urlencode(query)))
         self.timeout_seconds = timeout_seconds
 
