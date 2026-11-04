@@ -80,3 +80,12 @@ def test_unknown_storefront_is_preserved_as_discovery_candidate() -> None:
     assert result[0].platform == "new-store.example"
     assert result[0].external_product_id == "abc"
     assert result[0].title == "Mystery Game"
+
+
+def test_article_without_store_link_keeps_og_image_and_game_title():
+    html = '<html><head><meta property="og:image" content="https://cdn.example.com/cover.jpg"></head><body>No storefront link</body></html>'
+    result = FourGamersArticleAnalyzer().analyze(observation(), html)
+    assert len(result) == 1
+    assert result[0].title == "Example Game"
+    assert result[0].article_url == observation().source_url
+    assert result[0].image_url == "https://cdn.example.com/cover.jpg"
