@@ -8,11 +8,6 @@ Sources are divided by the kind of evidence they provide. A source must not be t
 
 | Source | Category | Primary responsibility | Not responsible for |
 |---|---|---|---|
-| Steam | Storefront adapter | Discover and verify Steam products and promotional offers | Claim ownership state unless a separately verified integration provides it |
-| Epic Games Store | Storefront adapter | Discover and verify Epic products and promotional offers | User claim state |
-| GOG | Storefront adapter | Discover and verify GOG products and promotional offers | User claim state |
-| Ubisoft | Storefront adapter | Discover and verify Ubisoft products and promotional offers | User claim state |
-| DLsite | Storefront adapter | Discover and verify relevant product and campaign information | Inferring that an age warning alone means a listing is adult content |
 | 4Gamers RSS | Discovery/editorial source | Surface possible free-game announcements for investigation | Final offer truth, product identity, or claim state |
 | Generic adapter | Configurable fallback adapter | Ingest supported feeds or explicitly configured structured sources for platforms without a dedicated adapter | Guessing unsupported formats, product identity, offer deadlines, or verified offer state |
 | FGC via ntfy | Claim-status integration | Report claim attempts and observed claim outcomes | Discovering storefront offers |
@@ -284,7 +279,13 @@ The registry validates required fields, rejects unknown fields and duplicate sou
 Registry construction is configuration-only. It does not fetch source URLs, schedule jobs, or persist results. The source runner remains responsible for network policy and passes fetched payloads to the shared `IngestionPipeline`.
 
 
-## 12. Steam adapter
+## 12. Removed Steam-specific prototype
+
+The standalone Steam featured-categories discovery adapter and the disconnected Steam appdetails price assessor were removed. Game discovery is driven by 4Gamers RSS; storefront verification should be implemented as a step in that flow when its evidence and behavior are ready.
+
+<!-- former Steam adapter details removed -->
+
+## 13. Source runner and HTTP fetch policy
 
 The first dedicated storefront adapter is `SteamAdapter` (`src/free_game/adapters/steam.py`). It currently parses the Steam Store featured-categories response, specifically the `specials.items` bucket.
 
@@ -300,7 +301,7 @@ The adapter deliberately emits candidates only when an item is a game app, is ex
 
 A matching zero-price item is still only a `candidate`. This response alone does not prove that a user can permanently keep the game, and the adapter does not infer an offer deadline. Storefront verification must distinguish free-to-keep from free weekends, subscription access, regional restrictions, and other temporary access before an offer can be published as verified.
 
-The adapter is registered under `adapter: "steam"` in `config/sources.json`. The committed source list remains empty until the endpoint has been exercised by the source runner and its current response has been captured as a sanitized fixture. No live polling or production source has been enabled by this change.
+
 
 
 ## 13. Source runner and HTTP fetch policy
@@ -312,8 +313,11 @@ For successful fetches, the runner records the source key, UTC fetch time, HTTP 
 Each source produces its own result. A fetch or parse failure is recorded for that source and does not stop later sources from running. Disabled sources are not fetched. The runner currently returns results in memory only; it does not write GitHub JSON, advance cursors, reconcile catalog entities, verify offers, or send notifications. Those operations remain separate stages.
 
 
-## 14. Steam appdetails price assessment
+<!-- Steam appdetails prototype removed -->
 
+## 14. Deferred storefront verification
+
+Steam-specific price-only assessment is not part of the current implementation. A future verifier must be connected to the RSS-driven offer workflow and must distinguish permanent claim entitlement from temporary free access before an offer can be marked verified.
 SteamAppDetailsAssessor (src/free_game/steam_price.py) parses a sanitized Steam App Details response for one expected App ID. It checks the response success flag, matching App ID, app type, free-to-play flag, and the regional price_overview fields.
 
 The assessor distinguishes:
