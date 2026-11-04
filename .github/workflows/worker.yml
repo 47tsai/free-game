@@ -1,4 +1,4 @@
-name: Free Game API Worker
+name: Free Game API Worker Deployment
 
 on:
   push:
