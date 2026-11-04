@@ -39,7 +39,7 @@ A source must not be treated as authoritative for fields it does not provide. Mi
 
 ### Ingestion pipeline
 
-1. A source runner fetches the response using shared timeout, retry, and redaction policies.
+1. A source runner fetches the response using bounded timeouts, response-size limits, HTTPS checks, and redaction of sensitive query parameters. GitHub JSON writes use separate bounded SHA-conflict retries.
 2. The adapter parses source-specific fields into source observations.
 3. The adapter normalizes observations into platform-independent candidates.
 4. The shared IngestionPipeline validates candidate shape, timestamps, URLs, source identity, and same-run duplicate source records.
