@@ -10,6 +10,7 @@ from urllib.parse import urlparse
 
 from free_game.adapters.base import Adapter
 from free_game.adapters.generic import GenericAdapter, GenericSourceConfig
+from free_game.adapters.fourgamers import FourGamersAdapter
 
 
 @dataclass(frozen=True, slots=True)
@@ -40,6 +41,7 @@ class SourceRegistry:
         self._definitions: dict[str, SourceDefinition] = {}
         self._factories: dict[str, AdapterFactory] = {
             "generic": self._build_generic,
+            "4gamers": self._build_4gamers,
         }
         for definition in definitions or []:
             self.add(definition)
@@ -143,6 +145,10 @@ class SourceRegistry:
                 )
             adapters.append(adapter)
         return tuple(adapters)
+
+    @staticmethod
+    def _build_4gamers(definition: SourceDefinition) -> FourGamersAdapter:
+        return FourGamersAdapter(source_url=definition.source_url)
 
     @staticmethod
     def _build_generic(definition: SourceDefinition) -> GenericAdapter:
