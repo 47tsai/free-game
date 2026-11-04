@@ -65,6 +65,7 @@ function render(){
   body.append(top,element("h2","game-card__title",game.title||"未命名遊戲"));
   const date=new Date(game.added_at||game.created_at);
   if(!Number.isNaN(date.getTime()))body.append(element("p","game-card__date","加入日期 · "+date.toLocaleDateString("zh-TW",{year:"numeric",month:"short",day:"numeric"})));
+  if(game.offer_end_at){const deadline=new Date(game.offer_end_at);if(!Number.isNaN(deadline.getTime()))body.append(element("p","game-card__date","領取期限 · "+deadline.toLocaleString("zh-TW",{timeZone:"Asia/Taipei",year:"numeric",month:"short",day:"numeric",hour:"2-digit",minute:"2-digit",hour12:false})+"（台灣時間）"))}
   const actions=element("div","game-card__actions"),store=safeLink("前往商店",game.store_url),article=safeLink("閱讀文章",game.article_url);
   if(store){store.classList.add("game-card__link");actions.append(store)}if(article){article.classList.add("game-card__link");actions.append(article)}body.append(actions);
   if(game.claim_status!=="claimed"){const button=element("button","chi-button chi-button--primary game-card__claim",accessToken?"標記已領取":"登入並標記已領取");button.type="button";button.disabled=!claimEnabled;button.addEventListener("click",()=>markClaimed(game,button));body.append(button)}
