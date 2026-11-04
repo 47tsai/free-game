@@ -1,27 +1,10 @@
-"""Free Game ingestion and claim-tracking package."""
+"""Free Game catalog and notification package."""
 
-from free_game.ingestion import IngestionPipeline, IngestionResult
 from free_game.notifications import DiscordNotificationService, DiscordWebhookSender, NotificationSummary
-from free_game.registry import SourceDefinition, SourceRegistry
-from free_game.runner import HTTPFetcher, SourceRunResult, SourceRunner
-from free_game.verification import OfferVerification
-from free_game.writer import GitHubContentsStore, GitHubJsonWriter, OfferWriteResult, WriteResult
+from free_game.runner import HTTPFetcher
+from free_game.writer import GitHubContentsStore, GitHubJsonWriter, WriteResult
 
 __all__ = [
-    "GitHubContentsStore",
-    "GitHubJsonWriter",
-    "HTTPFetcher",
-    "IngestionPipeline",
-    "IngestionResult",
-    "DiscordNotificationService",
-    "DiscordWebhookSender",
-    "NotificationSummary",
-    "NotificationWriteResult",
-    "OfferVerification",
-    "OfferWriteResult",
-    "SourceDefinition",
-    "SourceRegistry",
-    "SourceRunResult",
-    "SourceRunner",
-    "WriteResult",
+    "DiscordNotificationService", "DiscordWebhookSender", "GitHubContentsStore",
+    "GitHubJsonWriter", "HTTPFetcher", "NotificationSummary", "WriteResult",
 ]
