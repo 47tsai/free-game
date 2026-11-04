@@ -3,10 +3,10 @@
     {
       "added_at": "2026-11-04T03:51:49.717616Z",
       "article_url": "https://www.4gamers.com.tw/news/detail/83041/dlsite-2026-november-free-games",
-      "claim_notification_pending": false,
-      "claim_source": null,
-      "claim_status": "unclaimed",
-      "claimed_at": null,
+      "claim_notification_pending": true,
+      "claim_source": "manual",
+      "claim_status": "claimed",
+      "claimed_at": "2026-11-04T05:48:58.352Z",
       "cover_image_url": "https://img.4gamers.com.tw/news-image/5872a532-560f-46c0-a9cf-469a1213d95a.jpg",
       "created_at": "2026-11-04T03:51:49.717616Z",
       "external_product_id": "RJ115679.html",
@@ -16,9 +16,9 @@
       "reminder_last_sent_at": null,
       "store_url": "https://www.dlsite.com/maniax/work/=/product_id/RJ115679.html/",
       "title": "如果清純女學生來到按摩院",
-      "updated_at": "2026-11-04T03:51:49.717616Z"
+      "updated_at": "2026-11-04T05:48:58.352Z"
     }
   ],
   "schema_version": 1,
-  "updated_at": "2026-11-04T03:51:49.882183Z"
+  "updated_at": "2026-11-04T05:48:58.352Z"
 }
