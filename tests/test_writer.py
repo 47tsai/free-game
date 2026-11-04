@@ -75,7 +75,7 @@ def test_writer_creates_product_and_source_record() -> None:
 
     assert result.products_created == 1
     assert result.source_records_created == 1
-    assert len(result.commit_shas) == 2
+    assert len(result.commit_shas) == 3
     products = store.documents[GitHubJsonWriter.PRODUCTS_PATH]["records"]
     sources = store.documents[GitHubJsonWriter.SOURCE_RECORDS_PATH]["records"]
     assert len(products) == len(sources) == 1
@@ -167,7 +167,7 @@ def test_retries_sha_conflict_after_rereading() -> None:
 
     assert result.products_created == 1
     assert result.source_records_created == 1
-    assert len(store.writes) == 2
+    assert len(store.writes) == 4
 
 
 def test_rejects_exhausted_conflicts() -> None:
