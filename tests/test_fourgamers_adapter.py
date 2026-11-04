@@ -12,13 +12,13 @@ RSS = """<?xml version="1.0"?>
 
 
 def test_only_free_game_articles_are_selected() -> None:
-    adapter = FourGamersAdapter("https://www.4gamers.com.tw/rss/latest-news")
+    adapter = FourGamersAdapter()
     observations = adapter.parse(RSS)
 
     assert [item.external_id for item in observations] == ["article-123", "article-789"]
 
 
-def test_selected_articles_become_unverified_discovery_candidates() -> None:
+def test_selected_articles_become_discovery_candidates() -> None:
     adapter = FourGamersAdapter("https://www.4gamers.com.tw/rss/latest-news")
     observations = adapter.parse(RSS)
     candidates = adapter.normalize(observations)
