@@ -288,63 +288,80 @@ class GitHubJsonWriter:
 
     GAMES_PATH = "data/catalog/games.json"
 
-    def reconcile_products_to_games(
-        self,
-    ) -> tuple[tuple[int, int], str | None, str | None, int]:
-        """Create one provisional Game per Product; never merge across platforms.
-
-        Cross-platform title similarity is not sufficient evidence for an
-        automatic merge. A future reviewed mapping stage can merge these
-        provisional groups without changing Product identity.
-        """
-        products = self.store.read(self.PRODUCTS_PATH)
-        records = products.document.get("records")
-        if not isinstance(records, list):
+    def reconcile_products_to_games(self):
+        """Create/update one Game record per storefront product identity."""
+        products_doc = self.store.read(self.PRODUCTS_PATH).document
+        products = products_doc.get("records")
+        if not isinstance(products, list):
             raise ContentsStoreError("products:records_must_be_array")
-        pending = [item for item in records if isinstance(item, dict) and item.get("game_id") is None]
-        if not pending:
-            return (0, 0), None, None, 0
-
-        game_changes: dict[str, dict[str, Any]] = {}
-        product_links: dict[str, str] = {}
-        for product in pending:
-            product_id = product.get("id")
+        source_doc = self.store.read(self.SOURCE_RECORDS_PATH).document
+        sources = source_doc.get("records")
+        source_by_id = {item.get("id"): item for item in sources if isinstance(item, dict)}
+        changes = {}
+        for product in products:
+            if not isinstance(product, dict):
+                continue
+            platform = product.get("platform")
+            external_id = product.get("external_product_id")
             title = product.get("title")
-            if not isinstance(product_id, str) or not isinstance(title, str) or not title.strip():
-                raise ContentsStoreError("products:cannot_reconcile_invalid_product")
-            game_id = _stable_id("game", product_id)
-            product_links[product_id] = game_id
-            game_changes[game_id] = {
-                "id": game_id,
-                "title": title.strip(),
+            if not all(isinstance(v, str) and v.strip() for v in (platform, external_id, title)):
+                continue
+            game_id = _stable_id("game", platform, external_id)
+            source_ids = product.get("source_record_ids", [])
+            source = next((source_by_id.get(sid) for sid in source_ids if source_by_id.get(sid)), {})
+            existing_doc = self.store.read(self.GAMES_PATH).document
+            existing = next((g for g in existing_doc.get("records", []) if isinstance(g, dict) and g.get("id") == game_id), {})
+            now = _now()
+            image_url = product.get("cover_image_url") or existing.get("cover_image_url")
+            incoming = {
+                "id": game_id, "title": title.strip(),
                 "normalized_title": _normalize_title(title),
-                "created_at": product["created_at"],
-                "updated_at": product["updated_at"],
-                "source_record_ids": sorted(set(product.get("source_record_ids", []))),
+                "created_at": existing.get("created_at", now), "updated_at": now,
+                "source_record_ids": sorted(set(existing.get("source_record_ids", [])) | set(source_ids)),
+                "platform": platform, "external_product_id": external_id,
+                "store_url": product.get("product_url"),
+                "article_url": source.get("url") or existing.get("article_url"),
+                "cover_image_url": image_url,
+                "claim_status": existing.get("claim_status", "unclaimed"),
+                "claimed_at": existing.get("claimed_at"),
+                "claim_source": existing.get("claim_source"),
+                "added_at": existing.get("added_at") or now,
+                "reminder_last_sent_at": existing.get("reminder_last_sent_at"),
             }
+            changes[game_id] = incoming
+        if not changes:
+            return (0, 0), None, None, 0
+        stats, sha = self._upsert(self.GAMES_PATH, changes, _merge_game)
+        return stats, sha, None, stats[0] + stats[1]
 
-        game_stats, game_sha = self._upsert(self.GAMES_PATH, game_changes, _merge_game)
-
-        # Write Games first, then attach Products. A failed second write leaves
-        # harmless unreferenced Games and is safe to retry.
-        linked_products = {
-            product_id: {"game_id": game_id}
-            for product_id, game_id in product_links.items()
-        }
-
-        def merge_product_link(existing: dict[str, Any], incoming: dict[str, Any]) -> dict[str, Any]:
-            merged = dict(existing)
-            if merged.get("game_id") is None:
-                merged["game_id"] = incoming["game_id"]
-            elif merged["game_id"] != incoming["game_id"]:
-                raise ContentsStoreError("products:game_link_conflict")
-            return merged
-
-        product_stats, product_sha = self._upsert(
-            self.PRODUCTS_PATH, linked_products, merge_product_link
-        )
-        # Report actual links assigned, not all products examined.
-        return game_stats, game_sha, product_sha, product_stats[0] + product_stats[1]
+    def sync_fgc_claims(self, claims):
+        """Apply claimed items parsed from FGC ntfy messages to Game records."""
+        now = _now()
+        changes = {}
+        existing_doc = self.store.read(self.GAMES_PATH).document
+        existing_by_id = {item.get("id"): item for item in existing_doc.get("records", []) if isinstance(item, dict)}
+        for claim in claims:
+            platform, external_id, title, store_url = (claim.get(k) for k in ("platform", "external_product_id", "title", "store_url"))
+            if not all(isinstance(v, str) and v.strip() for v in (platform, external_id, title)):
+                continue
+            game_id = _stable_id("game", platform, external_id)
+            existing = existing_by_id.get(game_id, {})
+            changes[game_id] = {
+                "id": game_id, "title": existing.get("title") or title,
+                "normalized_title": existing.get("normalized_title") or _normalize_title(title),
+                "created_at": existing.get("created_at", now), "updated_at": now,
+                "source_record_ids": existing.get("source_record_ids", []),
+                "platform": platform, "external_product_id": external_id,
+                "store_url": existing.get("store_url") or store_url,
+                "article_url": existing.get("article_url"),
+                "cover_image_url": existing.get("cover_image_url"),
+                "claim_status": "claimed", "claimed_at": existing.get("claimed_at") or now,
+                "claim_source": "fgc", "added_at": existing.get("added_at") or now,
+                "reminder_last_sent_at": existing.get("reminder_last_sent_at"),
+            }
+        if not changes:
+            return (0, 0), None
+        return self._upsert(self.GAMES_PATH, changes, _merge_game)
 
 
     OFFERS_PATH = "data/catalog/offers.json"
@@ -539,6 +556,7 @@ def _candidate_hash(candidate: NormalizedCandidate) -> str:
             "external_product_id": candidate.external_product_id,
             "title": candidate.title.strip(),
             "product_url": candidate.product_url,
+            "image_url": candidate.image_url,
         },
         ensure_ascii=False,
         sort_keys=True,
@@ -612,9 +630,12 @@ def _normalize_title(value: str) -> str:
 
 def _merge_game(existing: dict[str, Any], incoming: dict[str, Any]) -> dict[str, Any]:
     merged = dict(existing)
-    merged["source_record_ids"] = sorted(
-        set(existing.get("source_record_ids", [])) | set(incoming.get("source_record_ids", []))
-    )
-    # Preserve the first accepted canonical title until a future reviewed
-    # reconciliation operation explicitly changes it.
+    merged["source_record_ids"] = sorted(set(existing.get("source_record_ids", [])) | set(incoming.get("source_record_ids", [])))
+    for key in ("title", "normalized_title", "platform", "external_product_id", "store_url", "article_url", "cover_image_url"):
+        if incoming.get(key) is not None:
+            merged[key] = incoming[key]
+    for key in ("claim_status", "claimed_at", "claim_source", "added_at", "reminder_last_sent_at"):
+        if key in incoming and (key not in merged or merged.get(key) is None or key == "reminder_last_sent_at"):
+            merged[key] = incoming[key]
+    merged["updated_at"] = incoming.get("updated_at", merged.get("updated_at"))
     return merged
