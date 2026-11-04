@@ -9,7 +9,8 @@ The repository now includes:
 - A dedicated Steam featured-categories candidate adapter.
 - A bounded, per-source-isolated HTTP ingestion runner.
 - A shared parse/normalize/validate/deduplicate pipeline.
-- An idempotent GitHub JSON writer for Product and SourceRecord collections.
+- An idempotent GitHub JSON writer for Product, Game, and SourceRecord collections.
+- Conservative Product-to-Game reconciliation that creates one provisional Game per Product without unsafe cross-platform title merges.
 - Deterministic identifiers, JSON Schema validation, SHA conflict retries, and automated tests.
 
 No production source is enabled in `config/sources.json` yet. Candidates are not Offers: authoritative storefront verification and catalog reconciliation must be implemented before free promotions can be published or notifications sent.
@@ -29,7 +30,7 @@ Run the configured ingestion command:
 free-game ingest --config config/sources.json
 ```
 
-The command exits successfully without network requests when no sources are enabled. When enabled sources produce persistable candidates, set `GITHUB_TOKEN` (or `GH_TOKEN`) with repository Contents write permission. The command fetches enabled sources and persists only Product identities and SourceRecord provenance. It does not create Games or Offers, advance cursors, or send notifications.
+The command exits successfully without network requests when no sources are enabled. When enabled sources produce persistable candidates, set `GITHUB_TOKEN` (or `GH_TOKEN`) with repository Contents write permission. The command fetches enabled sources, persists Product identities and SourceRecord provenance, and creates provisional Game links. It does not merge products across platforms, create Offers, advance cursors, or send notifications.
 
 The canonical persisted-data schema is in `schemas/collection.schema.json`. Use `free_game.validation` to validate one collection's structure, and `free_game.semantic_validation.validate_dataset` to validate references and uniqueness across a mapping of collection names to collection documents.
 
