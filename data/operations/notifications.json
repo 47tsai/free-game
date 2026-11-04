@@ -21,8 +21,8 @@
       "idempotency_key": "claimed:game_856be939-694d-5011-a2d1-a2a6df4bc6e5:2026-11-04T09:23:20.163Z:discord",
       "last_error": null,
       "notification_type": "offer_updated",
-      "sent_at": null,
-      "status": "pending"
+      "sent_at": "2026-11-04T10:01:28.155089Z",
+      "status": "sent"
     },
     {
       "attempt_count": 1,
@@ -50,5 +50,5 @@
     }
   ],
   "schema_version": 1,
-  "updated_at": "2026-11-04T10:01:26.165385Z"
+  "updated_at": "2026-11-04T10:01:28.373649Z"
 }
