@@ -1,0 +1,19 @@
+{
+  "schema_version": 1,
+  "updated_at": "2026-11-04T00:00:00Z",
+  "records": [
+    {
+      "id": "game_example",
+      "title": "Example Game",
+      "normalized_title": "example game",
+      "description": null,
+      "cover_image_url": "https://example.com/cover.jpg",
+      "developers": ["Example Studio"],
+      "publishers": ["Example Publisher"],
+      "genres": ["Adventure"],
+      "created_at": "2026-11-04T00:00:00Z",
+      "updated_at": "2026-11-04T00:00:00Z",
+      "source_record_ids": ["steam:app:12345"]
+    }
+  ]
+}
