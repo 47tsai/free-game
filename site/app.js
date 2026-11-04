@@ -52,8 +52,7 @@ function renderPagination(total,totalPages){
 function render(){
  const filtered=filteredGames(),size=$("page-size").value==="all"?filtered.length:Number($("page-size").value),totalPages=Math.max(1,Math.ceil(filtered.length/Math.max(1,size)));
  page=Math.min(page,totalPages);const start=(page-1)*size,visible=$("page-size").value==="all"?filtered:filtered.slice(start,start+size);
- const claimed=allGames.filter(g=>g.claim_status==="claimed").length;
- $("summary").textContent="共 "+allGames.length+" 款 · 符合 "+filtered.length+" 款 · 已領取 "+claimed+" 款";
+ $("summary").textContent="遊戲列表";
  const container=$("games");container.className=viewMode==="list"?"fg-list":"fg-grid";container.replaceChildren();
  if(!visible.length){container.append(element("div","empty chi-empty",allGames.length?"沒有符合條件的遊戲。":"目前還沒有遊戲資料。"))}
  for(const game of visible){
