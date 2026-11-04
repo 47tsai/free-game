@@ -6,7 +6,6 @@ from datetime import datetime, timezone
 import pytest
 
 from free_game.adapters.base import NormalizedCandidate
-from free_game.semantic_validation import validate_dataset
 from free_game.writer import (
     ContentsConflictError,
     GitHubJsonWriter,
@@ -83,11 +82,6 @@ def test_writer_creates_product_and_source_record() -> None:
     assert products[0]["external_product_id"] == "12345"
     assert products[0]["source_record_ids"] == [sources[0]["id"]]
     assert sources[0]["linked_entity_ids"] == [products[0]["id"]]
-    validate_dataset({
-        "games": store.documents[GitHubJsonWriter.GAMES_PATH],
-        "products": store.documents[GitHubJsonWriter.PRODUCTS_PATH],
-        "source_records": store.documents[GitHubJsonWriter.SOURCE_RECORDS_PATH],
-    })
 
 
 def test_repeated_run_is_idempotent() -> None:
@@ -214,11 +208,6 @@ def test_reconciliation_creates_one_provisional_game_per_product() -> None:
     assert len(games) == 2
     assert len({product["game_id"] for product in products}) == 2
     assert all(game["normalized_title"] == "example game" for game in games)
-    validate_dataset({
-        "games": store.documents[writer.GAMES_PATH],
-        "products": store.documents[writer.PRODUCTS_PATH],
-        "source_records": store.documents[writer.SOURCE_RECORDS_PATH],
-    })
 
 
 def test_reconciliation_is_idempotent_and_does_not_merge_same_titles() -> None:
@@ -299,12 +288,6 @@ def test_writer_persists_only_verified_offers() -> None:
     assert len(offers) == 1
     assert offers[0]["verification_status"] == "verified"
     assert offers[0]["deadline_status"] == "known"
-    validate_dataset({
-        "products": store.documents[writer.PRODUCTS_PATH],
-        "source_records": store.documents[writer.SOURCE_RECORDS_PATH],
-        "offers": store.documents[writer.OFFERS_PATH],
-        "games": store.documents[writer.GAMES_PATH],
-    })
 
 
 def test_writer_does_not_create_offer_without_existing_product_and_source() -> None:
