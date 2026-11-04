@@ -4,7 +4,7 @@ A multi-platform free-game discovery and claim-tracking project.
 
 ## Project status
 
-The repository currently contains the initial architecture and data contracts, a Python package scaffold, JSON Schema validation, test fixtures, and a GitHub Actions validation workflow. Storefront adapters and production API services have not been implemented yet.
+The repository currently contains the initial architecture and data contracts, a Python package scaffold, JSON Schema and semantic validation, test fixtures, and a GitHub Actions validation workflow. Storefront adapters and production API services have not been implemented yet.
 
 ## Development
 
@@ -15,7 +15,7 @@ python -m pip install -e ".[dev]"
 python -m pytest
 ```
 
-The canonical persisted-data schema is in `schemas/collection.schema.json`. The validator is available from `free_game.validation`.
+The canonical persisted-data schema is in schemas/collection.schema.json. Use free_game.validation to validate one collection's structure, and free_game.semantic_validation.validate_dataset to validate references and uniqueness across a mapping of collection names to collection documents. Missing collections are allowed for partial-dataset checks; references are checked when the referenced collection is supplied.
 
 ## Design documents
 
