@@ -3,28 +3,117 @@
 <head>
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width,initial-scale=1">
-<meta name="color-scheme" content="dark light">
-<title>Free Game｜免費遊戲收藏</title>
+<meta name="color-scheme" content="light dark">
+<meta name="description" content="Free Game 免費遊戲清單與領取狀態">
+<title>Free Game｜免費遊戲</title>
+<link rel="icon" type="image/png" href="https://raw.githubusercontent.com/47tsai/chi-design-system/main/logo/blue-w.png">
+<link rel="apple-touch-icon" href="https://raw.githubusercontent.com/47tsai/chi-design-system/main/logo/blue-w.png">
+<link rel="stylesheet" href="https://chi.qzz.io/chi-design-system/tokens.css">
+<link rel="stylesheet" href="https://chi.qzz.io/chi-design-system/components.css">
+<link rel="stylesheet" href="https://chi.qzz.io/chi-design-system/navigation.css">
 <style>
-:root{font-family:Inter,"Noto Sans TC",system-ui,sans-serif;color:#e8edf7;background:#10141d;color-scheme:dark;--muted:#9aa6ba;--line:#293244;--surface:#171e2a;--accent:#8eb7ff}
-*{box-sizing:border-box}body{margin:0;background:radial-gradient(ellipse at top,#1c2a40 0,#10141d 52rem);min-height:100vh}
-header{max-width:1120px;margin:auto;padding:42px 24px 26px;display:flex;align-items:center;justify-content:space-between;gap:20px}
-h1{font-size:clamp(2rem,5vw,3.2rem);letter-spacing:-.04em;margin:0}header p{color:var(--muted);margin:8px 0 0}
-button,a{font:inherit}button{border:1px solid #40516b;background:#26364e;color:#edf4ff;border-radius:10px;padding:10px 14px;cursor:pointer}button:disabled{opacity:.45;cursor:not-allowed}.primary{background:#d8e7ff;color:#17253a;border-color:#d8e7ff;font-weight:700}
-main{max-width:1120px;margin:auto;padding:0 24px 64px}.toolbar{display:flex;justify-content:space-between;align-items:center;gap:14px;margin:8px 0 20px}.summary{color:var(--muted);font-size:.92rem}.grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(245px,1fr));gap:18px}
-.card{background:linear-gradient(160deg,#1b2432,#151b26);border:1px solid var(--line);border-radius:16px;overflow:hidden;min-width:0}.card.focused{border-color:var(--accent);box-shadow:0 0 0 2px #8eb7ff33}.cover{width:100%;aspect-ratio:16/9;object-fit:cover;background:#252f40;display:block}.body{padding:15px}.title-row{display:flex;justify-content:space-between;gap:10px;align-items:flex-start}.title{font-weight:750;font-size:1.08rem;line-height:1.4}.platform{color:var(--muted);font-size:.83rem;margin-top:5px}.status{white-space:nowrap;border-radius:999px;padding:4px 9px;font-size:.76rem;background:#44351c;color:#ffd88b}.status.done{background:#173e32;color:#a5f0ce}.links{display:flex;gap:8px;flex-wrap:wrap;margin-top:15px}.links a{color:#b9d3ff;text-decoration:none;border:1px solid #354762;padding:7px 9px;border-radius:8px;font-size:.82rem}.claim{width:100%;margin-top:12px}.muted{color:var(--muted)}.empty{border:1px dashed #3b4659;border-radius:14px;padding:36px;text-align:center;color:var(--muted);grid-column:1/-1}.notice{color:#ffc7a6;font-size:.9rem;min-height:1.4em}.hide{display:none!important}
-@media(max-width:600px){header{padding-top:28px;align-items:flex-start;flex-direction:column}.toolbar{align-items:flex-start;flex-direction:column}}
+:root{font-synthesis:none}
+body.chi-page{min-height:100vh;min-height:100dvh;display:flex;flex-direction:column}
+.fg-header__inner{min-height:64px;display:flex;align-items:center;justify-content:space-between;gap:var(--chi-space-4)}
+.fg-brand{display:inline-flex;align-items:center;gap:var(--chi-space-3);color:var(--chi-color-text-strong);font-weight:750;text-decoration:none}
+.fg-brand img{width:2.25rem;height:2.25rem;object-fit:contain}
+.fg-brand__name{font-size:var(--chi-text-lg);letter-spacing:-.025em}
+.fg-header__actions{display:flex;align-items:center;gap:var(--chi-space-3)}
+.fg-theme{width:auto;min-width:7.5rem;min-height:var(--chi-control-height);font-size:var(--chi-text-sm)}
+.fg-main{flex:1;padding-bottom:var(--chi-space-16)}
+.fg-page-header{padding-block:var(--chi-space-10) var(--chi-space-6)}
+.fg-page-header .chi-title{font-size:var(--chi-text-2xl)}
+.fg-page-header .chi-description{margin-inline:0}
+.fg-toolbar{display:flex;align-items:center;justify-content:space-between;gap:var(--chi-space-4);padding-block:var(--chi-space-4);border-top:1px solid var(--chi-color-border);border-bottom:1px solid var(--chi-color-border)}
+.fg-summary{color:var(--chi-color-text-muted);font-size:var(--chi-text-sm)}
+.fg-notice{min-height:1.5em;color:var(--chi-color-text-muted);font-size:var(--chi-text-sm)}
+.fg-grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(min(100%,260px),1fr));gap:var(--chi-space-4);padding-top:var(--chi-space-5)}
+.card{min-width:0;display:flex;flex-direction:column;overflow:hidden;border:1px solid var(--chi-color-border);border-radius:var(--chi-radius-lg);background:var(--chi-color-surface);transition:border-color var(--chi-transition-fast),box-shadow var(--chi-transition-fast)}
+.card:hover{border-color:var(--chi-color-border-strong)}
+.card.focused{border-color:var(--chi-color-accent);box-shadow:0 0 0 2px var(--chi-color-accent-soft)}
+.cover{display:block;width:100%;aspect-ratio:16/9;object-fit:cover;background:var(--chi-color-surface-muted)}
+.body{display:flex;flex:1;flex-direction:column;align-items:stretch;gap:var(--chi-space-3);padding:var(--chi-space-4)}
+.title-row{display:flex;align-items:flex-start;justify-content:space-between;gap:var(--chi-space-3)}
+.title{color:var(--chi-color-text-strong);font-size:var(--chi-text-md);font-weight:700;line-height:1.5;overflow-wrap:anywhere}
+.platform{color:var(--chi-color-text-muted);font-size:var(--chi-text-xs);line-height:1.5}
+.status{flex:none;display:inline-flex;align-items:center;padding:2px 9px;border:1px solid var(--chi-color-warning-border);border-radius:var(--chi-radius-pill);background:var(--chi-color-warning-soft);color:var(--chi-color-warning);font-size:var(--chi-text-xs);line-height:1.6;white-space:nowrap}
+.status.done{border-color:var(--chi-color-success-border);background:var(--chi-color-success-soft);color:var(--chi-color-success)}
+.links{display:flex;flex-wrap:wrap;gap:var(--chi-space-2);margin-top:auto;padding-top:var(--chi-space-2)}
+.links a{min-height:36px;padding-inline:var(--chi-space-3);font-size:var(--chi-text-xs)}
+.claim{width:100%;margin-top:var(--chi-space-1)}
+.empty{grid-column:1/-1;padding:var(--chi-space-10) var(--chi-space-4);border:1px dashed var(--chi-color-border-strong);border-radius:var(--chi-radius-lg);color:var(--chi-color-text-muted);text-align:center}
+.fg-footer{margin-top:auto;border-top:1px solid var(--chi-color-border);background:var(--chi-color-surface)}
+.fg-footer__inner{min-height:64px;display:flex;align-items:center;justify-content:space-between;gap:var(--chi-space-3);padding-block:var(--chi-space-4);color:var(--chi-color-text-muted);font-size:var(--chi-text-xs)}
+.fg-footer a{color:inherit;text-decoration:none}
+.fg-footer a:hover{color:var(--chi-color-accent)}
+@media(max-width:600px){.fg-header__inner{align-items:flex-start;padding-block:var(--chi-space-3)}.fg-header__actions{gap:var(--chi-space-2)}.fg-theme{min-width:6.5rem}.fg-page-header{padding-top:var(--chi-space-8)}.fg-toolbar{align-items:flex-start;flex-direction:column;gap:var(--chi-space-2)}.fg-footer__inner{align-items:flex-start;flex-direction:column;justify-content:center;gap:var(--chi-space-1)}}
+@media(prefers-reduced-motion:reduce){*,*::before,*::after{scroll-behavior:auto!important;animation-duration:.01ms!important;transition-duration:.01ms!important}}
 </style>
 </head>
-<body>
-<header>
-  <div><h1>Free Game</h1><p>免費遊戲清單與領取狀態</p></div>
-  <button id="login" class="primary">使用 Chi Auth 登入</button>
+<body class="chi-page">
+<a class="chi-skip-link" href="#main-content">跳至主要內容</a>
+<header class="chi-site-header">
+  <div class="chi-container fg-header__inner">
+    <a class="fg-brand" href="/" aria-label="Free Game 首頁">
+      <img src="https://raw.githubusercontent.com/47tsai/chi-design-system/main/logo/blue-b.png" alt="">
+      <span class="fg-brand__name">Free Game</span>
+    </a>
+    <div class="fg-header__actions">
+      <label class="chi-field">
+        <span class="chi-label" style="position:absolute;width:1px;height:1px;padding:0;margin:-1px;overflow:hidden;clip:rect(0,0,0,0);white-space:nowrap;border:0">色彩主題</span>
+        <select id="theme-select" class="chi-select fg-theme" aria-label="選擇色彩主題">
+          <option value="system">跟隨系統</option>
+          <option value="light">淺色</option>
+          <option value="dark">深色</option>
+        </select>
+      </label>
+      <button id="login" class="chi-button chi-button--primary" type="button">使用 Chi Auth 登入</button>
+    </div>
+  </div>
 </header>
-<main>
-  <div class="toolbar"><div id="summary" class="summary">正在讀取遊戲資料…</div><div id="notice" class="notice" role="status"></div></div>
-  <section id="games" class="grid"></section>
+<main class="chi-container fg-main" id="main-content" tabindex="-1">
+  <section class="fg-page-header">
+    <p class="chi-eyebrow">GAME LIBRARY</p>
+    <h1 class="chi-title">免費遊戲</h1>
+    <p class="chi-description">整理限時免費遊戲與領取狀態。</p>
+  </section>
+  <div class="fg-toolbar">
+    <div id="summary" class="fg-summary" aria-live="polite">正在讀取遊戲資料…</div>
+    <div id="notice" class="fg-notice" role="status"></div>
+  </div>
+  <section id="games" class="fg-grid" aria-label="免費遊戲清單"></section>
 </main>
+<footer class="fg-footer">
+  <div class="chi-container fg-footer__inner">
+    <span>Free Game · Chi</span>
+    <a href="https://chi.qzz.io/chi-design-system/">Chi Design System</a>
+  </div>
+</footer>
+<script>
+(() => {
+  const root=document.documentElement;
+  const select=document.getElementById("theme-select");
+  const key="fg-theme";
+  let preference="system";
+  try { preference=localStorage.getItem(key)||"system"; } catch {}
+  if(!["system","light","dark"].includes(preference)) preference="system";
+  select.value=preference;
+  const media=window.matchMedia("(prefers-color-scheme: dark)");
+  const apply=()=>{
+    const dark=preference==="dark"||(preference==="system"&&media.matches);
+    if(dark) root.setAttribute("data-chi-theme","dark");
+    else root.removeAttribute("data-chi-theme");
+  };
+  select.addEventListener("change",()=>{
+    preference=select.value;
+    try { localStorage.setItem(key,preference); } catch {}
+    apply();
+  });
+  if(media.addEventListener) media.addEventListener("change",()=>{if(preference==="system")apply();});
+  else if(media.addListener) media.addListener(()=>{if(preference==="system")apply();});
+  apply();
+})();
+</script>
 <script src="/app.js" defer></script>
 </body>
 </html>
