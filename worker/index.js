@@ -61,6 +61,16 @@ async function readGames(env) {
   }
 }
 
+
+async function readPublicGames() {
+  const response = await fetch("https://raw.githubusercontent.com/" + OWNER + "/" + REPO + "/" + BRANCH + "/" + GAMES_PATH, {
+    headers: { "Cache-Control": "no-cache", "User-Agent": "FreeGameWebsite" },
+  });
+  if (response.status === 404) return { schema_version: 1, updated_at: new Date().toISOString(), records: [] };
+  if (!response.ok) throw new Error("public_games_" + response.status);
+  return response.json();
+}
+
 async function writeGames(env, document, sha) {
   const body = {
     message: "Update game claim status from fg.chi.qzz.io",
@@ -103,8 +113,8 @@ export default {
     }
     if (request.method === "GET" && url.pathname === "/api/games") {
       try {
-        const result = await readGames(env);
-        const games = Array.isArray(result.document.records) ? result.document.records : [];
+        const document = await readPublicGames();
+        const games = Array.isArray(document.records) ? document.records : [];
         games.sort((a, b) => String(b.added_at || b.created_at).localeCompare(String(a.added_at || a.created_at)));
         return json({ games: games });
       } catch {
@@ -115,6 +125,7 @@ export default {
     if (request.method === "POST" && match) {
       if (!env.GITHUB_TOKEN) return json({ error: "github_token_not_configured" }, 503);
       if (!(await requireOwner(request, env))) return json({ error: "authentication_required" }, 401);
+      if (!env.GITHUB_TOKEN) return json({ error: "github_write_not_configured" }, 503);
       const gameId = decodeURIComponent(match[1]);
       for (let attempt = 0; attempt < 2; attempt++) {
         try {
