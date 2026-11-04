@@ -54,7 +54,12 @@ body.chi-page{min-height:100vh;min-height:100dvh;display:flex;flex-direction:col
 @media(max-width:640px){#games.fg-grid{grid-template-columns:minmax(0,1fr)}.game-card{width:100%;max-width:420px}.game-card__media{height:180px;min-height:180px;max-height:180px;flex-basis:180px}.game-card__content{padding:var(--chi-space-3)}}
 @media(max-width:600px){.fg-header__inner{align-items:flex-start;padding-block:var(--chi-space-3)}.fg-header__actions{gap:var(--chi-space-2)}.fg-theme{min-width:6.5rem}.fg-page-header{padding-top:var(--chi-space-8)}.fg-toolbar{align-items:flex-start;flex-direction:column;gap:var(--chi-space-2)}.fg-footer__inner{align-items:flex-start;flex-direction:column;justify-content:center;gap:var(--chi-space-1)}}
 .fg-controls{padding-top:var(--chi-space-3)}
-.fg-controls__top{display:grid;grid-template-columns:minmax(220px,2fr) repeat(2,minmax(150px,1fr));gap:var(--chi-space-3);padding-block:var(--chi-space-3)}
+.fg-chip-group{display:flex;flex-wrap:wrap;gap:6px;min-width:0}
+.fg-chip{min-height:34px;padding:5px 12px;border:1px solid var(--chi-color-border);border-radius:var(--chi-radius-pill);background:var(--chi-color-surface);color:var(--chi-color-text-muted);font:inherit;font-size:var(--chi-text-sm);cursor:pointer;transition:background var(--chi-transition-fast),border-color var(--chi-transition-fast),color var(--chi-transition-fast)}
+.fg-chip:hover{border-color:var(--chi-color-border-strong);color:var(--chi-color-text-strong)}
+.fg-chip.is-active{border-color:var(--chi-color-accent);background:var(--chi-color-accent-soft);color:var(--chi-color-accent);font-weight:650}
+.fg-platform-chips{max-height:76px;overflow-y:auto;align-content:flex-start;padding-right:2px}
+.fg-controls__top{display:grid;grid-template-columns:minmax(220px,1.3fr) minmax(220px,1fr) minmax(260px,1.4fr);gap:var(--chi-space-3);padding-block:var(--chi-space-3)}
 .fg-search{min-width:0}
 .fg-controls .chi-field{display:flex;flex-direction:column;gap:6px}
 .fg-controls .chi-input,.fg-controls .chi-select{width:100%;min-width:0}
@@ -107,8 +112,8 @@ body.chi-page{min-height:100vh;min-height:100dvh;display:flex;flex-direction:col
   <section class="fg-controls" aria-label="遊戲清單控制">
     <div class="fg-controls__top">
       <label class="chi-field fg-search"><span class="chi-label">搜尋遊戲</span><input id="search" class="chi-input" type="search" placeholder="輸入遊戲名稱…" autocomplete="off"></label>
-      <label class="chi-field"><span class="chi-label">領取狀態</span><select id="status-filter" class="chi-select"><option value="all">全部狀態</option><option value="unclaimed">尚未領取</option><option value="claimed">已領取</option></select></label>
-      <label class="chi-field"><span class="chi-label">平台</span><select id="platform-filter" class="chi-select"><option value="all">全部平台</option></select></label>
+      <div class="chi-field"><span class="chi-label">領取狀態</span><div id="status-filter" class="fg-chip-group" role="group" aria-label="領取狀態"><button class="fg-chip is-active" type="button" data-status="all" aria-pressed="true">全部</button><button class="fg-chip" type="button" data-status="unclaimed" aria-pressed="false">未領取</button><button class="fg-chip" type="button" data-status="claimed" aria-pressed="false">已領取</button></div></div>
+      <div class="chi-field"><span class="chi-label">平台</span><div id="platform-filter" class="fg-chip-group fg-platform-chips" role="group" aria-label="遊戲平台"><button class="fg-chip is-active" type="button" data-platform="all" aria-pressed="true">全部</button></div></div>
     </div>
     <div class="fg-toolbar">
       <div id="summary" class="fg-summary" aria-live="polite">正在讀取遊戲資料…</div>
