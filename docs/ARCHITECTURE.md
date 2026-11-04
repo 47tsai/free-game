@@ -39,13 +39,15 @@ A source must not be treated as authoritative for fields it does not provide. Mi
 
 ### Ingestion pipeline
 
-1. Fetch source records.
-2. Parse source-specific fields.
-3. Normalize records into common entities.
-4. Validate identifiers, URLs, timestamps, and required fields.
-5. Match or create games, products, and offers.
-6. Persist changes through the repository data writer.
-7. Emit domain events for notification evaluation.
+1. A source runner fetches the response using shared timeout, retry, and redaction policies.
+2. The adapter parses source-specific fields into source observations.
+3. The adapter normalizes observations into platform-independent candidates.
+4. The shared IngestionPipeline validates candidate shape, timestamps, URLs, source identity, and same-run duplicate source records.
+5. A later catalog reconciliation stage matches or proposes Game, Product, and Offer records, then verifies offers against authoritative storefront evidence.
+6. A repository writer persists accepted changes to GitHub JSON with optimistic concurrency and idempotent updates.
+7. Domain events are emitted for notification evaluation.
+
+The current Python implementation covers the adapter contract, Generic RSS/Atom/JSON parsing, and the side-effect-free parse/normalize/validate/deduplicate pipeline. Fetching, cross-run persistence, catalog reconciliation, storefront verification, and notification delivery remain separate implementation stages. The pipeline returns observations, accepted candidates, and structured issues; it does not write data or mark offers as verified.
 
 A failure in one adapter should not prevent successful adapters from completing. Raw source evidence and parse errors should be retained where practical for diagnosis. The Generic adapter follows the same isolation and validation rules; a generic parse result must never bypass the common verification and validation pipeline.
 
