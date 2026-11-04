@@ -298,9 +298,15 @@ def _merge_game(existing: dict[str, Any], incoming: dict[str, Any]) -> dict[str,
 
 def _merge_notification(existing: dict[str, Any], incoming: dict[str, Any]) -> dict[str, Any]:
     merged = dict(existing)
-    if existing.get("status") in {"pending", "sent", "failed"}:
+    # A confirmed delivery is terminal; pending/failed records must accept
+    # the delivery result written by the notification processor.
+    if existing.get("status") == "sent":
         return merged
     merged.update(incoming)
+    merged["attempt_count"] = max(
+        int(existing.get("attempt_count", 0)),
+        int(incoming.get("attempt_count", 0)),
+    )
     return merged
 
 
