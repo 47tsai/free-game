@@ -1,0 +1,276 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://47tsai.github.io/free-game/schemas/collection.schema.json",
+  "title": "Free Game collections",
+  "anyOf": [
+    {
+      "$ref": "#/$defs/GameCollection"
+    },
+    {
+      "$ref": "#/$defs/NotificationCollection"
+    }
+  ],
+  "$defs": {
+    "Id": {
+      "type": "string",
+      "minLength": 1
+    },
+    "Timestamp": {
+      "type": "string",
+      "format": "date-time"
+    },
+    "NullableString": {
+      "type": [
+        "string",
+        "null"
+      ]
+    },
+    "HttpsUrl": {
+      "type": "string",
+      "format": "uri",
+      "pattern": "^https://"
+    },
+    "NullableHttpsUrl": {
+      "oneOf": [
+        {
+          "$ref": "#/$defs/HttpsUrl"
+        },
+        {
+          "type": "null"
+        }
+      ]
+    },
+    "Envelope": {
+      "type": "object",
+      "required": [
+        "schema_version",
+        "updated_at",
+        "records"
+      ],
+      "properties": {
+        "schema_version": {
+          "const": 1
+        },
+        "updated_at": {
+          "$ref": "#/$defs/Timestamp"
+        },
+        "records": {
+          "type": "array"
+        }
+      },
+      "additionalProperties": false
+    },
+    "Game": {
+      "type": "object",
+      "required": [
+        "id",
+        "title",
+        "normalized_title",
+        "created_at",
+        "updated_at"
+      ],
+      "properties": {
+        "id": {
+          "$ref": "#/$defs/Id"
+        },
+        "title": {
+          "type": "string",
+          "minLength": 1
+        },
+        "normalized_title": {
+          "type": "string",
+          "minLength": 1
+        },
+        "platform": {
+          "type": [
+            "string",
+            "null"
+          ]
+        },
+        "external_product_id": {
+          "type": [
+            "string",
+            "null"
+          ]
+        },
+        "store_url": {
+          "$ref": "#/$defs/NullableHttpsUrl"
+        },
+        "article_url": {
+          "$ref": "#/$defs/NullableHttpsUrl"
+        },
+        "cover_image_url": {
+          "$ref": "#/$defs/NullableHttpsUrl"
+        },
+        "claim_status": {
+          "enum": [
+            "unclaimed",
+            "claimed"
+          ]
+        },
+        "claimed_at": {
+          "oneOf": [
+            {
+              "$ref": "#/$defs/Timestamp"
+            },
+            {
+              "type": "null"
+            }
+          ]
+        },
+        "claim_source": {
+          "$ref": "#/$defs/NullableString"
+        },
+        "claim_notification_pending": {
+          "type": "boolean"
+        },
+        "added_at": {
+          "$ref": "#/$defs/Timestamp"
+        },
+        "reminder_last_sent_at": {
+          "oneOf": [
+            {
+              "$ref": "#/$defs/Timestamp"
+            },
+            {
+              "type": "null"
+            }
+          ]
+        },
+        "created_at": {
+          "$ref": "#/$defs/Timestamp"
+        },
+        "updated_at": {
+          "$ref": "#/$defs/Timestamp"
+        },
+        "source_record_ids": {
+          "type": "array",
+          "items": {
+            "type": "string"
+          },
+          "uniqueItems": true
+        },
+        "description": {
+          "$ref": "#/$defs/NullableString"
+        },
+        "developers": {
+          "type": "array",
+          "items": {
+            "type": "string"
+          }
+        },
+        "publishers": {
+          "type": "array",
+          "items": {
+            "type": "string"
+          }
+        },
+        "genres": {
+          "type": "array",
+          "items": {
+            "type": "string"
+          }
+        }
+      },
+      "additionalProperties": false
+    },
+    "Notification": {
+      "type": "object",
+      "required": [
+        "id",
+        "notification_type",
+        "channel",
+        "idempotency_key",
+        "status",
+        "attempt_count",
+        "created_at"
+      ],
+      "properties": {
+        "id": {
+          "$ref": "#/$defs/Id"
+        },
+        "game_id": {
+          "$ref": "#/$defs/Id"
+        },
+        "notification_type": {
+          "enum": [
+            "new_offer",
+            "deadline_reminder",
+            "offer_updated"
+          ]
+        },
+        "channel": {
+          "type": "string",
+          "minLength": 1
+        },
+        "idempotency_key": {
+          "type": "string",
+          "minLength": 1
+        },
+        "status": {
+          "enum": [
+            "pending",
+            "sent",
+            "failed"
+          ]
+        },
+        "attempt_count": {
+          "type": "integer",
+          "minimum": 0
+        },
+        "created_at": {
+          "$ref": "#/$defs/Timestamp"
+        },
+        "sent_at": {
+          "oneOf": [
+            {
+              "$ref": "#/$defs/Timestamp"
+            },
+            {
+              "type": "null"
+            }
+          ]
+        },
+        "last_error": {
+          "$ref": "#/$defs/NullableString"
+        },
+        "offer_id": {
+          "$ref": "#/$defs/Id"
+        }
+      },
+      "additionalProperties": false
+    },
+    "GameCollection": {
+      "allOf": [
+        {
+          "$ref": "#/$defs/Envelope"
+        },
+        {
+          "properties": {
+            "records": {
+              "items": {
+                "$ref": "#/$defs/Game"
+              }
+            }
+          }
+        }
+      ]
+    },
+    "NotificationCollection": {
+      "allOf": [
+        {
+          "$ref": "#/$defs/Envelope"
+        },
+        {
+          "properties": {
+            "records": {
+              "items": {
+                "$ref": "#/$defs/Notification"
+              }
+            }
+          }
+        }
+      ]
+    }
+  }
+}
