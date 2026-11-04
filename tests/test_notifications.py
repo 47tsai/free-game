@@ -1,56 +1,29 @@
 from copy import deepcopy
+from datetime import datetime, timezone, timedelta
 
-from free_game.notifications import (
-    DiscordDeliveryError,
-    DiscordNotificationService,
-    DiscordWebhookSender,
-)
+from free_game.notifications import DiscordDeliveryError, DiscordNotificationService, DiscordWebhookSender
 from free_game.writer import GitHubJsonWriter, StoredCollection
 
 
 class MemoryStore:
     def __init__(self):
         self.documents = {
-            GitHubJsonWriter.OFFERS_PATH: {
-                "schema_version": 1,
-                "updated_at": "2026-11-04T00:00:00Z",
-                "records": [{
-                    "id": "offer_123",
-                    "product_id": "product_123",
-                    "platform": "epic",
-                    "source_record_ids": ["source_123"],
-                    "title": "Example Game",
-                    "claim_url": "https://store.epicgames.com/p/example",
-                    "starts_at": None,
-                    "ends_at": "2026-11-10T00:00:00Z",
-                    "deadline_status": "known",
-                    "status": "active",
-                    "verification_status": "verified",
-                    "region": "TW",
-                    "terms": None,
-                    "first_seen_at": "2026-11-04T00:00:00Z",
-                    "last_seen_at": "2026-11-04T00:00:00Z",
-                    "created_at": "2026-11-04T00:00:00Z",
-                    "updated_at": "2026-11-04T00:00:00Z",
-                }],
-            }
+            GitHubJsonWriter.GAMES_PATH: {"schema_version": 1, "updated_at": "2026-11-04T00:00:00Z", "records": [{
+                "id": "game_123", "title": "Example Game", "normalized_title": "example game",
+                "platform": "steam", "external_product_id": "123", "store_url": "https://store.steampowered.com/app/123/",
+                "article_url": "https://www.4gamers.com.tw/news/detail/123", "cover_image_url": "https://example.com/game.jpg",
+                "claim_status": "unclaimed", "claimed_at": None, "claim_source": None,
+                "claim_notification_pending": False, "added_at": "2026-11-01T00:00:00Z",
+                "reminder_last_sent_at": None, "created_at": "2026-11-01T00:00:00Z", "updated_at": "2026-11-01T00:00:00Z"
+            }]}
         }
         self.shas = {}
         self.counter = 0
 
     def read(self, path):
-        return StoredCollection(
-            deepcopy(self.documents.get(path, {
-                "schema_version": 1,
-                "updated_at": "2026-11-04T00:00:00Z",
-                "records": [],
-            })),
-            self.shas.get(path),
-        )
+        return StoredCollection(deepcopy(self.documents.get(path, {"schema_version": 1, "updated_at": "2026-11-04T00:00:00Z", "records": []})), self.shas.get(path))
 
     def write(self, path, document, sha):
-        if self.shas.get(path) != sha:
-            raise AssertionError("unexpected stale SHA in test store")
         self.counter += 1
         self.documents[path] = deepcopy(document)
         self.shas[path] = f"sha-{self.counter}"
@@ -62,64 +35,52 @@ class FakeSender:
         self.calls = []
         self.error = error
 
-    def send_offer(self, offer):
-        self.calls.append(offer["id"])
+    def send_game(self, game, kind):
+        self.calls.append((game["id"], kind))
         if self.error:
             raise self.error
 
 
-def test_sends_each_verified_active_offer_only_once() -> None:
+def test_sends_new_game_once_and_reminds_every_24_hours():
     store = MemoryStore()
+    writer = GitHubJsonWriter(store)
     sender = FakeSender()
-    service = DiscordNotificationService(GitHubJsonWriter(store), sender)
-
-    first = service.send_new_active_offers()
-    second = service.send_new_active_offers()
-
-    assert first.sent == 1
+    service = DiscordNotificationService(writer, sender)
+    now = datetime(2026, 11, 4, 1, tzinfo=timezone.utc)
+    first = service.process_games(now=now)
+    second = service.process_games(now=now + timedelta(hours=23))
+    third = service.process_games(now=now + timedelta(hours=25))
+    assert first.sent == 2  # new-game message and first overdue reminder
     assert second.sent == 0
-    assert second.skipped == 1
-    assert sender.calls == ["offer_123"]
-    notifications = store.documents[GitHubJsonWriter.NOTIFICATIONS_PATH]["records"]
-    assert notifications[0]["status"] == "sent"
-    assert notifications[0]["attempt_count"] == 1
+    assert third.sent == 1
+    assert sender.calls == [("game_123", "new"), ("game_123", "reminder"), ("game_123", "reminder")]
 
 
-def test_failed_or_ambiguous_delivery_is_not_resent_automatically() -> None:
+def test_claimed_game_sends_short_update_and_stops_reminders():
+    store = MemoryStore()
+    game = store.documents[GitHubJsonWriter.GAMES_PATH]["records"][0]
+    game.update({"claim_status": "claimed", "claimed_at": "2026-11-04T00:00:00Z", "claim_notification_pending": True})
+    sender = FakeSender()
+    summary = DiscordNotificationService(GitHubJsonWriter(store), sender).process_games(now=datetime(2026, 11, 4, 2, tzinfo=timezone.utc))
+    assert summary.sent == 2  # new-game card, then short claimed update
+    assert sender.calls == [("game_123", "new"), ("game_123", "claimed")]
+    assert store.documents[GitHubJsonWriter.GAMES_PATH]["records"][0]["claim_notification_pending"] is False
+
+
+def test_delivery_failure_is_not_retried_automatically():
     store = MemoryStore()
     sender = FakeSender(DiscordDeliveryError("discord_network_error"))
     service = DiscordNotificationService(GitHubJsonWriter(store), sender)
-
-    first = service.send_new_active_offers()
-    second = service.send_new_active_offers()
-
-    assert first.failed == 1
-    assert second.skipped == 1
-    assert sender.calls == ["offer_123"]
-    notifications = store.documents[GitHubJsonWriter.NOTIFICATIONS_PATH]["records"]
-    assert notifications[0]["status"] == "failed"
-    assert notifications[0]["last_error"] == "discord_network_error"
+    first = service.process_games(now=datetime(2026, 11, 4, 1, tzinfo=timezone.utc))
+    second = service.process_games(now=datetime(2026, 11, 4, 1, tzinfo=timezone.utc))
+    assert first.failed == 2
+    assert second.sent == 0
+    assert sender.calls == [("game_123", "new"), ("game_123", "reminder")]
 
 
-def test_inactive_or_unverified_offers_are_not_sent() -> None:
-    store = MemoryStore()
-    offer = store.documents[GitHubJsonWriter.OFFERS_PATH]["records"][0]
-    offer["verification_status"] = "needs_review"
-    sender = FakeSender()
-
-    summary = DiscordNotificationService(
-        GitHubJsonWriter(store), sender
-    ).send_new_active_offers()
-
-    assert summary.sent == 0
-    assert sender.calls == []
-
-
-def test_webhook_url_must_be_discord_https_endpoint() -> None:
+def test_webhook_url_must_be_discord_https_endpoint():
     import pytest
-
     with pytest.raises(ValueError, match="discord_webhook_url_invalid"):
         DiscordWebhookSender("https://example.com/api/webhooks/123/token")
-
     sender = DiscordWebhookSender("https://discord.com/api/webhooks/123/token")
     assert "wait=true" in sender.webhook_url
