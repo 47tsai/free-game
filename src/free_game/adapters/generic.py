@@ -3,11 +3,9 @@
 from __future__ import annotations
 
 import json
-import re
 import xml.etree.ElementTree as ET
 from dataclasses import dataclass
 from datetime import datetime, timezone
-from email.utils import parsedate_to_datetime
 from typing import Any
 from urllib.parse import urlparse
 
@@ -51,7 +49,14 @@ class GenericAdapter:
         stripped = text.lstrip()
         fmt = self.config.feed_format
         if fmt == "auto":
-            fmt = "json" if stripped.startswith("{") or stripped.startswith("[") else "rss"
+            if stripped.startswith("{") or stripped.startswith("["):
+                fmt = "json"
+            else:
+                try:
+                    root = ET.fromstring(text)
+                except ET.ParseError as exc:
+                    raise ValueError(f"invalid XML feed: {exc}") from exc
+                fmt = "atom" if self._local_name(root.tag).lower() == "feed" else "rss"
         if fmt == "json":
             return self._parse_json(text)
         return self._parse_xml(text, expected=fmt)
