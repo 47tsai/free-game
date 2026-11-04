@@ -84,7 +84,7 @@ def main(argv: list[str] | None = None) -> int:
         print(json.dumps({"status": "partial_failure" if failed else "success", "rss": FOUR_GAMERS_RSS, "candidates": len(candidates), "failed_articles": failed_articles, "write": write_summary, "notifications": notifications}, ensure_ascii=False))
         return 1 if failed else 0
     except Exception as exc:
-        print(json.dumps({"status": "error", "error": f"{type(exc).__name__}:ingestion_failed"}))
+        print(json.dumps({"status": "error", "error": f"{type(exc).__name__}: {str(exc) or 'no_error_message'}"}, ensure_ascii=False))
         return 1
 
 
