@@ -28,7 +28,7 @@ async function finishLogin(){
 function element(tag,className,text){const node=document.createElement(tag);if(className)node.className=className;if(text!==undefined)node.textContent=text;return node}
 function safeLink(label,url){if(!url||!/^https:\/\//i.test(url))return null;const a=element("a","chi-button",label);a.href=url;a.target="_blank";a.rel="noopener noreferrer";return a}
 function filteredGames(){
- const keyword=$("search").value.trim().toLocaleLowerCase(),status=$("status-filter").value,platform=$("platform-filter").value;
+ const keyword=$("search").value.trim().toLocaleLowerCase(),status=$("status-filter").querySelector("[aria-pressed=true]")?.dataset.status||"all",platform=$("platform-filter").querySelector("[aria-pressed=true]")?.dataset.platform||"all";
  return allGames.filter(g=>{
   if(keyword&&!String(g.title||"").toLocaleLowerCase().includes(keyword))return false;
   if(status==="claimed"&&g.claim_status!=="claimed")return false;
@@ -86,11 +86,12 @@ async function markClaimed(game,button){
  }catch(error){say(error.message);if(button){button.disabled=false;button.textContent="標記已領取"}}
 }
 function populatePlatforms(){
- const select=$("platform-filter"),platforms=[...new Set(allGames.map(g=>String(g.platform||"unknown").toLowerCase()))].sort();
- for(const platform of platforms){const option=document.createElement("option");option.value=platform;option.textContent=platform==="unknown"?"未知平台":platform.toUpperCase();select.append(option)}
+ const group=$("platform-filter"),platforms=[...new Set(allGames.map(g=>String(g.platform||"unknown").toLowerCase()))].sort();
+ for(const platform of platforms){const button=element("button","fg-chip",platform==="unknown"?"未知平台":platform.toUpperCase());button.type="button";button.dataset.platform=platform;button.setAttribute("aria-pressed","false");group.append(button)}
 }
 function setupControls(){
- ["search","status-filter","platform-filter","page-size"].forEach(id=>$(id).addEventListener(id==="search"?"input":"change",()=>{page=1;render()}));
+ ["search","page-size"].forEach(id=>$(id).addEventListener(id==="search"?"input":"change",()=>{page=1;render()}));
+ ["status-filter","platform-filter"].forEach(id=>$(id).addEventListener("click",event=>{const button=event.target.closest("button");if(!button)return;$(id).querySelectorAll("button").forEach(item=>{const active=item===button;item.classList.toggle("is-active",active);item.setAttribute("aria-pressed",String(active))});page=1;render()}));
  $("view-grid").addEventListener("click",()=>setView("grid"));$("view-list").addEventListener("click",()=>setView("list"));
 }
 function setView(mode){viewMode=mode;$("view-grid").classList.toggle("is-active",mode==="grid");$("view-list").classList.toggle("is-active",mode==="list");$("view-grid").setAttribute("aria-pressed",String(mode==="grid"));$("view-list").setAttribute("aria-pressed",String(mode==="list"));render()}
