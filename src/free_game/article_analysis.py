@@ -43,6 +43,7 @@ class _ArticleHTMLParser(HTMLParser):
         self.in_body = False
         self.skip_depth = 0
         self.links: list[tuple[str, str]] = []
+        self.image_url: str | None = None
         self._active_url: str | None = None
         self._active_text: list[str] = []
 
@@ -50,6 +51,12 @@ class _ArticleHTMLParser(HTMLParser):
         attrs_map = dict(attrs)
         if tag == "body":
             self.in_body = True
+        if tag == "meta":
+            prop = (attrs_map.get("property") or attrs_map.get("name") or "").lower()
+            if prop in {"og:image", "twitter:image"} and attrs_map.get("content"):
+                candidate = urljoin(self.base_url, unescape(attrs_map["content"]))
+                if urlparse(candidate).scheme == "https":
+                    self.image_url = candidate
         if tag in {"script", "style", "noscript", "svg"}:
             self.skip_depth += 1
         if tag == "a" and attrs_map.get("href"):
@@ -132,6 +139,8 @@ class FourGamersArticleAnalyzer:
                 observed_at=observation.observed_at,
                 verification_status="candidate",
                 source_external_id=source_external_id,
+                article_url=observation.source_url,
+                image_url=parser.image_url,
                 warnings=(
                     () if external_id
                     else ("store_product_id_unresolved",) if platform
