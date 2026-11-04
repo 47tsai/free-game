@@ -13,7 +13,7 @@ The repository now includes:
 - Conservative Product-to-Game reconciliation that creates one provisional Game per Product without unsafe cross-platform title merges.
 - Deterministic identifiers, JSON Schema validation, SHA conflict retries, and automated tests.
 
-The configured primary source is 4Gamers latest-news RSS. The current ingestion run filters articles by free-game keywords and stores discovery provenance. Article-page extraction, storefront verification, and notification delivery are the next workflow stages. Generic RSS/Atom/JSON parsing remains available for explicitly configured sources and unknown platforms.
+The configured primary source is 4Gamers latest-news RSS. The current ingestion run filters articles by free-game keywords, fetches matching article pages, extracts supported storefront links, and writes Product/Game/SourceRecord data to GitHub JSON. Storefront offer verification and notification delivery are the next workflow stages. Generic RSS/Atom/JSON parsing remains available for explicitly configured sources and unknown platforms.
 
 ## Development
 
@@ -30,7 +30,7 @@ Run the configured ingestion command:
 free-game ingest --config config/sources.json
 ```
 
-The command exits successfully without network requests when no sources are enabled. When enabled sources produce persistable candidates, set `GITHUB_TOKEN` (or `GH_TOKEN`) with repository Contents write permission. The command fetches enabled sources, persists Product identities and SourceRecord provenance, and creates provisional Game links. It does not merge products across platforms, create Offers, advance cursors, or send notifications.
+The command exits successfully without network requests when no sources are enabled. When enabled sources produce persistable candidates, set `GITHUB_TOKEN` (or `GH_TOKEN`) with repository Contents write permission. The command fetches enabled sources, analyzes matching 4Gamers article pages, persists extracted Product identities and SourceRecord provenance, and creates provisional Game links. It does not merge products across platforms, create Offers, advance cursors, or send notifications.
 
 The canonical persisted-data schema is in `schemas/collection.schema.json`. Use `free_game.validation` to validate one collection's structure, and `free_game.semantic_validation.validate_dataset` to validate references and uniqueness across a mapping of collection names to collection documents.
 
