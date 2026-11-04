@@ -8,7 +8,7 @@ from free_game.cli import collect_candidates, main
 from free_game.runner import HTTPFetchResponse
 
 
-RSS = b"""<rss><channel><item><title>限時免費《Hexologic》</title><link>https://www.4gamers.com.tw/news/detail/123</link><guid>article-123</guid><description>限免</description></item></channel></rss>"""
+RSS = """<rss><channel><item><title>限時免費《Hexologic》</title><link>https://www.4gamers.com.tw/news/detail/123</link><guid>article-123</guid><description>限免</description></item></channel></rss>""".encode("utf-8")
 
 
 def test_collect_candidates_extracts_storefront_product(monkeypatch):
