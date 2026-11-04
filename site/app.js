@@ -1,6 +1,8 @@
 const API="/api";
 const AUTH="https://auth.chi.qzz.io";
 let accessToken=null;
+let accessTokenExpiresAt=0;
+let claimEnabled=false;
 let authClientId=null;
 const $=id=>document.getElementById(id);
 function b64url(bytes){return btoa(String.fromCharCode(...new Uint8Array(bytes))).replace(/\+/g,"-").replace(/\//g,"_").replace(/=+$/g,"")}
@@ -29,13 +31,14 @@ async function finishLogin(){
  try{
   const response=await fetch(AUTH+"/api/token",{method:"POST",headers:{"Content-Type":"application/json"},body:JSON.stringify({client_id:authClientId,code,redirect_uri:location.origin+"/",code_verifier:verifier})});
   const data=await response.json();if(!response.ok)throw new Error(data.error||"登入失敗");
-  accessToken=data.access_token;history.replaceState({}, "", location.pathname);$("login").textContent="已登入 Chi Auth";say("登入成功，可以手動標記領取狀態。");
+  accessToken=data.access_token;accessTokenExpiresAt=Date.now()+Number(data.expires_in||600)*1000;history.replaceState({}, "", location.pathname);$("login").textContent="已登入 Chi Auth";say("登入成功，可以手動標記領取狀態。");
  }catch(error){say(error.message)}
 }
 function element(tag,className,text){const node=document.createElement(tag);if(className)node.className=className;if(text!==undefined)node.textContent=text;return node}
 function safeLink(label,url){if(!url||!/^https:\/\//i.test(url))return null;const a=element("a","chi-button",label);a.href=url;a.target="_blank";a.rel="noopener noreferrer";return a}
 async function markClaimed(game,button){
- if(!accessToken){say("請先使用 Chi Auth 登入。");return}
+ if(!claimEnabled){say("目前尚未啟用標記功能，請稍後再試。");return}
+ if(!accessToken||Date.now()>=accessTokenExpiresAt){accessToken=null;accessTokenExpiresAt=0;renderGames(window.currentGames);say("登入已逾時，請重新使用 Chi Auth 登入。");return}
  button.disabled=true;
  try{const response=await fetch(API+"/games/"+encodeURIComponent(game.id)+"/claim",{method:"POST",headers:{Authorization:"Bearer "+accessToken}});
  const data=await response.json();if(!response.ok)throw new Error(data.error||"更新失敗");
@@ -57,7 +60,7 @@ function renderGames(games){
   const links=element("div","links");
   for(const [label,url] of [["商店",game.store_url],["4Gamer 文章",game.article_url]]){const link=safeLink(label,url);if(link)links.append(link)}
   body.append(links);
-  if(game.claim_status!=="claimed"){const button=element("button","chi-button chi-button--primary claim",accessToken?"標記已領取":"登入後可手動標記");button.disabled=!accessToken;button.addEventListener("click",()=>markClaimed(game,button));body.append(button)}
+  if(game.claim_status!=="claimed"){const button=element("button","chi-button chi-button--primary claim",!claimEnabled?"標記功能未啟用":accessToken?"標記已領取":"登入後可手動標記");button.disabled=!claimEnabled||!accessToken;button.addEventListener("click",()=>markClaimed(game,button));body.append(button)}
   else if(game.claim_source)body.append(element("div","platform",game.claim_source==="fgc"?"由 FGC 自動同步領取":"手動標記領取"));
   card.append(body);$("games").append(card);
  }
@@ -65,10 +68,10 @@ function renderGames(games){
  if(focusId){const target=document.getElementById("game-"+focusId);if(target){target.classList.add("focused");target.scrollIntoView({behavior:"smooth",block:"center"});}}
 }
 async function init(){
- try{const config=await fetch(API+"/config").then(r=>r.json());authClientId=config.auth_client_id;
+ try{const configResponse=await fetch(API+"/config");if(!configResponse.ok)throw new Error("無法讀取網站設定");const config=await configResponse.json();authClientId=config.auth_client_id;claimEnabled=Boolean(config.claim_enabled);
   if(!authClientId){$("login").disabled=true;$("login").textContent="Chi Auth 尚未設定"}
   const games=await fetch(API+"/games").then(r=>r.json());if(!games.games)throw new Error("無法讀取遊戲資料");
-  renderGames(games.games);await finishLogin();if(accessToken)renderGames(games.games);
+  renderGames(games.games);await finishLogin();if(accessToken)renderGames(games.games);if(!claimEnabled)say("目前尚未設定 GitHub 寫入權限，手動標記暫時不可用。");
  }catch(error){$("summary").textContent="目前無法載入資料";say(error.message)}
 }
 $("login").addEventListener("click",login);
