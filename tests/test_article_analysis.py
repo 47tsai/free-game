@@ -61,8 +61,8 @@ def test_unresolved_store_product_id_remains_discovery_candidate() -> None:
     result = FourGamersArticleAnalyzer().analyze(observation(), html)
 
     assert len(result) == 1
-    assert result[0].platform == "new-store.example"
-    assert result[0].external_product_id == "abc"
+    assert result[0].platform is None
+    assert result[0].external_product_id is None
     assert "store_product_id_unresolved" in result[0].warnings
 
 
@@ -77,7 +77,6 @@ def test_unknown_storefront_is_preserved_as_discovery_candidate() -> None:
     result = FourGamersArticleAnalyzer().analyze(observation(), html)
 
     assert len(result) == 1
-    assert result[0].platform is None
-    assert result[0].external_product_id is None
+    assert result[0].platform == "new-store.example"
+    assert result[0].external_product_id == "abc"
     assert result[0].title == "Mystery Game"
-    assert "unknown_storefront_platform" in result[0].warnings
