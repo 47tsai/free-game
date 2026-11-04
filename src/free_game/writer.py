@@ -175,7 +175,10 @@ class GitHubJsonWriter:
                 "created_at": previous.get("created_at", now),
                 "updated_at": now,
             }
-            changes[game_id] = _merge_game(previous, incoming)
+            merged = _merge_game(previous, incoming)
+            if previous and all(previous.get(key) == value for key, value in merged.items() if key != "updated_at"):
+                continue
+            changes[game_id] = merged
         if not changes:
             return WriteResult(0, 0, skipped, None)
         (created, updated), sha = self._upsert(self.GAMES_PATH, changes, _merge_game)
@@ -288,9 +291,6 @@ def _merge_game(existing: dict[str, Any], incoming: dict[str, Any]) -> dict[str,
             if value in (None, "unclaimed"):
                 continue
         if key == "added_at" and existing.get("article_url"):
-            continue
-        if key == "claim_notification_pending" and existing.get(key) is True and value is False:
-            # Only the notification processor should clear a pending transition.
             continue
         merged[key] = value
     return merged
