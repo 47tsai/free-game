@@ -29,7 +29,7 @@ async function finishLogin(){
  sessionStorage.removeItem("fg_oauth_state");sessionStorage.removeItem("fg_pkce_verifier");
  if(!state||state!==expected||!verifier){say("登入驗證失敗，請重新登入。");return}
  try{
-  const response=await fetch(AUTH+"/api/token",{method:"POST",headers:{"Content-Type":"application/json"},body:JSON.stringify({client_id:authClientId,code,redirect_uri:location.origin+"/",code_verifier:verifier})});
+  const response=await fetch(AUTH+"/api/token?client_id="+encodeURIComponent(authClientId),{method:"POST",headers:{"Content-Type":"application/json"},body:JSON.stringify({client_id:authClientId,code,redirect_uri:location.origin+"/",code_verifier:verifier})});
   const data=await response.json();if(!response.ok)throw new Error(data.error||"登入失敗");
   accessToken=data.access_token;accessTokenExpiresAt=Date.now()+Number(data.expires_in||600)*1000;history.replaceState({}, "", location.pathname);$("login").textContent="已登入 Chi Auth";say("登入成功，可以手動標記領取狀態。");
  }catch(error){say(error.message)}
