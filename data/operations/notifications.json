@@ -1,18 +1,5 @@
 {
-  "records": [
-    {
-      "attempt_count": 1,
-      "channel": "discord",
-      "created_at": "2026-11-04T04:56:28.151700Z",
-      "game_id": "game_c13ac29a-d073-5b7c-95c6-ec412a854331",
-      "id": "notification_c5d9bd4b-1594-5641-8719-e4ebad2dc2bc",
-      "idempotency_key": "new_game:game_c13ac29a-d073-5b7c-95c6-ec412a854331:discord",
-      "last_error": null,
-      "notification_type": "new_offer",
-      "sent_at": "2026-11-04T04:56:30.630909Z",
-      "status": "sent"
-    }
-  ],
+  "records": [],
   "schema_version": 1,
   "updated_at": "2026-11-04T04:56:30.857003Z"
 }
