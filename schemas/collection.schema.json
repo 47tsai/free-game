@@ -127,6 +127,59 @@
         },
         "source_record_ids": {
           "$ref": "#/$defs/StringArray"
+        },
+        "platform": {
+          "type": [
+            "string",
+            "null"
+          ]
+        },
+        "external_product_id": {
+          "type": [
+            "string",
+            "null"
+          ]
+        },
+        "store_url": {
+          "$ref": "#/$defs/NullableHttpsUrl"
+        },
+        "article_url": {
+          "$ref": "#/$defs/NullableHttpsUrl"
+        },
+        "claim_status": {
+          "enum": [
+            "unclaimed",
+            "claimed"
+          ]
+        },
+        "claimed_at": {
+          "oneOf": [
+            {
+              "$ref": "#/$defs/Timestamp"
+            },
+            {
+              "type": "null"
+            }
+          ]
+        },
+        "claim_source": {
+          "type": [
+            "string",
+            "null"
+          ]
+        },
+        "added_at": {
+          "$ref": "#/$defs/Timestamp"
+        },
+        "reminder_last_sent_at": {
+          "oneOf": [
+            {
+              "$ref": "#/$defs/Timestamp"
+            },
+            {
+              "type": "null"
+            }
+          ]
         }
       },
       "additionalProperties": false
