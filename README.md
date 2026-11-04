@@ -37,7 +37,7 @@ The website uses the existing Chi Auth Authorization Code + PKCE client (`MN7nps
 
 **Cloudflare Worker secret:**
 
-- `GITHUB_TOKEN`: the fine-grained GitHub token with Contents read/write access, restricted to `47tsai/free-game`.
+- `GITHUB_TOKEN`: the fine-grained GitHub token with Contents read/write access, restricted to `47tsai/free-game`. Public game-list reads work without this token; it is required for manual claim updates.
 
 Set `GITHUB_TOKEN` in the Cloudflare dashboard under Workers & Pages → `free-game-api` → Settings → Variables and Secrets. Do not add this token to the repository, source code, or browser configuration.
 
