@@ -1,0 +1,258 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://47tsai.github.io/free-game/schemas/collection.schema.json",
+  "title": "Free Game data collection",
+  "description": "Versioned JSON collection envelope for the Free Game catalog, claims, events, notifications, and source records.",
+  "oneOf": [
+    { "$ref": "#/$defs/GameCollection" },
+    { "$ref": "#/$defs/ProductCollection" },
+    { "$ref": "#/$defs/OfferCollection" },
+    { "$ref": "#/$defs/ClaimCollection" },
+    { "$ref": "#/$defs/ClaimEventCollection" },
+    { "$ref": "#/$defs/NotificationCollection" },
+    { "$ref": "#/$defs/SourceRecordCollection" }
+  ],
+  "$defs": {
+    "Id": {
+      "type": "string",
+      "minLength": 1
+    },
+    "NullableString": {
+      "type": ["string", "null"]
+    },
+    "Timestamp": {
+      "type": "string",
+      "format": "date-time"
+    },
+    "HttpsUrl": {
+      "type": "string",
+      "format": "uri",
+      "pattern": "^https://"
+    },
+    "NullableHttpsUrl": {
+      "oneOf": [
+        { "$ref": "#/$defs/HttpsUrl" },
+        { "type": "null" }
+      ]
+    },
+    "StringArray": {
+      "type": "array",
+      "items": { "type": "string" },
+      "uniqueItems": true
+    },
+    "CollectionEnvelope": {
+      "type": "object",
+      "required": ["schema_version", "updated_at", "records"],
+      "properties": {
+        "schema_version": { "const": 1 },
+        "updated_at": { "$ref": "#/$defs/Timestamp" },
+        "records": {
+          "type": "array"
+        }
+      },
+      "additionalProperties": false
+    },
+    "Game": {
+      "type": "object",
+      "required": ["id", "title", "normalized_title", "created_at", "updated_at"],
+      "properties": {
+        "id": { "$ref": "#/$defs/Id" },
+        "title": { "type": "string", "minLength": 1 },
+        "normalized_title": { "type": "string", "minLength": 1 },
+        "description": { "$ref": "#/$defs/NullableString" },
+        "cover_image_url": { "$ref": "#/$defs/NullableHttpsUrl" },
+        "developers": { "$ref": "#/$defs/StringArray" },
+        "publishers": { "$ref": "#/$defs/StringArray" },
+        "genres": { "$ref": "#/$defs/StringArray" },
+        "created_at": { "$ref": "#/$defs/Timestamp" },
+        "updated_at": { "$ref": "#/$defs/Timestamp" },
+        "source_record_ids": { "$ref": "#/$defs/StringArray" }
+      },
+      "additionalProperties": false
+    },
+    "Product": {
+      "type": "object",
+      "required": ["id", "game_id", "platform", "external_product_id", "title", "product_url", "created_at", "updated_at"],
+      "properties": {
+        "id": { "$ref": "#/$defs/Id" },
+        "game_id": { "$ref": "#/$defs/NullableString" },
+        "platform": { "type": "string", "minLength": 1 },
+        "external_product_id": { "type": "string", "minLength": 1 },
+        "title": { "type": "string", "minLength": 1 },
+        "product_url": { "$ref": "#/$defs/HttpsUrl" },
+        "region": { "$ref": "#/$defs/NullableString" },
+        "edition": { "$ref": "#/$defs/NullableString" },
+        "created_at": { "$ref": "#/$defs/Timestamp" },
+        "updated_at": { "$ref": "#/$defs/Timestamp" },
+        "source_record_ids": { "$ref": "#/$defs/StringArray" }
+      },
+      "additionalProperties": false
+    },
+    "Offer": {
+      "type": "object",
+      "required": ["id", "product_id", "platform", "source_record_ids", "title", "deadline_status", "status", "first_seen_at", "last_seen_at", "created_at", "updated_at"],
+      "properties": {
+        "id": { "$ref": "#/$defs/Id" },
+        "product_id": { "$ref": "#/$defs/Id" },
+        "platform": { "type": "string", "minLength": 1 },
+        "source_record_ids": { "$ref": "#/$defs/StringArray" },
+        "title": { "type": "string", "minLength": 1 },
+        "claim_url": { "$ref": "#/$defs/NullableHttpsUrl" },
+        "starts_at": {
+          "oneOf": [
+            { "$ref": "#/$defs/Timestamp" },
+            { "type": "null" }
+          ]
+        },
+        "ends_at": {
+          "oneOf": [
+            { "$ref": "#/$defs/Timestamp" },
+            { "type": "null" }
+          ]
+        },
+        "deadline_status": {
+          "enum": ["known", "unknown", "not_applicable"]
+        },
+        "status": {
+          "enum": ["upcoming", "active", "ended", "unknown"]
+        },
+        "region": { "$ref": "#/$defs/NullableString" },
+        "terms": { "$ref": "#/$defs/NullableString" },
+        "first_seen_at": { "$ref": "#/$defs/Timestamp" },
+        "last_seen_at": { "$ref": "#/$defs/Timestamp" },
+        "created_at": { "$ref": "#/$defs/Timestamp" },
+        "updated_at": { "$ref": "#/$defs/Timestamp" }
+      },
+      "allOf": [
+        {
+          "if": { "properties": { "deadline_status": { "const": "known" } }, "required": ["deadline_status"] },
+          "then": { "required": ["ends_at"], "properties": { "ends_at": { "$ref": "#/$defs/Timestamp" } } }
+        },
+        {
+          "if": { "properties": { "deadline_status": { "enum": ["unknown", "not_applicable"] } }, "required": ["deadline_status"] },
+          "then": { "properties": { "ends_at": { "oneOf": [{ "$ref": "#/$defs/Timestamp" }, { "type": "null" }] } } }
+        }
+      ],
+      "additionalProperties": false
+    },
+    "Claim": {
+      "type": "object",
+      "required": ["id", "user_id", "product_id", "status", "source", "updated_at"],
+      "properties": {
+        "id": { "$ref": "#/$defs/Id" },
+        "user_id": { "$ref": "#/$defs/Id" },
+        "product_id": { "$ref": "#/$defs/Id" },
+        "status": { "enum": ["claimed", "unclaimed", "unknown"] },
+        "source": { "enum": ["fgc", "manual", "import"] },
+        "claimed_at": {
+          "oneOf": [
+            { "$ref": "#/$defs/Timestamp" },
+            { "type": "null" }
+          ]
+        },
+        "updated_at": { "$ref": "#/$defs/Timestamp" },
+        "note": { "$ref": "#/$defs/NullableString" }
+      },
+      "additionalProperties": false
+    },
+    "ClaimEvent": {
+      "type": "object",
+      "required": ["id", "user_id", "product_id", "event_type", "source", "occurred_at", "received_at"],
+      "properties": {
+        "id": { "$ref": "#/$defs/Id" },
+        "user_id": { "$ref": "#/$defs/Id" },
+        "product_id": { "$ref": "#/$defs/Id" },
+        "offer_id": { "$ref": "#/$defs/NullableString" },
+        "event_type": {
+          "enum": ["claim_succeeded", "claim_failed", "manual_marked_claimed", "manual_marked_unclaimed", "state_imported"]
+        },
+        "source": { "enum": ["fgc", "manual", "import"] },
+        "occurred_at": { "$ref": "#/$defs/Timestamp" },
+        "received_at": { "$ref": "#/$defs/Timestamp" },
+        "external_event_id": { "$ref": "#/$defs/NullableString" },
+        "details": { "type": "object" }
+      },
+      "additionalProperties": false
+    },
+    "Notification": {
+      "type": "object",
+      "required": ["id", "offer_id", "notification_type", "channel", "idempotency_key", "status", "attempt_count", "created_at"],
+      "properties": {
+        "id": { "$ref": "#/$defs/Id" },
+        "offer_id": { "$ref": "#/$defs/Id" },
+        "notification_type": { "enum": ["new_offer", "deadline_reminder", "offer_updated"] },
+        "channel": { "type": "string", "minLength": 1 },
+        "idempotency_key": { "type": "string", "minLength": 1 },
+        "status": { "enum": ["pending", "sent", "failed"] },
+        "attempt_count": { "type": "integer", "minimum": 0 },
+        "created_at": { "$ref": "#/$defs/Timestamp" },
+        "sent_at": {
+          "oneOf": [
+            { "$ref": "#/$defs/Timestamp" },
+            { "type": "null" }
+          ]
+        },
+        "last_error": { "$ref": "#/$defs/NullableString" }
+      },
+      "additionalProperties": false
+    },
+    "SourceRecord": {
+      "type": "object",
+      "required": ["id", "source", "external_id", "record_type", "first_seen_at", "last_seen_at"],
+      "properties": {
+        "id": { "$ref": "#/$defs/Id" },
+        "source": { "type": "string", "minLength": 1 },
+        "external_id": { "type": "string", "minLength": 1 },
+        "record_type": { "enum": ["discovery", "store_product", "store_offer", "claim_event"] },
+        "url": { "$ref": "#/$defs/NullableHttpsUrl" },
+        "first_seen_at": { "$ref": "#/$defs/Timestamp" },
+        "last_seen_at": { "$ref": "#/$defs/Timestamp" },
+        "content_hash": { "$ref": "#/$defs/NullableString" },
+        "linked_entity_ids": { "$ref": "#/$defs/StringArray" }
+      },
+      "additionalProperties": false
+    },
+    "GameCollection": {
+      "allOf": [
+        { "$ref": "#/$defs/CollectionEnvelope" },
+        { "properties": { "records": { "items": { "$ref": "#/$defs/Game" } } } }
+      ]
+    },
+    "ProductCollection": {
+      "allOf": [
+        { "$ref": "#/$defs/CollectionEnvelope" },
+        { "properties": { "records": { "items": { "$ref": "#/$defs/Product" } } } }
+      ]
+    },
+    "OfferCollection": {
+      "allOf": [
+        { "$ref": "#/$defs/CollectionEnvelope" },
+        { "properties": { "records": { "items": { "$ref": "#/$defs/Offer" } } } }
+      ]
+    },
+    "ClaimCollection": {
+      "allOf": [
+        { "$ref": "#/$defs/CollectionEnvelope" },
+        { "properties": { "records": { "items": { "$ref": "#/$defs/Claim" } } } }
+      ]
+    },
+    "ClaimEventCollection": {
+      "allOf": [
+        { "$ref": "#/$defs/CollectionEnvelope" },
+        { "properties": { "records": { "items": { "$ref": "#/$defs/ClaimEvent" } } } }
+      ]
+    },
+    "NotificationCollection": {
+      "allOf": [
+        { "$ref": "#/$defs/CollectionEnvelope" },
+        { "properties": { "records": { "items": { "$ref": "#/$defs/Notification" } } } }
+      ]
+    },
+    "SourceRecordCollection": {
+      "allOf": [
+        { "$ref": "#/$defs/CollectionEnvelope" },
+        { "properties": { "records": { "items": { "$ref": "#/$defs/SourceRecord" } } } }
+      ]
+    }
+  }
+}
