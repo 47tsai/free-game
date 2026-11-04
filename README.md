@@ -43,7 +43,7 @@ Set `GITHUB_TOKEN` in the Cloudflare dashboard under Workers & Pages → `free-g
 
 The existing Chi Auth client redirect URI must include `https://fg.chi.qzz.io/`.
 
-In repository Settings → Pages, select **GitHub Actions** as the build and deployment source. Run the **Free Game Website** workflow once from the Actions tab if the site has not yet been deployed.
+In repository Settings → Pages, select **GitHub Actions** as the build and deployment source. Run the **Free Game Website** workflow once from the Actions tab after enabling Pages. Later changes under `site/` deploy automatically.
 
 After the two Cloudflare Actions secrets are configured, pushes affecting `worker/` or `wrangler.toml` deploy the API Worker automatically. The deploy workflow does not overwrite Worker secrets.
 
