@@ -63,7 +63,9 @@ SourceAdapter
   normalize(observation) -> list[NormalizedCandidate]
 ```
 
-A `FetchResult` should carry:
+Fetching is runner-owned rather than required on each adapter, so all sources can share network timeouts, retries, and credential redaction. The current Python adapter protocol exposes `source_key`, `parse(payload)`, and `normalize(observations)`. The shared `IngestionPipeline` invokes those stages and returns observations, accepted candidates, and structured validation/deduplication issues. It does not fetch, persist, reconcile catalog entities, or verify offers.
+
+A source runner may record a `FetchResult` carrying:
 
 - `source_key`: stable source identifier, such as `steam` or `4gamers`.
 - `fetched_at`: UTC timestamp when the response was retrieved.
