@@ -3,7 +3,7 @@
   "$id": "https://47tsai.github.io/free-game/schemas/collection.schema.json",
   "title": "Free Game data collection",
   "description": "Versioned JSON collection envelope for the Free Game catalog, claims, events, notifications, and source records.",
-  "oneOf": [
+  "anyOf": [
     { "$ref": "#/$defs/GameCollection" },
     { "$ref": "#/$defs/ProductCollection" },
     { "$ref": "#/$defs/OfferCollection" },
