@@ -255,62 +255,25 @@ These decisions should be resolved with evidence before writing production adapt
 
 ## 11. Primary 4Gamers RSS source
 
-The active discovery source is `https://www.4gamers.com.tw/rss/latest-news`. `FourGamersAdapter` filters feed items whose title or description contains `限免`, `限時免費`, or `紳士限免`. The CLI fetches each matching article page and `FourGamersArticleAnalyzer` extracts recognized Steam, Epic, GOG, Ubisoft, and DLsite links. Product IDs are extracted only from recognized URL patterns. Articles with no recognized storefront product remain discovery records. Extracted candidates are still unverified and cannot trigger notifications.
+The active discovery source is `https://www.4gamers.com.tw/rss/latest-news`. The source definition is enabled in `config/sources.json`. `FourGamersAdapter` selects feed items whose title or description contains `限免`, `限時免費`, or `紳士限免`.
 
-## 12. Source registry configuration
+For each matching item, the CLI fetches the article page and `FourGamersArticleAnalyzer` extracts outbound storefront links. It recognizes Steam, Epic, GOG, Ubisoft, and DLsite URL patterns and extracts product IDs only where the URL pattern provides one. Other external links are retained as unresolved discovery candidates unless they are known article/social/video links. This preserves leads for unknown storefronts without pretending their product identity or platform is known.
 
-The Python implementation now includes a configuration-driven `SourceRegistry`. Source definitions live in `config/sources.json` and use this shape:
+## 12. Active source configuration and schedule
 
-```json
-{
-  "sources": [
-    {
-      "source_key": "example-shop:promotions",
-      "adapter": "generic",
-      "enabled": true,
-      "source_url": "https://example.test/feed",
-      "platform": "example-shop",
-      "feed_format": "auto"
-    }
-  ]
-}
-```
+The committed `config/sources.json` contains one enabled source:
 
-The committed configuration intentionally contains an empty `sources` array. No production endpoint is added until its URL and behavior have been verified.
+- Source key: `4gamers:latest-news`
+- Adapter: `4gamers`
+- URL: `https://www.4gamers.com.tw/rss/latest-news`
+- Format: RSS
 
-The registry validates required fields, rejects unknown fields and duplicate source keys, requires absolute HTTPS source URLs, and skips disabled definitions when building adapters. The built-in `generic` type constructs the Generic adapter. Dedicated adapters can be added by registering an explicit factory for their adapter type. An unregistered type raises a configuration error; it never silently falls back to Generic.
+The GitHub Actions workflow `.github/workflows/ingest.yml` runs the ingestion command every six hours and also supports manual dispatch. It has repository Contents write permission for catalog persistence. Discord delivery is enabled when the repository secret `DISCORD_WEBHOOK_URL` is configured. The workflow uses the built-in `GITHUB_TOKEN`; no token or webhook URL belongs in the repository.
 
-Registry construction is configuration-only. It does not fetch source URLs, schedule jobs, or persist results. The source runner remains responsible for network policy and passes fetched payloads to the shared `IngestionPipeline`.
+## 13. Current verification and notification behavior
 
+The current automatic storefront verifier is Epic Taiwan promotions. It fetches the Taiwan-region Epic promotions feed, matches the exact product-page slug, requires an active promotion, and requires a positive original price with a zero promotional price. A future start date is not treated as active. The verifier preserves available promotion start/end timestamps and marks the region as `TW`.
 
-## 14. Source runner and HTTP fetch policy
+Only results marked `verified` are written to `data/catalog/offers.json`. Discord notifications are sent only for verified active offers. A deterministic notification key is persisted before sending, and the delivery result is stored in `data/operations/notifications.json` to avoid duplicate messages on subsequent runs.
 
-The first dedicated storefront adapter is `SteamAdapter` (`src/free_game/adapters/steam.py`). It currently parses the Steam Store featured-categories response, specifically the `specials.items` bucket.
-
-Configured endpoint shape:
-
-```text
-https://store.steampowered.com/api/featuredcategories/?cc=tw&l=tchinese
-```
-
-This Storefront endpoint is publicly accessible but undocumented by Valve. Treat its response shape as an observed integration contract, not a guaranteed official API. The source runner must use bounded timeouts/retries and retain parser-version/fetch metadata. See the community endpoint description at https://github-wiki-see.page/m/Revadike/InternalSteamWebAPI/wiki/Get-Featured-Categories and an implementation example at https://github.com/mmuffins/SteamStorefrontAPI/blob/main/SteamStorefrontAPI/Endpoints/FeaturedCategories.cs.
-
-The adapter deliberately emits candidates only when an item is a game app, is explicitly marked discounted, has a 100% discount, has a final price of zero, and has a positive original price. It excludes ordinary free-to-play entries (which do not have a positive original price), DLC/bundles, partial discounts, and items with incomplete identity data. It creates the canonical Steam App URL from the numeric App ID.
-
-A matching zero-price item is still only a `candidate`. This response alone does not prove that a user can permanently keep the game, and the adapter does not infer an offer deadline. Storefront verification must distinguish free-to-keep from free weekends, subscription access, regional restrictions, and other temporary access before an offer can be published as verified.
-
-
-
-
-## 13. Source runner and HTTP fetch policy
-
-`SourceRunner` (`src/free_game/runner.py`) iterates enabled definitions from the registry and runs each source independently. `HTTPFetcher` uses the Python standard library, HTTPS-only initial URLs, a finite request timeout, a bounded response size, and a fixed User-Agent. Redirects to non-HTTPS URLs are rejected. Non-2xx HTTP responses and network errors are treated as source failures.
-
-For successful fetches, the runner records the source key, UTC fetch time, HTTP status, SHA-256 payload hash, and request URL. Query parameters whose names indicate tokens, keys, authentication, passwords, secrets, or signatures are redacted in the recorded URL. Raw exception text is not included in run results because upstream exceptions may contain credentials.
-
-Each source produces its own result. A fetch or parse failure is recorded for that source and does not stop later sources from running. Disabled sources are not fetched. The runner currently returns results in memory only; it does not write GitHub JSON, advance cursors, reconcile catalog entities, verify offers, or send notifications. Those operations remain separate stages.
-
-
-## 15. Deferred storefront verification
-
-Storefront verification will be implemented as part of the RSS-driven offer workflow. It must confirm that an offer is genuinely claimable, distinguish permanent ownership from temporary free access, and only then allow notification delivery.
+Steam, GOG, Ubisoft, DLsite, and unknown storefronts are currently discovery-only or unresolved candidates. They are not marked verified and cannot create Offer records or trigger notifications until a platform-specific verification rule is implemented. In particular, a zero Steam price alone does not establish permanent claimability rather than temporary access.
