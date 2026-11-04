@@ -94,6 +94,7 @@ One free promotion or claim opportunity for a Product.
 | `ends_at` | ISO-8601 UTC string or null | no | Known end time |
 | `deadline_status` | enum | yes | `known`, `unknown`, or `not_applicable` |
 | `status` | enum | yes | `upcoming`, `active`, `ended`, or `unknown` |
+| `verification_status` | enum | yes | `candidate`, `verified`, `needs_review`, or `rejected` |
 | `region` | string or null | no | Region applicability, if known |
 | `terms` | string or null | no | Important claim restrictions |
 | `first_seen_at` | ISO-8601 UTC string | yes | First discovery time |
@@ -102,6 +103,8 @@ One free promotion or claim opportunity for a Product.
 | `updated_at` | ISO-8601 UTC string | yes | Last modification time |
 
 Rules:
+- Only a storefront-verified Offer may enter the public offer collection or notification flow.
+- `verification_status` is independent of the time-based `status`; a verified offer may be upcoming, active, or ended.
 - `deadline_status=known` requires a valid `ends_at`.
 - `deadline_status=unknown` means the source did not provide a trustworthy deadline. Do not reject the offer solely because its deadline is unknown.
 - `deadline_status=not_applicable` is for genuinely non-time-limited offers.
