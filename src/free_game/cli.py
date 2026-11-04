@@ -94,7 +94,7 @@ def main(argv: list[str] | None = None) -> int:
         write_summary = None
         if candidates:
             result = writer.write_candidates(candidates)
-            write_summary = {"products_created": result.products_created, "products_updated": result.products_updated, "games_created": result.games_created, "source_records_created": result.source_records_created, "source_records_updated": result.source_records_updated, "candidates_skipped": result.candidates_skipped}
+            write_summary = {"games_created": result.games_created, "games_updated": result.games_updated, "candidates_skipped": result.candidates_skipped}
         notifications = _send_notifications(writer)
         failures = [item for item in results if not item.succeeded]
         failed = bool(failures or failed_articles or notifications["failed"])
