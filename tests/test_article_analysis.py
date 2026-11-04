@@ -45,7 +45,7 @@ def test_uses_single_quoted_headline_when_anchor_is_generic() -> None:
 def test_ignores_non_store_links_and_duplicate_links() -> None:
     html = """
     <html><body>
-      <a href="https://example.com/game">Example Game</a>
+      <a href="https://www.youtube.com/watch?v=trailer">Example Game</a>
       <a href="https://store.steampowered.com/app/12345/example/">Example Game</a>
       <a href="https://store.steampowered.com/app/12345/example/">Example Game</a>
     </body></html>
