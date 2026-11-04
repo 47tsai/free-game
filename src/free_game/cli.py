@@ -9,9 +9,15 @@ import sys
 from pathlib import Path
 
 from free_game.article_analysis import FourGamersArticleAnalyzer
+from free_game.verification import verify_candidate
 from free_game.registry import SourceRegistry
 from free_game.runner import HTTPFetcher, SourceRunner
 from free_game.writer import GitHubContentsStore, GitHubJsonWriter
+
+EPIC_PROMOTIONS_URL = (
+    "https://store-site-backend-static.ak.epicgames.com/freeGamesPromotions"
+    "?locale=zh-TW&country=TW&allowCountries=TW"
+)
 
 
 def build_parser() -> argparse.ArgumentParser:
@@ -71,6 +77,19 @@ def collect_candidates(results):
     return candidates, failed_articles
 
 
+
+def verify_epic_candidates(candidates):
+    """Fetch Epic's Taiwan promotions once and verify exact matching products."""
+    epic_candidates = [item for item in candidates if item.platform == "epic"]
+    if not epic_candidates:
+        return [], []
+    try:
+        payload = HTTPFetcher().fetch(EPIC_PROMOTIONS_URL).body
+    except Exception:
+        return [], [{"platform": "epic", "error": "epic_verification_fetch_failed"}]
+    return [verify_candidate(item, payload) for item in epic_candidates], []
+
+
 def main(argv: list[str] | None = None) -> int:
     args = build_parser().parse_args(argv)
     if args.command != "ingest":
@@ -103,6 +122,11 @@ def main(argv: list[str] | None = None) -> int:
                 )
             )
             write_result = writer.write_candidates(candidates)
+            verifications, verification_errors = verify_epic_candidates(candidates)
+            offer_result = (
+                writer.write_verified_offers(verifications)
+                if verifications else None
+            )
             write_summary = {
                 "products_created": write_result.products_created,
                 "products_updated": write_result.products_updated,
@@ -111,11 +135,16 @@ def main(argv: list[str] | None = None) -> int:
                 "source_records_created": write_result.source_records_created,
                 "source_records_updated": write_result.source_records_updated,
                 "candidates_skipped": write_result.candidates_skipped,
+                "offers_created": offer_result.offers_created if offer_result else 0,
+                "offers_updated": offer_result.offers_updated if offer_result else 0,
+                "offers_skipped": offer_result.offers_skipped if offer_result else 0,
             }
+        else:
+            verification_errors = []
 
         failures = [result for result in results if not result.succeeded]
         print(json.dumps({
-            "status": "partial_failure" if failures or failed_articles else "success",
+            "status": "partial_failure" if failures or failed_articles or verification_errors else "success",
             "sources": len(results),
             "successful_sources": len(results) - len(failures),
             "failed_sources": [
@@ -123,6 +152,7 @@ def main(argv: list[str] | None = None) -> int:
                 for result in failures
             ],
             "failed_articles": failed_articles,
+            "verification_errors": verification_errors,
             "candidates": len(candidates),
             "write": write_summary,
         }, ensure_ascii=False))
