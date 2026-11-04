@@ -38,31 +38,58 @@ function element(tag,className,text){const node=document.createElement(tag);if(c
 function safeLink(label,url){if(!url||!/^https:\/\//i.test(url))return null;const a=element("a","chi-button",label);a.href=url;a.target="_blank";a.rel="noopener noreferrer";return a}
 async function markClaimed(game,button){
  if(!claimEnabled){say("目前尚未啟用標記功能，請稍後再試。");return}
- if(!accessToken||Date.now()>=accessTokenExpiresAt){accessToken=null;accessTokenExpiresAt=0;renderGames(window.currentGames);say("登入已逾時，請重新使用 Chi Auth 登入。");return}
- button.disabled=true;
- try{const response=await fetch(API+"/games/"+encodeURIComponent(game.id)+"/claim",{method:"POST",headers:{Authorization:"Bearer "+accessToken}});
- const data=await response.json();if(!response.ok)throw new Error(data.error||"更新失敗");
- game.claim_status="claimed";game.claim_source="manual";game.claimed_at=data.game.claimed_at;renderGames(window.currentGames);say("已標記為已領取。");
- }catch(error){say(error.message);button.disabled=false}
+ if(!accessToken||Date.now()>=accessTokenExpiresAt){
+  accessToken=null;accessTokenExpiresAt=0;
+  sessionStorage.setItem("fg_pending_claim",game.id);
+  say("請先完成 Chi Auth 登入，登入後會自動完成標記。");
+  await login();
+  return;
+ }
+ if(button){button.disabled=true;button.textContent="更新中…"}
+ try{
+  const response=await fetch(API+"/games/"+encodeURIComponent(game.id)+"/claim",{method:"POST",headers:{Authorization:"Bearer "+accessToken}});
+  const data=await response.json();
+  if(!response.ok){
+   const messages={authentication_required:"登入已失效，請重新登入後再試。",github_write_forbidden:"GitHub Token 沒有此儲存庫的寫入權限。",github_write_conflict:"資料剛好有更新，請再按一次。",game_not_found:"找不到這筆遊戲資料。"};
+   throw new Error(messages[data.error]||data.error||"更新失敗");
+  }
+  game.claim_status="claimed";game.claim_source="manual";game.claimed_at=data.game.claimed_at;
+  renderGames(window.currentGames);say("已標記為已領取。");
+ }catch(error){say(error.message);if(button){button.disabled=false;button.textContent="標記已領取"}}
 }
 function renderGames(games){
- window.currentGames=games;$("games").replaceChildren();
+ window.currentGames=games; $("games").replaceChildren();
  $("summary").textContent="共 "+games.length+" 款遊戲 · 已領取 "+games.filter(g=>g.claim_status==="claimed").length+" 款";
  if(!games.length){$("games").append(element("div","empty chi-empty","目前還沒有遊戲資料。"));return}
  for(const game of games){
-  const card=element("article","card");card.id="game-"+game.id;
-  if(game.cover_image_url){const img=element("img","cover");img.src=game.cover_image_url;img.alt=game.title;img.loading="lazy";card.append(img)}
-  else card.append(element("div","cover"));
-  const body=element("div","body"),row=element("div","title-row"),info=element("div","");
-  info.append(element("div","title",game.title||"未命名遊戲"),element("div","platform",game.platform||"未知平台"));
-  row.append(info,element("span","status"+(game.claim_status==="claimed"?" done":""),game.claim_status==="claimed"?"已領取":"未領取"));
-  body.append(row);
-  const links=element("div","links");
-  for(const [label,url] of [["商店",game.store_url],["4Gamer 文章",game.article_url]]){const link=safeLink(label,url);if(link)links.append(link)}
-  body.append(links);
-  if(game.claim_status!=="claimed"){const button=element("button","chi-button chi-button--primary claim",!claimEnabled?"標記功能未啟用":accessToken?"標記已領取":"登入後可手動標記");button.disabled=!claimEnabled||!accessToken;button.addEventListener("click",()=>markClaimed(game,button));body.append(button)}
-  else if(game.claim_source)body.append(element("div","platform",game.claim_source==="fgc"?"由 FGC 自動同步領取":"手動標記領取"));
-  card.append(body);$("games").append(card);
+  const card=element("article","game-card");card.id="game-"+game.id;
+  const media=element("div","game-card__media");
+  if(game.cover_image_url){const img=element("img","game-card__cover");img.src=game.cover_image_url;img.alt=game.title||"遊戲封面";img.loading="lazy";media.append(img)}
+  else media.classList.add("game-card__media--empty");
+  const body=element("div","game-card__content");
+  const top=element("div","game-card__topline");
+  top.append(element("span","game-card__platform",(game.platform||"未知平台").toUpperCase()));
+  top.append(element("span","status"+(game.claim_status==="claimed"?" done":""),game.claim_status==="claimed"?"已領取":"尚未領取"));
+  body.append(top);
+  body.append(element("h2","game-card__title",game.title||"未命名遊戲"));
+  if(game.added_at||game.created_at){
+   const date=new Date(game.added_at||game.created_at);
+   if(!Number.isNaN(date.getTime()))body.append(element("p","game-card__date","加入日期 · "+date.toLocaleDateString("zh-TW",{year:"numeric",month:"short",day:"numeric"})));
+  }
+  const actions=element("div","game-card__actions");
+  const store=safeLink("前往商店",game.store_url);
+  const article=safeLink("閱讀文章",game.article_url);
+  if(store){store.classList.add("game-card__link");actions.append(store)}
+  if(article){article.classList.add("game-card__link");actions.append(article)}
+  body.append(actions);
+  if(game.claim_status!=="claimed"){
+   const button=element("button","chi-button chi-button--primary game-card__claim",accessToken?"標記已領取":"登入並標記已領取");
+   button.type="button";button.disabled=!claimEnabled;
+   button.addEventListener("click",()=>markClaimed(game,button));body.append(button);
+  }else if(game.claim_source){
+   body.append(element("p","game-card__claim-note",game.claim_source==="fgc"?"領取狀態由 FGC 自動同步":"由網站手動標記"));
+  }
+  card.append(media,body);$("games").append(card);
  }
  const focusId=new URLSearchParams(location.search).get("game");
  if(focusId){const target=document.getElementById("game-"+focusId);if(target){target.classList.add("focused");target.scrollIntoView({behavior:"smooth",block:"center"});}}
@@ -71,7 +98,17 @@ async function init(){
  try{const configResponse=await fetch(API+"/config");if(!configResponse.ok)throw new Error("無法讀取網站設定");const config=await configResponse.json();authClientId=config.auth_client_id;claimEnabled=Boolean(config.claim_enabled);
   if(!authClientId){$("login").disabled=true;$("login").textContent="Chi Auth 尚未設定"}
   const games=await fetch(API+"/games").then(r=>r.json());if(!games.games)throw new Error("無法讀取遊戲資料");
-  renderGames(games.games);await finishLogin();if(accessToken)renderGames(games.games);if(!claimEnabled)say("目前尚未設定 GitHub 寫入權限，手動標記暫時不可用。");
+  renderGames(games.games);await finishLogin();
+  if(accessToken){
+   renderGames(games.games);
+   const pendingId=sessionStorage.getItem("fg_pending_claim");
+   if(pendingId){
+    sessionStorage.removeItem("fg_pending_claim");
+    const pendingGame=games.games.find(game=>game.id===pendingId);
+    if(pendingGame)await markClaimed(pendingGame,document.querySelector("#game-"+CSS.escape(pendingId)+" .game-card__claim"));
+   }
+  }
+  if(!claimEnabled)say("目前尚未設定 GitHub 寫入權限，手動標記暫時不可用。");
  }catch(error){$("summary").textContent="目前無法載入資料";say(error.message)}
 }
 $("login").addEventListener("click",login);
