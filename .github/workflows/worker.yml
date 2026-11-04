@@ -30,3 +30,18 @@ jobs:
             exit 1
           fi
           npx --yes wrangler@4 deploy
+
+      - name: Verify public API and GitHub data access
+        run: |
+          curl --retry 5 --retry-all-errors --retry-delay 2 -fsS https://fg.chi.qzz.io/api/config -o /tmp/config.json
+          curl --retry 5 --retry-all-errors --retry-delay 2 -fsS https://fg.chi.qzz.io/api/games -o /tmp/games.json
+          python - <<'PY'
+          import json
+          with open("/tmp/config.json", encoding="utf-8") as file:
+              config = json.load(file)
+          with open("/tmp/games.json", encoding="utf-8") as file:
+              games = json.load(file)
+          assert config.get("auth_client_id"), "Chi Auth client ID missing from API config"
+          assert isinstance(games.get("games"), list), "Games API did not return a game list"
+          print(f"API smoke test passed; {len(games['games'])} games available.")
+          PY
