@@ -84,3 +84,15 @@ def test_malformed_or_wrong_url_remains_for_review() -> None:
     verifier = EpicPromotionVerifier()
     assert verifier.verify(candidate(), "not-json").status == "needs_review"
     assert verifier.verify(candidate("https://example.com/p/example-game"), "{}").status == "needs_review"
+
+
+def test_future_epic_promotion_is_not_verified_early() -> None:
+    doc = json.loads(payload())
+    doc["data"]["Catalog"]["searchStore"]["elements"][0]["promotions"]["promotionalOffers"][0]["promotionalOffers"][0]["startDate"] = "2026-11-05T00:00:00Z"
+    result = EpicPromotionVerifier().verify(
+        candidate(), json.dumps(doc),
+        now=datetime(2026, 11, 4, tzinfo=timezone.utc),
+    )
+
+    assert result.status == "needs_review"
+    assert result.reason == "epic_offer_not_active_yet"
