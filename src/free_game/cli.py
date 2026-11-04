@@ -70,6 +70,8 @@ def main(argv: list[str] | None = None) -> int:
             write_summary = {
                 "products_created": write_result.products_created,
                 "products_updated": write_result.products_updated,
+                "games_created": write_result.games_created,
+                "products_linked_to_games": write_result.products_linked_to_games,
                 "source_records_created": write_result.source_records_created,
                 "source_records_updated": write_result.source_records_updated,
                 "candidates_skipped": write_result.candidates_skipped,
