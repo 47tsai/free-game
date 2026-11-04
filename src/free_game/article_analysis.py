@@ -182,8 +182,8 @@ class FourGamersArticleAnalyzer:
         """Extract one unambiguous Taiwan-local deadline with an explicit clock time."""
         pattern = re.compile(
             r"(?:期限)?(?:至|到|截止於|截止至)\s*(?:台灣時間|台北時間)?\s*"
-            r"(?:(?P<year>20\d{2})年)?(?P<month>1[0-2]|0?[1-9])月"
-            r"(?P<day>3[01]|[12]\d|0?[1-9])日(?P<tail>[^。；;\n]{0,28})"
+            r"(?:(?P<year>20\d{2})\s*年)?(?P<month>1[0-2]|0?[1-9])\s*月\s*"
+            r"(?P<day>3[01]|[12]\d|0?[1-9])\s*日(?P<tail>[^。；;\n]{0,28})"
         )
         matches = []
         for match in pattern.finditer(article_text):
