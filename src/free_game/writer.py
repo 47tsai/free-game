@@ -377,7 +377,7 @@ class GitHubJsonWriter:
                 "article_url": existing.get("article_url"),
                 "cover_image_url": existing.get("cover_image_url"),
                 "claim_status": "claimed", "claimed_at": existing.get("claimed_at") or now,
-                "claim_source": "fgc", "claim_notification_pending": existing.get("claim_status") != "claimed", "added_at": existing.get("added_at") or now,
+                "claim_source": existing.get("claim_source") or "fgc", "claim_notification_pending": existing.get("claim_notification_pending", False) or existing.get("claim_status") != "claimed", "added_at": existing.get("added_at") or now,
                 "reminder_last_sent_at": existing.get("reminder_last_sent_at"),
             }
         if not changes:
