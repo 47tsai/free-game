@@ -74,8 +74,8 @@ def _send_notifications(writer):
 def main(argv: list[str] | None = None) -> int:
     args = build_parser().parse_args(argv)
     try:
-        writer = _make_writer(args)
         if args.command == "fgc-sync":
+            writer = _make_writer(args)
             claims = fetch_fgc_claims()
             stats, _ = writer.sync_fgc_claims(claims)
             notifications = _send_notifications(writer)
@@ -87,6 +87,7 @@ def main(argv: list[str] | None = None) -> int:
         if not enabled:
             print(json.dumps({"status": "no_enabled_sources", "sources": 0, "candidates": 0}))
             return 0
+        writer = _make_writer(args)
         results = SourceRunner(registry).run_all()
         candidates, failed_articles = collect_candidates(results)
         write_summary = None
