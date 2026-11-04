@@ -9,6 +9,7 @@ import sys
 from pathlib import Path
 
 from free_game.article_analysis import FourGamersArticleAnalyzer
+from free_game.notifications import DiscordNotificationService, DiscordWebhookSender
 from free_game.verification import verify_candidate
 from free_game.registry import SourceRegistry
 from free_game.runner import HTTPFetcher, SourceRunner
@@ -110,10 +111,15 @@ def main(argv: list[str] | None = None) -> int:
         candidates, failed_articles = collect_candidates(results)
 
         write_summary = None
-        if candidates:
+        verification_errors = []
+        notification_summary = {"status": "webhook_not_configured", "sent": 0, "skipped": 0, "failed": 0}
+        webhook_url = os.environ.get("DISCORD_WEBHOOK_URL", "").strip()
+        writer = None
+
+        if candidates or webhook_url:
             token = os.environ.get("GITHUB_TOKEN") or os.environ.get("GH_TOKEN")
             if not token:
-                raise RuntimeError("github_token_required_to_persist_candidates")
+                raise RuntimeError("github_token_required_for_catalog_or_notifications")
             writer = GitHubJsonWriter(
                 GitHubContentsStore(
                     args.repository,
@@ -121,6 +127,8 @@ def main(argv: list[str] | None = None) -> int:
                     branch=args.branch,
                 )
             )
+
+        if candidates and writer is not None:
             write_result = writer.write_candidates(candidates)
             verifications, verification_errors = verify_epic_candidates(candidates)
             offer_result = (
@@ -139,12 +147,21 @@ def main(argv: list[str] | None = None) -> int:
                 "offers_updated": offer_result.offers_updated if offer_result else 0,
                 "offers_skipped": offer_result.offers_skipped if offer_result else 0,
             }
-        else:
-            verification_errors = []
+
+        if webhook_url and writer is not None:
+            notification = DiscordNotificationService(
+                writer, DiscordWebhookSender(webhook_url)
+            ).send_new_active_offers()
+            notification_summary = {
+                "status": notification.status,
+                "sent": notification.sent,
+                "skipped": notification.skipped,
+                "failed": notification.failed,
+            }
 
         failures = [result for result in results if not result.succeeded]
         print(json.dumps({
-            "status": "partial_failure" if failures or failed_articles or verification_errors else "success",
+            "status": "partial_failure" if failures or failed_articles or verification_errors or notification_summary["failed"] else "success",
             "sources": len(results),
             "successful_sources": len(results) - len(failures),
             "failed_sources": [
@@ -155,8 +172,9 @@ def main(argv: list[str] | None = None) -> int:
             "verification_errors": verification_errors,
             "candidates": len(candidates),
             "write": write_summary,
+            "notifications": notification_summary,
         }, ensure_ascii=False))
-        return 1 if failures else 0
+        return 1 if failures or failed_articles or verification_errors or notification_summary["failed"] else 0
     except Exception as exc:
         # Avoid dumping arbitrary exception text from external integrations.
         print(json.dumps({
