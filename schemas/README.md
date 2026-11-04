@@ -22,7 +22,7 @@ The schema accepts one homogeneous record type per collection. Empty collections
 
 ## Validation boundaries
 
-JSON Schema checks document shape, required fields, primitive types, enumerated values, timestamp formats, HTTPS URL shape, and the Offer deadline rule.
+JSON Schema checks document shape, required fields, primitive types, enumerated values, timestamp formats, HTTPS URL shape, the Offer deadline rule, and explicit Offer verification status. Notification records persist the delivery idempotency key and attempt state.
 
 It does not by itself enforce collection-wide or cross-file constraints. A later semantic validation step must check at least:
 
