@@ -10,15 +10,10 @@ from pathlib import Path
 
 from free_game.article_analysis import FourGamersArticleAnalyzer
 from free_game.notifications import DiscordNotificationService, DiscordWebhookSender
-from free_game.verification import verify_candidate
+from free_game.verification import OfferVerification
 from free_game.registry import SourceRegistry
 from free_game.runner import HTTPFetcher, SourceRunner
 from free_game.writer import GitHubContentsStore, GitHubJsonWriter
-
-EPIC_PROMOTIONS_URL = (
-    "https://store-site-backend-static.ak.epicgames.com/freeGamesPromotions"
-    "?locale=zh-TW&country=TW&allowCountries=TW"
-)
 
 
 def build_parser() -> argparse.ArgumentParser:
@@ -79,16 +74,26 @@ def collect_candidates(results):
 
 
 
-def verify_epic_candidates(candidates):
-    """Fetch Epic's Taiwan promotions once and verify exact matching products."""
-    epic_candidates = [item for item in candidates if item.platform == "epic"]
-    if not epic_candidates:
-        return [], []
-    try:
-        payload = HTTPFetcher().fetch(EPIC_PROMOTIONS_URL).body
-    except Exception:
-        return [], [{"platform": "epic", "error": "epic_verification_fetch_failed"}]
-    return [verify_candidate(item, payload) for item in epic_candidates], []
+def source_offers(candidates):
+    """Trust free-game details curated and published by 4Gamers."""
+    return [
+        OfferVerification(
+            status="verified",
+            platform=item.platform,
+            external_product_id=item.external_product_id,
+            title=item.title,
+            claim_url=item.product_url,
+            source_key=item.source_key,
+            source_external_id=item.source_external_id,
+            starts_at=item.offer_start_at,
+            ends_at=item.offer_end_at,
+            reason="published_by_4gamers",
+        )
+        for item in candidates
+        if item.source_key == "4gamers:latest-news"
+        and item.platform and item.external_product_id and item.product_url
+        and item.source_external_id
+    ]
 
 
 def main(argv: list[str] | None = None) -> int:
@@ -111,7 +116,6 @@ def main(argv: list[str] | None = None) -> int:
         candidates, failed_articles = collect_candidates(results)
 
         write_summary = None
-        verification_errors = []
         notification_summary = {"status": "webhook_not_configured", "sent": 0, "skipped": 0, "failed": 0}
         webhook_url = os.environ.get("DISCORD_WEBHOOK_URL", "").strip()
         writer = None
@@ -130,7 +134,7 @@ def main(argv: list[str] | None = None) -> int:
 
         if candidates and writer is not None:
             write_result = writer.write_candidates(candidates)
-            verifications, verification_errors = verify_epic_candidates(candidates)
+            verifications = source_offers(candidates)
             offer_result = (
                 writer.write_verified_offers(verifications)
                 if verifications else None
@@ -161,7 +165,7 @@ def main(argv: list[str] | None = None) -> int:
 
         failures = [result for result in results if not result.succeeded]
         print(json.dumps({
-            "status": "partial_failure" if failures or failed_articles or verification_errors or notification_summary["failed"] else "success",
+            "status": "partial_failure" if failures or failed_articles or notification_summary["failed"] else "success",
             "sources": len(results),
             "successful_sources": len(results) - len(failures),
             "failed_sources": [
@@ -169,12 +173,11 @@ def main(argv: list[str] | None = None) -> int:
                 for result in failures
             ],
             "failed_articles": failed_articles,
-            "verification_errors": verification_errors,
             "candidates": len(candidates),
             "write": write_summary,
             "notifications": notification_summary,
         }, ensure_ascii=False))
-        return 1 if failures or failed_articles or verification_errors or notification_summary["failed"] else 0
+        return 1 if failures or failed_articles or notification_summary["failed"] else 0
     except Exception as exc:
         # Avoid dumping arbitrary exception text from external integrations.
         print(json.dumps({
