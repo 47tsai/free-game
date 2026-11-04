@@ -253,7 +253,11 @@ The following items remain explicitly open:
 These decisions should be resolved with evidence before writing production adapters. Until then, unknown details must remain marked as unknown rather than being filled with guessed endpoints or behavior.
 
 
-## 11. Source registry configuration
+## 11. Primary 4Gamers RSS source
+
+The active discovery source is `https://www.4gamers.com.tw/rss/latest-news`. `FourGamersAdapter` filters feed items whose title or description contains `限免`, `限時免費`, or `紳士限免`. Matching articles are stored as discovery candidates; they are not yet treated as verified storefront offers. The next stage fetches each article page, extracts game/store links, and verifies the offer before notification.
+
+## 12. Source registry configuration
 
 The Python implementation now includes a configuration-driven `SourceRegistry`. Source definitions live in `config/sources.json` and use this shape:
 
@@ -279,7 +283,7 @@ The registry validates required fields, rejects unknown fields and duplicate sou
 Registry construction is configuration-only. It does not fetch source URLs, schedule jobs, or persist results. The source runner remains responsible for network policy and passes fetched payloads to the shared `IngestionPipeline`.
 
 
-## 13. Source runner and HTTP fetch policy
+## 14. Source runner and HTTP fetch policy
 
 The first dedicated storefront adapter is `SteamAdapter` (`src/free_game/adapters/steam.py`). It currently parses the Steam Store featured-categories response, specifically the `specials.items` bucket.
 
@@ -307,6 +311,6 @@ For successful fetches, the runner records the source key, UTC fetch time, HTTP 
 Each source produces its own result. A fetch or parse failure is recorded for that source and does not stop later sources from running. Disabled sources are not fetched. The runner currently returns results in memory only; it does not write GitHub JSON, advance cursors, reconcile catalog entities, verify offers, or send notifications. Those operations remain separate stages.
 
 
-## 14. Deferred storefront verification
+## 15. Deferred storefront verification
 
 Storefront verification will be implemented as part of the RSS-driven offer workflow. It must confirm that an offer is genuinely claimable, distinguish permanent ownership from temporary free access, and only then allow notification delivery.
