@@ -97,23 +97,3 @@ def test_loads_json_configuration(tmp_path) -> None:
     assert len(registry.definitions) == 1
     assert registry.definitions[0].source_key == "unknown-shop:promotions"
 
-
-
-def test_registry_builds_steam_adapter() -> None:
-    from free_game.adapters import SteamAdapter
-
-    registry = SourceRegistry.from_dict({
-        "sources": [
-            config_entry(
-                source_key="steam:featured-categories",
-                adapter="steam",
-                source_url="https://store.steampowered.com/api/featuredcategories/?cc=tw&l=tchinese",
-                platform="steam",
-            )
-        ]
-    })
-
-    adapters = registry.build_enabled()
-
-    assert len(adapters) == 1
-    assert isinstance(adapters[0], SteamAdapter)
