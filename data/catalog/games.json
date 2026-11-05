@@ -1,6 +1,25 @@
 {
   "records": [
     {
+      "added_at": "2026-11-05T16:01:21.123369Z",
+      "article_url": "https://www.4gamers.com.tw/news/detail/83118/flotsam-and-idle-champions-are-free-to-keep-on-epic-games-store-this-week",
+      "claim_notification_pending": false,
+      "claim_source": null,
+      "claim_status": "unclaimed",
+      "claimed_at": null,
+      "cover_image_url": "https://img.4gamers.com.tw/news-image/a43db22e-f39d-40ef-8d45-b368d7320032.jpg",
+      "created_at": "2026-11-05T16:01:21.123369Z",
+      "external_product_id": null,
+      "id": "game_69a0daf9-4a8f-5729-93d7-c941fb1e966f",
+      "normalized_title": "flotsam",
+      "offer_end_at": null,
+      "platform": null,
+      "reminder_last_sent_at": null,
+      "store_url": null,
+      "title": "Flotsam",
+      "updated_at": "2026-11-05T16:01:21.123369Z"
+    },
+    {
       "added_at": "2026-11-04T09:21:32.963766Z",
       "article_url": "https://www.4gamers.com.tw/news/detail/83068/last-gambit-is-free-to-keep-before-early-access-end",
       "claim_notification_pending": false,
@@ -39,5 +58,5 @@
     }
   ],
   "schema_version": 1,
-  "updated_at": "2026-11-04T10:01:29.811987Z"
+  "updated_at": "2026-11-05T16:01:21.307689Z"
 }
