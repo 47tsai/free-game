@@ -198,20 +198,20 @@ class FourGamersArticleAnalyzer:
         # exists in the response but no anchor was parsed, the next run can
         # distinguish malformed/JS-embedded markup from a challenge or wrong page.
         raw_storefront_mentions = len(re.findall(
-            r"(?:store\\.steampowered\\.com|store\\.epicgames\\.com|"
-            r"(?:www\\.)?gog\\.com|store\\.ubi\\.com|store\\.ubisoft\\.com|"
-            r"(?:www\\.)?dlsite\\.com)",
+            r"(?:store\.steampowered\.com|store\.epicgames\.com|"
+            r"(?:www\.)?gog\.com|store\.ubi\.com|store\.ubisoft\.com|"
+            r"(?:www\.)?dlsite\.com)",
             text,
             flags=re.IGNORECASE,
         ))
-        href_attributes = len(re.findall(r"\\bhref\\s*=", text, flags=re.IGNORECASE))
+        href_attributes = len(re.findall(r"\bhref\s*=", text, flags=re.IGNORECASE))
         return {
             "html_bytes": len(text.encode("utf-8")),
             "external_links_found": len(parser.links),
             "storefront_links_found": storefront_links,
             "raw_storefront_domain_mentions": raw_storefront_mentions,
             "href_attributes_found": href_attributes,
-            "body_tag_present": bool(re.search(r"<body\\b", text, flags=re.IGNORECASE)),
+            "body_tag_present": bool(re.search(r"<body\b", text, flags=re.IGNORECASE)),
         }
 
     @staticmethod
