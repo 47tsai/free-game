@@ -91,6 +91,9 @@ def test_article_without_store_link_is_not_a_game_candidate():
         "html_bytes": len(html.encode("utf-8")),
         "external_links_found": 0,
         "storefront_links_found": 0,
+        "raw_storefront_domain_mentions": 0,
+        "href_attributes_found": 0,
+        "body_tag_present": True,
     }
 
 
