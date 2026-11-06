@@ -117,16 +117,7 @@ class FourGamersArticleAnalyzer:
         offer_end_at = self._extract_offer_end_at(" ".join(parser.body_text), observation.observed_at)
         headline_titles = self._headline_titles(observation.raw_title or "")
         if not links:
-            title = headline_titles[0] if headline_titles else self._clean_name(observation.raw_title or "")
-            if not title:
-                return ()
-            return (NormalizedCandidate(
-                source_key=observation.source_key, platform=None, external_product_id=None,
-                title=title, product_url=observation.source_url, observed_at=observation.observed_at,
-                source_external_id=observation.external_id, article_url=observation.source_url,
-                image_url=parser.image_url,
-                offer_end_at=offer_end_at,
-            ),)
+            return ()
         results: list[NormalizedCandidate] = []
         seen: set[tuple[str, str]] = set()
         for url, anchor_text in links:
@@ -174,17 +165,25 @@ class FourGamersArticleAnalyzer:
             # A deadline mentioned in a multi-game article is not necessarily
             # shared. Keep it only when the article explicitly scopes it to all games.
             results = [replace(item, offer_end_at=None) for item in results]
-        if not results:
-            title = headline_titles[0] if headline_titles else self._clean_name(observation.raw_title or "")
-            if title:
-                results.append(NormalizedCandidate(
-                    source_key=observation.source_key, platform=None, external_product_id=None,
-                    title=title, product_url=observation.source_url, observed_at=observation.observed_at,
-                    source_external_id=observation.external_id, article_url=observation.source_url,
-                    image_url=parser.image_url,
-                    offer_end_at=offer_end_at,
-                ))
         return tuple(results)
+
+    def diagnostics(self, observation: SourceObservation, html: bytes | str) -> dict[str, int | bool]:
+        """Return bounded, non-content diagnostics for failed article extraction."""
+        if not observation.source_url:
+            return {"html_bytes": 0, "external_links_found": 0, "storefront_links_found": 0}
+        text = html.decode("utf-8", errors="replace") if isinstance(html, bytes) else html
+        parser = _ArticleHTMLParser(observation.source_url)
+        parser.feed(text)
+        storefront_links = 0
+        for url, _label in parser.links:
+            host = (urlparse(url).hostname or "").lower().removeprefix("www.")
+            if _ArticleHTMLParser._platform(host):
+                storefront_links += 1
+        return {
+            "html_bytes": len(text.encode("utf-8")),
+            "external_links_found": len(parser.links),
+            "storefront_links_found": storefront_links,
+        }
 
     @staticmethod
     def _extract_offer_end_at(article_text: str, observed_at: datetime) -> datetime | None:
