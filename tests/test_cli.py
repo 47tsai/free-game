@@ -39,6 +39,9 @@ def test_collect_candidates_reports_article_when_store_link_is_missing():
         "html_bytes": len(b"<html><body>No storefront link</body></html>"),
         "external_links_found": 0,
         "storefront_links_found": 0,
+        "raw_storefront_domain_mentions": 0,
+        "href_attributes_found": 0,
+        "body_tag_present": True,
     }]
 
 
