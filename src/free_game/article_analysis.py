@@ -62,7 +62,11 @@ class _ArticleHTMLParser(HTMLParser):
                     self.image_url = candidate
         if tag in {"script", "style", "noscript", "svg"}:
             self.skip_depth += 1
-        if tag == "a" and attrs_map.get("href"):
+        if tag == "a":
+            # Some article templates emit malformed/unclosed anchors. Finish the
+            # previous anchor before starting another so its href is not lost.
+            self._finish_active_link()
+        if tag == "a" and attrs_map.get("href") and not self.skip_depth:
             absolute = urljoin(self.base_url, unescape(attrs_map["href"]))
             parsed = urlparse(absolute)
             host = (parsed.hostname or "").lower().rstrip(".")
@@ -73,14 +77,23 @@ class _ArticleHTMLParser(HTMLParser):
                 self._active_url = urlunparse(parsed._replace(query="", fragment=""))
                 self._active_text = []
 
-    def handle_endtag(self, tag: str) -> None:
-        if tag in {"script", "style", "noscript", "svg"} and self.skip_depth:
-            self.skip_depth -= 1
-        if tag == "a" and self._active_url:
+    def _finish_active_link(self) -> None:
+        if self._active_url:
             label = " ".join(" ".join(self._active_text).split())
             self.links.append((self._active_url, label))
             self._active_url = None
             self._active_text = []
+
+    def close(self) -> None:
+        super().close()
+        # HTMLParser does not synthesize end tags for malformed source HTML.
+        self._finish_active_link()
+
+    def handle_endtag(self, tag: str) -> None:
+        if tag in {"script", "style", "noscript", "svg"} and self.skip_depth:
+            self.skip_depth -= 1
+        if tag == "a":
+            self._finish_active_link()
         if tag == "body":
             self.in_body = False
 
@@ -113,6 +126,7 @@ class FourGamersArticleAnalyzer:
         text = html.decode("utf-8", errors="replace") if isinstance(html, bytes) else html
         parser = _ArticleHTMLParser(observation.source_url)
         parser.feed(text)
+        parser.close()
         links = list(dict.fromkeys(parser.links))
         offer_end_at = self._extract_offer_end_at(" ".join(parser.body_text), observation.observed_at)
         headline_titles = self._headline_titles(observation.raw_title or "")
@@ -174,6 +188,7 @@ class FourGamersArticleAnalyzer:
         text = html.decode("utf-8", errors="replace") if isinstance(html, bytes) else html
         parser = _ArticleHTMLParser(observation.source_url)
         parser.feed(text)
+        parser.close()
         storefront_links = 0
         for url, _label in parser.links:
             host = (urlparse(url).hostname or "").lower().removeprefix("www.")
