@@ -283,9 +283,9 @@ class GitHubJsonWriter:
     def _is_persistable(candidate: NormalizedCandidate) -> bool:
         if not candidate.source_key.strip() or not candidate.title.strip() or not candidate.source_external_id:
             return False
-        if not candidate.platform or not candidate.external_product_id:
-            return False
-        return bool(_https_url_or_none(candidate.product_url))
+        if candidate.platform and candidate.external_product_id:
+            return bool(_https_url_or_none(candidate.product_url))
+        return bool(_https_url_or_none(candidate.article_url or candidate.product_url))
 
 
 def _merge_game(existing: dict[str, Any], incoming: dict[str, Any]) -> dict[str, Any]:
