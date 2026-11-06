@@ -88,16 +88,14 @@ def test_same_store_product_from_multiple_articles_stays_one_game():
     assert games[0]["added_at"] == games[0]["created_at"]
 
 
-def test_discovery_without_store_link_is_not_saved_as_a_game():
+def test_discovery_without_store_link_is_still_saved():
     store = MemoryStore()
-    result = GitHubJsonWriter(store).write_candidates([candidate(
-        platform=None, external_product_id=None,
-        product_url="https://www.4gamers.com.tw/news/detail/discovery",
-        article_url=None, image_url=None,
-    )])
-    assert result.games_created == 0
-    assert result.candidates_skipped == 1
-    assert store.writes == []
+    result = GitHubJsonWriter(store).write_candidates([candidate(platform=None, external_product_id=None, product_url="https://www.4gamers.com.tw/news/detail/discovery", article_url=None, image_url=None)])
+    assert result.games_created == 1
+    game = store.documents[GitHubJsonWriter.GAMES_PATH]["records"][0]
+    assert game["platform"] is None
+    assert game["store_url"] is None
+    assert game["article_url"].endswith("/discovery")
 
 
 def test_candidate_without_source_identity_is_skipped():
