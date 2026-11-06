@@ -28,7 +28,6 @@ def build_parser() -> argparse.ArgumentParser:
 def collect_candidates(feed_payload: bytes | str, *, fetcher=None):
     adapter = FourGamersAdapter()
     observations = adapter.parse(feed_payload)
-    fallback = {item.source_external_id: item for item in adapter.normalize(observations)}
     article_fetcher = fetcher or HTTPFetcher()
     analyzer = FourGamersArticleAnalyzer()
     candidates = []
@@ -37,11 +36,20 @@ def collect_candidates(feed_payload: bytes | str, *, fetcher=None):
         try:
             response = article_fetcher.fetch(observation.source_url)
             extracted = analyzer.analyze(observation, response.body)
-            candidates.extend(extracted or ((fallback[observation.external_id],) if observation.external_id in fallback else ()))
-        except Exception:
-            failures.append({"article_id": observation.external_id, "error": "article_fetch_or_analysis_failed"})
-            if observation.external_id in fallback:
-                candidates.append(fallback[observation.external_id])
+            if extracted:
+                candidates.extend(extracted)
+            else:
+                failures.append({
+                    "article_id": observation.external_id,
+                    "error": "no_storefront_products_extracted",
+                    **analyzer.diagnostics(observation, response.body),
+                })
+        except Exception as exc:
+            failures.append({
+                "article_id": observation.external_id,
+                "error": "article_fetch_or_analysis_failed",
+                "reason": type(exc).__name__,
+            })
     return candidates, failures
 
 
