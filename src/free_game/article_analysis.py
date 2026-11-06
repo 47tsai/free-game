@@ -211,7 +211,7 @@ class FourGamersArticleAnalyzer:
             "storefront_links_found": storefront_links,
             "raw_storefront_domain_mentions": raw_storefront_mentions,
             "href_attributes_found": href_attributes,
-            "body_tag_present": bool(re.search(r"<body\b", text, flags=re.IGNORECASE)),
+            "body_tag_present": bool(re.search(r"<body(?:\s|>)", text, flags=re.IGNORECASE)),
         }
 
     @staticmethod
