@@ -26,15 +26,23 @@ def test_collect_candidates_extracts_storefront_product(monkeypatch):
     assert candidates[0].image_url == "https://example.com/cover.jpg"
 
 
-def test_collect_candidates_keeps_article_when_store_link_is_missing():
+def test_collect_candidates_reports_article_when_store_link_is_missing():
     class FakeFetcher:
         def fetch(self, url):
-            return HTTPFetchResponse(b"<html><body>No storefront link</body></html>", 200, url)
+            body = b"<html><body>No storefront link</body></html>"
+            return HTTPFetchResponse(body, 200, url)
     candidates, failures = collect_candidates(RSS, fetcher=FakeFetcher())
-    assert failures == []
-    assert len(candidates) == 1
-    assert candidates[0].platform is None
-    assert candidates[0].article_url.endswith("/123")
+    assert candidates == []
+    assert failures == [{
+        "article_id": "article-123",
+        "error": "no_storefront_products_extracted",
+        "html_bytes": len(b"<html><body>No storefront link</body></html>"),
+        "external_links_found": 0,
+        "storefront_links_found": 0,
+        "raw_storefront_domain_mentions": 0,
+        "href_attributes_found": 0,
+        "body_tag_present": True,
+    }]
 
 
 def test_ingest_command_writes_game_records_and_notifies(monkeypatch, capsys):

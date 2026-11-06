@@ -62,7 +62,11 @@ class _ArticleHTMLParser(HTMLParser):
                     self.image_url = candidate
         if tag in {"script", "style", "noscript", "svg"}:
             self.skip_depth += 1
-        if tag == "a" and attrs_map.get("href"):
+        if tag == "a":
+            # Some article templates emit malformed/unclosed anchors. Finish the
+            # previous anchor before starting another so its href is not lost.
+            self._finish_active_link()
+        if tag == "a" and attrs_map.get("href") and not self.skip_depth:
             absolute = urljoin(self.base_url, unescape(attrs_map["href"]))
             parsed = urlparse(absolute)
             host = (parsed.hostname or "").lower().rstrip(".")
@@ -73,14 +77,23 @@ class _ArticleHTMLParser(HTMLParser):
                 self._active_url = urlunparse(parsed._replace(query="", fragment=""))
                 self._active_text = []
 
-    def handle_endtag(self, tag: str) -> None:
-        if tag in {"script", "style", "noscript", "svg"} and self.skip_depth:
-            self.skip_depth -= 1
-        if tag == "a" and self._active_url:
+    def _finish_active_link(self) -> None:
+        if self._active_url:
             label = " ".join(" ".join(self._active_text).split())
             self.links.append((self._active_url, label))
             self._active_url = None
             self._active_text = []
+
+    def close(self) -> None:
+        super().close()
+        # HTMLParser does not synthesize end tags for malformed source HTML.
+        self._finish_active_link()
+
+    def handle_endtag(self, tag: str) -> None:
+        if tag in {"script", "style", "noscript", "svg"} and self.skip_depth:
+            self.skip_depth -= 1
+        if tag == "a":
+            self._finish_active_link()
         if tag == "body":
             self.in_body = False
 
@@ -113,20 +126,12 @@ class FourGamersArticleAnalyzer:
         text = html.decode("utf-8", errors="replace") if isinstance(html, bytes) else html
         parser = _ArticleHTMLParser(observation.source_url)
         parser.feed(text)
+        parser.close()
         links = list(dict.fromkeys(parser.links))
         offer_end_at = self._extract_offer_end_at(" ".join(parser.body_text), observation.observed_at)
         headline_titles = self._headline_titles(observation.raw_title or "")
         if not links:
-            title = headline_titles[0] if headline_titles else self._clean_name(observation.raw_title or "")
-            if not title:
-                return ()
-            return (NormalizedCandidate(
-                source_key=observation.source_key, platform=None, external_product_id=None,
-                title=title, product_url=observation.source_url, observed_at=observation.observed_at,
-                source_external_id=observation.external_id, article_url=observation.source_url,
-                image_url=parser.image_url,
-                offer_end_at=offer_end_at,
-            ),)
+            return ()
         results: list[NormalizedCandidate] = []
         seen: set[tuple[str, str]] = set()
         for url, anchor_text in links:
@@ -174,17 +179,40 @@ class FourGamersArticleAnalyzer:
             # A deadline mentioned in a multi-game article is not necessarily
             # shared. Keep it only when the article explicitly scopes it to all games.
             results = [replace(item, offer_end_at=None) for item in results]
-        if not results:
-            title = headline_titles[0] if headline_titles else self._clean_name(observation.raw_title or "")
-            if title:
-                results.append(NormalizedCandidate(
-                    source_key=observation.source_key, platform=None, external_product_id=None,
-                    title=title, product_url=observation.source_url, observed_at=observation.observed_at,
-                    source_external_id=observation.external_id, article_url=observation.source_url,
-                    image_url=parser.image_url,
-                    offer_end_at=offer_end_at,
-                ))
         return tuple(results)
+
+    def diagnostics(self, observation: SourceObservation, html: bytes | str) -> dict[str, int | bool]:
+        """Return bounded, non-content diagnostics for failed article extraction."""
+        if not observation.source_url:
+            return {"html_bytes": 0, "external_links_found": 0, "storefront_links_found": 0}
+        text = html.decode("utf-8", errors="replace") if isinstance(html, bytes) else html
+        parser = _ArticleHTMLParser(observation.source_url)
+        parser.feed(text)
+        parser.close()
+        storefront_links = 0
+        for url, _label in parser.links:
+            host = (urlparse(url).hostname or "").lower().removeprefix("www.")
+            if _ArticleHTMLParser._platform(host):
+                storefront_links += 1
+        # Compare parsed anchors with raw HTML mentions. If a storefront domain
+        # exists in the response but no anchor was parsed, the next run can
+        # distinguish malformed/JS-embedded markup from a challenge or wrong page.
+        raw_storefront_mentions = len(re.findall(
+            r"(?:store\.steampowered\.com|store\.epicgames\.com|"
+            r"(?:www\.)?gog\.com|store\.ubi\.com|store\.ubisoft\.com|"
+            r"(?:www\.)?dlsite\.com)",
+            text,
+            flags=re.IGNORECASE,
+        ))
+        href_attributes = len(re.findall(r"\bhref\s*=", text, flags=re.IGNORECASE))
+        return {
+            "html_bytes": len(text.encode("utf-8")),
+            "external_links_found": len(parser.links),
+            "storefront_links_found": storefront_links,
+            "raw_storefront_domain_mentions": raw_storefront_mentions,
+            "href_attributes_found": href_attributes,
+            "body_tag_present": bool(re.search(r"<body(?:\s|>)", text, flags=re.IGNORECASE)),
+        }
 
     @staticmethod
     def _extract_offer_end_at(article_text: str, observed_at: datetime) -> datetime | None:

@@ -9,15 +9,15 @@
       "claimed_at": null,
       "cover_image_url": "https://img.4gamers.com.tw/news-image/a43db22e-f39d-40ef-8d45-b368d7320032.jpg",
       "created_at": "2026-11-05T16:01:21.123369Z",
-      "external_product_id": null,
-      "id": "game_69a0daf9-4a8f-5729-93d7-c941fb1e966f",
+      "external_product_id": "flotsam-266287",
+      "id": "game_092bcb6c-e18d-5d83-8cdf-e0d5eae688de",
       "normalized_title": "flotsam",
-      "offer_end_at": null,
-      "platform": null,
+      "offer_end_at": "2026-11-13T12:00:00+08:00",
+      "platform": "epic",
       "reminder_last_sent_at": null,
-      "store_url": null,
+      "store_url": "https://store.epicgames.com/p/flotsam-266287",
       "title": "Flotsam",
-      "updated_at": "2026-11-05T16:01:21.123369Z"
+      "updated_at": "2026-11-06T15:28:32.965Z"
     },
     {
       "added_at": "2026-11-04T09:21:32.963766Z",
@@ -58,5 +58,5 @@
     }
   ],
   "schema_version": 1,
-  "updated_at": "2026-11-05T16:01:21.307689Z"
+  "updated_at": "2026-11-06T15:28:32.965Z"
 }
