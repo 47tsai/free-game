@@ -82,13 +82,16 @@ def test_unknown_storefront_is_preserved_as_discovery_candidate() -> None:
     assert result[0].title == "Mystery Game"
 
 
-def test_article_without_store_link_keeps_og_image_and_game_title():
+def test_article_without_store_link_is_not_a_game_candidate():
     html = '<html><head><meta property="og:image" content="https://cdn.example.com/cover.jpg"></head><body>No storefront link</body></html>'
-    result = FourGamersArticleAnalyzer().analyze(observation(), html)
-    assert len(result) == 1
-    assert result[0].title == "Example Game"
-    assert result[0].article_url == observation().source_url
-    assert result[0].image_url == "https://cdn.example.com/cover.jpg"
+    analyzer = FourGamersArticleAnalyzer()
+    result = analyzer.analyze(observation(), html)
+    assert result == ()
+    assert analyzer.diagnostics(observation(), html) == {
+        "html_bytes": len(html.encode("utf-8")),
+        "external_links_found": 0,
+        "storefront_links_found": 0,
+    }
 
 
 def test_extracts_explicit_taiwan_deadline_from_article_body():
