@@ -98,6 +98,7 @@ def test_article_without_store_link_is_not_a_game_candidate():
         "anchor_tags_with_href": 0,
         "anchor_tags_skipped_by_context": 0,
         "max_skip_depth": 0,
+        "active_skip_tags": "",
     }
 
 
@@ -208,4 +209,5 @@ def test_diagnostics_report_anchors_inside_unclosed_svg_context():
     assert diagnostics["anchor_tags_with_href"] == 1
     assert diagnostics["anchor_tags_skipped_by_context"] == 1
     assert diagnostics["max_skip_depth"] == 1
+    assert diagnostics["active_skip_tags"] == "svg"
     assert diagnostics["external_links_found"] == 0
