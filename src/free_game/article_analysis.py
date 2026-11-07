@@ -222,6 +222,10 @@ class FourGamersArticleAnalyzer:
             "raw_storefront_domain_mentions": raw_storefront_mentions,
             "href_attributes_found": href_attributes,
             "body_tag_present": bool(re.search(r"<body(?:\s|>)", text, flags=re.IGNORECASE)),
+            "anchor_tags_seen": parser.anchor_tags_seen,
+            "anchor_tags_with_href": parser.anchor_tags_with_href,
+            "anchor_tags_skipped_by_context": parser.anchor_tags_skipped_by_context,
+            "max_skip_depth": parser.max_skip_depth,
         }
 
     @staticmethod
