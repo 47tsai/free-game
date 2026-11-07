@@ -66,7 +66,9 @@ class _ArticleHTMLParser(HTMLParser):
                 candidate = urljoin(self.base_url, unescape(attrs_map["content"]))
                 if urlparse(candidate).scheme == "https":
                     self.image_url = candidate
-        if tag in {"script", "style", "noscript", "svg"}:
+        # Unlike script/style, noscript may contain the server-rendered article body
+        # (including real storefront anchors) when the site provides a fallback.
+        if tag in {"script", "style", "svg"}:
             self.skip_tags.append(tag)
             self.skip_depth = len(self.skip_tags)
             self.max_skip_depth = max(self.max_skip_depth, self.skip_depth)
@@ -105,7 +107,7 @@ class _ArticleHTMLParser(HTMLParser):
         self._finish_active_link()
 
     def handle_endtag(self, tag: str) -> None:
-        if tag in {"script", "style", "noscript", "svg"} and tag in self.skip_tags:
+        if tag in {"script", "style", "svg"} and tag in self.skip_tags:
             # Match the closing tag by name. A mismatched closing tag must not
             # accidentally close a different ignored context.
             index = len(self.skip_tags) - 1 - self.skip_tags[::-1].index(tag)
