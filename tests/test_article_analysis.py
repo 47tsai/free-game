@@ -195,10 +195,10 @@ def test_ambiguous_or_date_only_deadline_is_not_guessed():
 
 
 
-def test_diagnostics_report_anchors_hidden_inside_unclosed_script_context():
+def test_diagnostics_report_anchors_inside_unclosed_svg_context():
     html = """
     <html><body>
-      <script>
+      <svg>
       <a href="https://store.epicgames.com/p/example">Example Game</a>
     </body></html>
     """
