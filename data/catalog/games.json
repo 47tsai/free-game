@@ -55,8 +55,27 @@
       "store_url": "https://www.dlsite.com/maniax/work/=/product_id/RJ115679.html/",
       "title": "如果清純女學生來到按摩院",
       "updated_at": "2026-11-04T09:21:41.483114Z"
+    },
+    {
+      "added_at": "2026-11-07T11:15:42.332443Z",
+      "article_url": "https://www.4gamers.com.tw/news/detail/83118/flotsam-and-idle-champions-are-free-to-keep-on-epic-games-store-this-week",
+      "claim_notification_pending": false,
+      "claim_source": null,
+      "claim_status": "unclaimed",
+      "claimed_at": null,
+      "cover_image_url": "https://img.4gamers.com.tw/news-image/a43db22e-f39d-40ef-8d45-b368d7320032.jpg",
+      "created_at": "2026-11-07T11:15:42.332443Z",
+      "external_product_id": "idle-champions-of-the-forgotten-realms",
+      "id": "game_e33c1ee0-1d5e-5972-a29f-8aed40d35f3c",
+      "normalized_title": "idle champions of the forgotten realms",
+      "offer_end_at": null,
+      "platform": "epic",
+      "reminder_last_sent_at": null,
+      "store_url": "https://store.epicgames.com/p/idle-champions-of-the-forgotten-realms",
+      "title": "Idle Champions of the Forgotten Realms",
+      "updated_at": "2026-11-07T11:15:42.332443Z"
     }
   ],
   "schema_version": 1,
-  "updated_at": "2026-11-07T00:32:33.622204Z"
+  "updated_at": "2026-11-07T11:15:42.485748Z"
 }
