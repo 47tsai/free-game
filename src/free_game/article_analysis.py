@@ -44,6 +44,7 @@ class _ArticleHTMLParser(HTMLParser):
         self.base_url = base_url
         self.in_body = False
         self.skip_depth = 0
+        self.skip_tags: list[str] = []
         self.links: list[tuple[str, str]] = []
         self.body_text: list[str] = []
         self.image_url: str | None = None
@@ -65,7 +66,8 @@ class _ArticleHTMLParser(HTMLParser):
                 if urlparse(candidate).scheme == "https":
                     self.image_url = candidate
         if tag in {"script", "style", "noscript", "svg"}:
-            self.skip_depth += 1
+            self.skip_tags.append(tag)
+            self.skip_depth = len(self.skip_tags)
             self.max_skip_depth = max(self.max_skip_depth, self.skip_depth)
         if tag == "a":
             self.anchor_tags_seen += 1
@@ -100,8 +102,12 @@ class _ArticleHTMLParser(HTMLParser):
         self._finish_active_link()
 
     def handle_endtag(self, tag: str) -> None:
-        if tag in {"script", "style", "noscript", "svg"} and self.skip_depth:
-            self.skip_depth -= 1
+        if tag in {"script", "style", "noscript", "svg"} and tag in self.skip_tags:
+            # Match the closing tag by name. A mismatched closing tag must not
+            # accidentally close a different ignored context.
+            index = len(self.skip_tags) - 1 - self.skip_tags[::-1].index(tag)
+            del self.skip_tags[index:]
+            self.skip_depth = len(self.skip_tags)
         if tag == "a":
             self._finish_active_link()
         if tag == "body":
@@ -191,7 +197,7 @@ class FourGamersArticleAnalyzer:
             results = [replace(item, offer_end_at=None) for item in results]
         return tuple(results)
 
-    def diagnostics(self, observation: SourceObservation, html: bytes | str) -> dict[str, int | bool]:
+    def diagnostics(self, observation: SourceObservation, html: bytes | str) -> dict[str, int | bool | str]:
         """Return bounded, non-content diagnostics for failed article extraction."""
         if not observation.source_url:
             return {"html_bytes": 0, "external_links_found": 0, "storefront_links_found": 0}
@@ -226,6 +232,7 @@ class FourGamersArticleAnalyzer:
             "anchor_tags_with_href": parser.anchor_tags_with_href,
             "anchor_tags_skipped_by_context": parser.anchor_tags_skipped_by_context,
             "max_skip_depth": parser.max_skip_depth,
+            "active_skip_tags": ",".join(parser.skip_tags),
         }
 
     @staticmethod
