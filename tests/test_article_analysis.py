@@ -213,3 +213,26 @@ def test_diagnostics_report_anchors_inside_unclosed_svg_context():
     assert diagnostics["active_skip_tags"] == "svg"
     assert diagnostics["skipped_anchor_contexts"] == "svg:1"
     assert diagnostics["external_links_found"] == 0
+
+
+
+def test_extracts_storefront_links_from_noscript_article_fallback():
+    html = """
+    <html><body>
+      <noscript>
+        <article>
+          <a href="https://store.epicgames.com/p/flotsam-266287">Flotsam</a>
+        </article>
+      </noscript>
+    </body></html>
+    """
+    analyzer = FourGamersArticleAnalyzer()
+    result = analyzer.analyze(observation(), html)
+    diagnostics = analyzer.diagnostics(observation(), html)
+
+    assert len(result) == 1
+    assert result[0].platform == "epic"
+    assert result[0].external_product_id == "flotsam-266287"
+    assert result[0].title == "Flotsam"
+    assert diagnostics["anchor_tags_skipped_by_context"] == 0
+    assert diagnostics["external_links_found"] == 1
