@@ -49,6 +49,10 @@ class _ArticleHTMLParser(HTMLParser):
         self.image_url: str | None = None
         self._active_url: str | None = None
         self._active_text: list[str] = []
+        self.anchor_tags_seen = 0
+        self.anchor_tags_with_href = 0
+        self.anchor_tags_skipped_by_context = 0
+        self.max_skip_depth = 0
 
     def handle_starttag(self, tag: str, attrs) -> None:
         attrs_map = dict(attrs)
@@ -62,7 +66,13 @@ class _ArticleHTMLParser(HTMLParser):
                     self.image_url = candidate
         if tag in {"script", "style", "noscript", "svg"}:
             self.skip_depth += 1
+            self.max_skip_depth = max(self.max_skip_depth, self.skip_depth)
         if tag == "a":
+            self.anchor_tags_seen += 1
+            if attrs_map.get("href"):
+                self.anchor_tags_with_href += 1
+            if self.skip_depth:
+                self.anchor_tags_skipped_by_context += 1
             # Some article templates emit malformed/unclosed anchors. Finish the
             # previous anchor before starting another so its href is not lost.
             self._finish_active_link()
