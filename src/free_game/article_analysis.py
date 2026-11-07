@@ -252,8 +252,8 @@ class FourGamersArticleAnalyzer:
         quoted_title = rf"(?:《|「|『)?{escaped}(?:》|」|』)?"
         dlc_terms = r"(?:DLC|追加內容|擴充包|資料片|下載內容)"
         return bool(
-            re.search(rf"{quoted_title}[\\s\\S]{{0,48}}{dlc_terms}", article_text, re.IGNORECASE)
-            or re.search(rf"{dlc_terms}[\\s\\S]{{0,32}}{quoted_title}", article_text, re.IGNORECASE)
+            re.search(rf"{quoted_title}[\s\S]{{0,48}}{dlc_terms}", article_text, re.IGNORECASE)
+            or re.search(rf"{dlc_terms}[\s\S]{{0,32}}{quoted_title}", article_text, re.IGNORECASE)
         )
 
     @staticmethod
