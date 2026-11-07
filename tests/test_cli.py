@@ -46,6 +46,7 @@ def test_collect_candidates_reports_article_when_store_link_is_missing():
         "anchor_tags_with_href": 0,
         "anchor_tags_skipped_by_context": 0,
         "max_skip_depth": 0,
+        "active_skip_tags": "",
     }]
 
 
