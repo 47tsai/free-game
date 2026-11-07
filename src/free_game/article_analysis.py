@@ -53,6 +53,7 @@ class _ArticleHTMLParser(HTMLParser):
         self.anchor_tags_seen = 0
         self.anchor_tags_with_href = 0
         self.anchor_tags_skipped_by_context = 0
+        self.skipped_anchor_contexts: dict[str, int] = {}
         self.max_skip_depth = 0
 
     def handle_starttag(self, tag: str, attrs) -> None:
@@ -75,6 +76,8 @@ class _ArticleHTMLParser(HTMLParser):
                 self.anchor_tags_with_href += 1
             if self.skip_depth:
                 self.anchor_tags_skipped_by_context += 1
+                context = ">".join(self.skip_tags) or "unknown"
+                self.skipped_anchor_contexts[context] = self.skipped_anchor_contexts.get(context, 0) + 1
             # Some article templates emit malformed/unclosed anchors. Finish the
             # previous anchor before starting another so its href is not lost.
             self._finish_active_link()
@@ -233,6 +236,9 @@ class FourGamersArticleAnalyzer:
             "anchor_tags_skipped_by_context": parser.anchor_tags_skipped_by_context,
             "max_skip_depth": parser.max_skip_depth,
             "active_skip_tags": ",".join(parser.skip_tags),
+            "skipped_anchor_contexts": ",".join(
+                f"{tag}:{count}" for tag, count in sorted(parser.skipped_anchor_contexts.items())
+            ),
         }
 
     @staticmethod
