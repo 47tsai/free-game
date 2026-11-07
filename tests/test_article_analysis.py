@@ -236,3 +236,20 @@ def test_extracts_storefront_links_from_noscript_article_fallback():
     assert result[0].title == "Flotsam"
     assert diagnostics["anchor_tags_skipped_by_context"] == 0
     assert diagnostics["external_links_found"] == 1
+
+
+
+def test_excludes_free_to_play_base_game_when_article_offers_only_dlc():
+    html = """
+    <html><body>
+      <p>Epic Games Store 本週限時免費遊戲送出《Flotsam》。</p>
+      <p>另外，這次還加碼送出《Idle Champions of the Forgotten Realms》的 DLC「Morte's Champions of Renown Pack」。</p>
+      <a href="https://store.epicgames.com/p/flotsam-266287">Flotsam | Epic Games Store</a>
+      <a href="https://store.epicgames.com/p/idle-champions-of-the-forgotten-realms">Idle Champions of the Forgotten Realms | Epic Games Store</a>
+    </body></html>
+    """
+    result = FourGamersArticleAnalyzer().analyze(observation(), html)
+
+    assert len(result) == 1
+    assert result[0].title == "Flotsam"
+    assert result[0].external_product_id == "flotsam-266287"
