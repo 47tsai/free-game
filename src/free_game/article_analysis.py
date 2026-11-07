@@ -161,6 +161,8 @@ class FourGamersArticleAnalyzer:
             recognized_platform = _ArticleHTMLParser._platform(host)
             platform = recognized_platform or host
             title = self._clean_name(anchor_text)
+            if title and self._is_dlc_candidate(title, " ".join(parser.body_text)):
+                continue
             if not title and len(links) == 1 and len(headline_titles) == 1:
                 title = self._clean_name(headline_titles[0])
             if not title:
@@ -242,6 +244,17 @@ class FourGamersArticleAnalyzer:
                 f"{tag}:{count}" for tag, count in sorted(parser.skipped_anchor_contexts.items())
             ),
         }
+
+    @staticmethod
+    def _is_dlc_candidate(title: str, article_text: str) -> bool:
+        """Exclude links to a free-to-play base game when the article offers DLC only."""
+        escaped = re.escape(title)
+        quoted_title = rf"(?:《|「|『)?{escaped}(?:》|」|』)?"
+        dlc_terms = r"(?:DLC|追加內容|擴充包|資料片|下載內容)"
+        return bool(
+            re.search(rf"{quoted_title}[\s\S]{{0,48}}{dlc_terms}", article_text, re.IGNORECASE)
+            or re.search(rf"{dlc_terms}[\s\S]{{0,32}}{quoted_title}", article_text, re.IGNORECASE)
+        )
 
     @staticmethod
     def _extract_offer_end_at(article_text: str, observed_at: datetime) -> datetime | None:
