@@ -42,6 +42,10 @@ def test_collect_candidates_reports_article_when_store_link_is_missing():
         "raw_storefront_domain_mentions": 0,
         "href_attributes_found": 0,
         "body_tag_present": True,
+        "anchor_tags_seen": 0,
+        "anchor_tags_with_href": 0,
+        "anchor_tags_skipped_by_context": 0,
+        "max_skip_depth": 0,
     }]
 
 
