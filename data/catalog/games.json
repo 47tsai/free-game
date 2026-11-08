@@ -59,10 +59,10 @@
     {
       "added_at": "2026-11-08T10:01:30.295880Z",
       "article_url": "https://www.4gamers.com.tw/news/detail/83161/gmh-good-morning-human-is-free-to-keep-on-egs",
-      "claim_notification_pending": false,
-      "claim_source": null,
-      "claim_status": "unclaimed",
-      "claimed_at": null,
+      "claim_notification_pending": true,
+      "claim_source": "manual",
+      "claim_status": "claimed",
+      "claimed_at": "2026-11-08T10:44:31.833Z",
       "cover_image_url": "https://img.4gamers.com.tw/news-image/565da8e3-ff15-4212-950f-22ad1cde26a0.jpg",
       "created_at": "2026-11-08T10:01:30.295880Z",
       "external_product_id": "good-morning-human-6d0b45",
@@ -73,9 +73,9 @@
       "reminder_last_sent_at": null,
       "store_url": "https://store.epicgames.com/p/good-morning-human-6d0b45",
       "title": "GMH - Good Morning Human",
-      "updated_at": "2026-11-08T10:01:30.295880Z"
+      "updated_at": "2026-11-08T10:44:31.833Z"
     }
   ],
   "schema_version": 1,
-  "updated_at": "2026-11-08T10:01:30.491143Z"
+  "updated_at": "2026-11-08T10:44:31.833Z"
 }
