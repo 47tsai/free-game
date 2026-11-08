@@ -31,6 +31,11 @@ jobs:
       - name: Run tests
         run: python -m pytest
 
+      - name: Validate live catalog against the canonical schema
+        run: |
+          test ! -e schemas/collection.schema.json
+          python -c "from pathlib import Path; from free_game.validation import validate_file; validate_file(Path('data/catalog/games.json'))"
+
       - name: Compile package
         run: python -m compileall -q src
       - name: Check website and Worker JavaScript syntax
