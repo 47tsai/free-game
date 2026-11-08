@@ -41,3 +41,15 @@ def test_unexpected_game_field_is_rejected():
 
 def test_validator_uses_repository_schema_path():
     assert SCHEMA_PATH.is_file()
+
+
+def test_no_duplicate_root_schema():
+    # The canonical schema lives only under src/free_game/schemas/.
+    # A second copy at the repository root drifted out of sync before
+    # (it lacked offer_end_at) and must not be reintroduced.
+    assert not (ROOT / "schemas" / "collection.schema.json").exists()
+
+
+def test_canonical_schema_includes_offer_end_at():
+    schema = load_schema()
+    assert "offer_end_at" in schema["$defs"]["Game"]["properties"]
