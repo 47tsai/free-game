@@ -28,6 +28,26 @@ jobs:
       - uses: actions/configure-pages@v5
         with:
           enablement: true
+      # 由 site/release.json 產生 version.json（建置產物，不進 repo；
+      # 欄位見 SYSTEM.md 第 13 節第 5 點；頁尾版本由 app.js 讀它填入）。
+      - name: Generate version.json
+        run: |
+          python3 - <<'PY'
+          import json, os
+          from datetime import datetime, timezone
+          release = json.load(open("site/release.json"))
+          sha = os.environ["GITHUB_SHA"]
+          version = {
+              "site": release["site"],
+              "version": release["version"],
+              "releaseCommit": sha,
+              "releaseCommitShort": sha[:7],
+              "chiSystemVersion": release["chiSystemVersion"],
+              "deployedAt": datetime.now(timezone.utc).isoformat().replace("+00:00", "Z"),
+          }
+          json.dump(version, open("site/version.json", "w"), ensure_ascii=False, indent=2)
+          print(json.dumps(version, ensure_ascii=False))
+          PY
       - uses: actions/upload-pages-artifact@v3
         with:
           path: site
