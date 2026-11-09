@@ -41,3 +41,4 @@ jobs:
       - name: Check website and Worker JavaScript syntax
         run: |
           node --check worker/index.js
+          node --check site/app.js
