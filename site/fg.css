@@ -27,6 +27,13 @@
 }
 
 /* ---------- Header（本站調整） ---------- */
+/* header 只放品牌＋主題切換＋登入，不放導覽按鍵（品牌 logo 本身就是首頁連結）。
+   導覽如需，放在 header 下方獨立一列，不塞進 header 這一行。
+   拿掉導覽列後，主題按鈕用 margin-left: auto 把主題切換與登入推到右側。 */
+.chi-header__theme {
+  margin-left: auto;
+}
+
 /* 登入按鈕：手機版只顯示「登入」，桌面以上顯示完整文字。
    header 是固定 60px、不換行的 flex，完整文字在 360px 寬會把整列撐出畫面。 */
 .fg-login__full {
