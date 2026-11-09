@@ -8,6 +8,10 @@
 //     登入回來後多一次 render，標記按鈕文字才會從「登入並標記已領取」更新過來。
 // 其餘：請求加 15 秒逾時；載入／空／錯誤狀態改用 chi-system 的 .chi-state；
 // 錯誤狀態附「再試一次」按鈕；頁尾版本由 version.json（CI 產生）填入。
+// 領取狀態與封面改讀 canonical schema 欄位 claim_status / cover_image_url
+// （舊版讀不存在的 claimed / cover_url，導致全部顯示未領取、封面永遠空白；
+//  已領取的遊戲再標記時 Worker 不寫入、不產生 commit，畫面卻顯示成功）。
+// 本站獨立：header 與頁尾不設跨站導覽；登入按鈕手機版只顯示「登入」。
 "use strict";
 
 const API = "/api";
@@ -56,6 +60,20 @@ function icon(name, className) {
 
 function say(message) {
   $("notice").textContent = message || "";
+}
+
+// 領取狀態以 canonical schema 的 claim_status 為準（"unclaimed" / "claimed"）。
+function isClaimed(game) {
+  return game.claim_status === "claimed";
+}
+
+// 登入按鈕有長短兩種文字（手機版只顯示短的），改文字時兩邊一起改。
+function setLoginLabel(fullLabel, shortLabel) {
+  const loginButton = $("login");
+  const full = loginButton.querySelector(".fg-login__full");
+  const short = loginButton.querySelector(".fg-login__short");
+  if (full) full.textContent = fullLabel;
+  if (short) short.textContent = shortLabel;
 }
 
 function b64url(bytes) {
@@ -207,7 +225,7 @@ async function finishLogin() {
     );
     saveToken(data.access_token, data.expires_in);
     history.replaceState({}, "", location.pathname + location.hash);
-    $("login").textContent = "已登入 Chi Auth";
+    setLoginLabel("已登入 Chi Auth", "已登入");
     say("登入成功，可以手動標記領取狀態。");
   } catch (error) {
     say(error.message);
@@ -224,7 +242,7 @@ async function loadConfig() {
     state.configOk = true;
     if (!state.authClientId) {
       $("login").disabled = true;
-      $("login").textContent = "Chi Auth 尚未設定";
+      setLoginLabel("Chi Auth 尚未設定", "未設定");
     }
   } catch {
     // 設定讀不到不擋清單：只關標記功能，讓使用者至少能看遊戲
@@ -271,17 +289,17 @@ function filteredGames() {
   const platform = document.querySelector("#platform-filter .fg-chip.is-active")?.dataset.platform || "all";
   return state.games.filter((game) => {
     if (keyword && !String(game.title || "").toLowerCase().includes(keyword)) return false;
-    if (status === "claimed" && !game.claimed) return false;
-    if (status === "unclaimed" && game.claimed) return false;
+    if (status === "claimed" && !isClaimed(game)) return false;
+    if (status === "unclaimed" && isClaimed(game)) return false;
     if (platform !== "all" && game.platform !== platform) return false;
     return true;
   });
 }
 
 function claimBadge(game) {
-  const badge = element("span", "chi-badge " + (game.claimed ? "chi-badge--success" : "chi-badge--warning"));
+  const badge = element("span", "chi-badge " + (isClaimed(game) ? "chi-badge--success" : "chi-badge--warning"));
   badge.append(element("span", "chi-badge__dot"));
-  badge.append(document.createTextNode(game.claimed ? "已領取" : "尚未領取"));
+  badge.append(document.createTextNode(isClaimed(game) ? "已領取" : "尚未領取"));
   return badge;
 }
 
@@ -289,15 +307,16 @@ function buildCard(game) {
   const card = element("article", "game-card");
   card.id = "game-" + game.id;
 
+  const coverUrl = game.cover_image_url || game.cover_url;
   const coverLink = safeLink(game.store_url) || safeLink(game.article_url);
-  if (game.cover_url && coverLink) {
+  if (coverUrl && coverLink) {
     const media = element("a", "game-card__media");
     media.href = coverLink;
     media.target = "_blank";
     media.rel = "noopener";
     media.setAttribute("aria-label", `前往 ${game.title}`);
     const cover = element("img", "game-card__cover");
-    cover.src = game.cover_url;
+    cover.src = coverUrl;
     cover.alt = "";
     cover.loading = "lazy";
     media.append(cover);
@@ -351,7 +370,7 @@ function buildCard(game) {
   }
   content.append(actions);
 
-  if (game.claimed) {
+  if (isClaimed(game)) {
     const note = game.claim_source === "fgc" ? "FGC 自動同步：已領取" : "已手動標記領取";
     content.append(element("p", "game-card__claim-note", note));
   } else {
@@ -551,9 +570,10 @@ async function markClaimed(game, button) {
       },
       body: JSON.stringify({}),
     });
-    game.claimed = true;
-    game.claimed_at = data.claimed_at;
-    game.claim_source = data.claim_source;
+    const updated = data.game || {};
+    game.claim_status = "claimed";
+    game.claimed_at = updated.claimed_at;
+    game.claim_source = updated.claim_source;
     say("已標記為領取。");
     render();
   } catch (error) {
@@ -567,7 +587,7 @@ async function markClaimed(game, button) {
 async function init() {
   setupControls();
   if (restoreToken()) {
-    $("login").textContent = "已登入 Chi Auth";
+    setLoginLabel("已登入 Chi Auth", "已登入");
   }
   loadVersion();
   await loadConfig();

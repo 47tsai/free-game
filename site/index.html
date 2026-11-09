@@ -3,6 +3,7 @@
   - 共用件（tokens/components/navigation/theme.js/icons.svg/logo）由 chi-system 釘版複製進
     本站 chi-system/，來源 commit 見 README；不得熱連結 chi-system main。
   - 主題、圖示、header、頁尾、徽章、資料狀態皆用 chi-system；本站專屬樣式在 fg.css。
+  - 本站獨立，不設跨站導覽：header 無「其他站」切換、頁尾無其他站連結。
   - 舊寫法（舊主題 key、舊設計系統熱連結、頁內樣式）已移除。
 -->
 <html lang="zh-Hant" data-chi-theme="light" data-chi-theme-mode="system">
@@ -38,65 +39,13 @@
           <a class="chi-nav-link" href="/" aria-current="page">首頁</a>
         </nav>
 
-        <!-- 3. 跨站導覽入口：由 sites.json 產生（以下六站為範例內容，須與 sites.json 同步） -->
-        <details class="chi-header__sites">
-          <summary class="chi-sites__button" aria-label="其他 Chi 網站">
-            <svg class="chi-icon" aria-hidden="true"><use href="chi-system/icons.svg#layout-grid"></use></svg>
-            <span>其他站</span>
-          </summary>
-          <div class="chi-sites__panel">
-            <a class="chi-sites__item" href="https://chi.qzz.io">
-              <svg class="chi-icon" aria-hidden="true"><use href="chi-system/icons.svg#house"></use></svg>
-              <span>
-                <span class="chi-sites__name">Chi</span><br>
-                <span class="chi-sites__desc">個人站</span>
-              </span>
-            </a>
-            <a class="chi-sites__item" href="https://fg.chi.qzz.io" aria-current="page">
-              <svg class="chi-icon" aria-hidden="true"><use href="chi-system/icons.svg#gamepad-2"></use></svg>
-              <span>
-                <span class="chi-sites__name">Free Game</span><br>
-                <span class="chi-sites__desc">免費遊戲資訊</span>
-              </span>
-            </a>
-            <a class="chi-sites__item" href="https://merch.chi.qzz.io">
-              <svg class="chi-icon" aria-hidden="true"><use href="chi-system/icons.svg#shopping-bag"></use></svg>
-              <span>
-                <span class="chi-sites__name">收藏</span><br>
-                <span class="chi-sites__desc">模型與收藏紀錄</span>
-              </span>
-            </a>
-            <a class="chi-sites__item" href="https://nav.chi.qzz.io">
-              <svg class="chi-icon" aria-hidden="true"><use href="chi-system/icons.svg#compass"></use></svg>
-              <span>
-                <span class="chi-sites__name">導覽</span><br>
-                <span class="chi-sites__desc">常用連結導覽</span>
-              </span>
-            </a>
-            <a class="chi-sites__item" href="https://h.chi.qzz.io">
-              <svg class="chi-icon" aria-hidden="true"><use href="chi-system/icons.svg#wrench"></use></svg>
-              <span>
-                <span class="chi-sites__name">工具</span><br>
-                <span class="chi-sites__desc">實用小工具</span>
-              </span>
-            </a>
-            <a class="chi-sites__item" href="https://status.chi.qzz.io">
-              <svg class="chi-icon" aria-hidden="true"><use href="chi-system/icons.svg#activity"></use></svg>
-              <span>
-                <span class="chi-sites__name">狀態</span><br>
-                <span class="chi-sites__desc">服務狀態監控</span>
-              </span>
-            </a>
-          </div>
-        </details>
-
-        <!-- 4. 主題切換按鈕（三態，見 theme.js） -->
+        <!-- 3. 主題切換按鈕（三態，見 theme.js） -->
         <button class="chi-header__theme" type="button" data-chi-theme-toggle aria-label="目前色彩模式：跟隨系統，點擊切換">
           <svg class="chi-icon" aria-hidden="true"><use href="chi-system/icons.svg#sun-moon"></use></svg>
         </button>
 
         <!-- 本站操作：登入（標記領取狀態用） -->
-        <button id="login" class="chi-btn chi-btn--primary" type="button">使用 Chi Auth 登入</button>
+        <button id="login" class="chi-btn chi-btn--primary" type="button"><span class="fg-login__full">使用 Chi Auth 登入</span><span class="fg-login__short">登入</span></button>
       </div>
     </header>
 
@@ -163,14 +112,6 @@
 
     <footer class="chi-footer">
       <div class="chi-footer__inner">
-        <ul class="chi-footer__sites">
-          <li><a href="https://chi.qzz.io">Chi</a></li>
-          <li><a href="https://fg.chi.qzz.io">Free Game</a></li>
-          <li><a href="https://merch.chi.qzz.io">收藏</a></li>
-          <li><a href="https://nav.chi.qzz.io">導覽</a></li>
-          <li><a href="https://h.chi.qzz.io">工具</a></li>
-          <li><a href="https://status.chi.qzz.io">狀態</a></li>
-        </ul>
         <p class="chi-footer__meta">Free Game · <span id="fg-version">版本 —</span></p>
       </div>
     </footer>

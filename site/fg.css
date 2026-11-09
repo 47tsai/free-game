@@ -26,6 +26,24 @@
   top: var(--chi-space-3);
 }
 
+/* ---------- Header（本站調整） ---------- */
+/* 登入按鈕：手機版只顯示「登入」，桌面以上顯示完整文字。
+   header 是固定 60px、不換行的 flex，完整文字在 360px 寬會把整列撐出畫面。 */
+.fg-login__full {
+  display: none;
+}
+
+/* chi-breakpoint: chi-breakpoint-md */
+@media (min-width: 768px) {
+  .fg-login__full {
+    display: inline;
+  }
+
+  .fg-login__short {
+    display: none;
+  }
+}
+
 /* ---------- 主內容與頁首 ---------- */
 .fg-main {
   flex: 1;
