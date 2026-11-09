@@ -1,0 +1,373 @@
+/* Free Game 網站專屬樣式（fg.css）
+ *
+ * 只放本站專屬樣式；共用元件（按鈕、欄位、徽章、資料狀態、header、頁尾）用 chi-system。
+ * 全部數值引用 tokens.css 的 --chi-* 變數，不得寫死 token 已涵蓋的值。
+ * 響應式：優先用 auto-fit minmax / flex-wrap 讓版面自然收合；真正需要斷點的地方
+ * 只用核准值 768px，並在 @media 緊鄰上一行附 chi-breakpoint 註解（SYSTEM.md 第 4 節）。
+ * 來源：舊 site/index.html 頁內樣式移植，對照新 token 名稱改寫。
+ */
+
+/* ---------- 跳至主要內容 ---------- */
+/* chi-system 目前無此元件，先放本站（renew 設計組建議 2 亦主張補進共用件）。 */
+.fg-skip-link {
+  position: absolute;
+  left: var(--chi-space-3);
+  top: -60px;
+  z-index: 50;
+  padding: var(--chi-space-2) var(--chi-space-3);
+  border: 1px solid var(--chi-color-border-strong);
+  border-radius: var(--chi-radius-md);
+  background: var(--chi-color-surface);
+  color: var(--chi-color-text-primary);
+  text-decoration: none;
+}
+
+.fg-skip-link:focus {
+  top: var(--chi-space-3);
+}
+
+/* ---------- 主內容與頁首 ---------- */
+.fg-main {
+  flex: 1;
+  padding-bottom: var(--chi-space-8);
+}
+
+.fg-page-header {
+  padding-block: var(--chi-space-7) var(--chi-space-6);
+}
+
+.fg-page-title {
+  margin: 0;
+  color: var(--chi-color-text-primary);
+  font-size: var(--chi-font-size-page-title);
+  line-height: var(--chi-line-height-page-title);
+  font-weight: var(--chi-font-weight-page-title);
+  letter-spacing: var(--chi-letter-spacing-page-title);
+}
+
+/* ---------- 控制區 ---------- */
+.fg-controls {
+  padding-top: var(--chi-space-3);
+}
+
+.fg-controls__top {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(220px, 1fr));
+  gap: var(--chi-space-3);
+  padding-block: var(--chi-space-3);
+}
+
+.fg-search {
+  min-width: 0;
+}
+
+.fg-toolbar {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  justify-content: space-between;
+  gap: var(--chi-space-4);
+  padding-block: var(--chi-space-4);
+  border-top: 1px solid var(--chi-color-border-subtle);
+  border-bottom: 1px solid var(--chi-color-border-subtle);
+}
+
+.fg-summary {
+  color: var(--chi-color-text-muted);
+  font-size: var(--chi-font-size-body-small);
+}
+
+.fg-notice {
+  min-height: 1.5em;
+  margin: var(--chi-space-2) 0 0;
+  color: var(--chi-color-text-muted);
+  font-size: var(--chi-font-size-body-small);
+}
+
+.fg-toolbar__right {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: var(--chi-space-3);
+}
+
+.fg-page-size {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  color: var(--chi-color-text-muted);
+  font-size: var(--chi-font-size-body-small);
+}
+
+.fg-page-size .chi-select {
+  width: auto;
+  min-width: 76px;
+}
+
+.fg-view-toggle {
+  display: flex;
+  gap: var(--chi-space-2);
+}
+
+.fg-view-toggle .chi-btn {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+}
+
+/* ---------- 篩選 chip（本站專屬元件，chi-system 無 chip） ---------- */
+.fg-chip-group {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 6px;
+  min-width: 0;
+}
+
+.fg-chip {
+  min-height: 34px;
+  padding: 5px 12px;
+  border: 1px solid var(--chi-color-border-subtle);
+  border-radius: var(--chi-radius-full);
+  background: var(--chi-color-surface);
+  color: var(--chi-color-text-muted);
+  font: inherit;
+  font-size: var(--chi-font-size-body-small);
+  cursor: pointer;
+  transition: background var(--chi-duration), border-color var(--chi-duration), color var(--chi-duration);
+}
+
+.fg-chip:hover {
+  border-color: var(--chi-color-border-strong);
+  color: var(--chi-color-text-primary);
+}
+
+/* 啟用態：accent 邊框＋文字，背景用 accent 10% 淡色（無 accent-bg token，見註） */
+.fg-chip.is-active,
+.fg-view-toggle .chi-btn.is-active,
+.fg-pagination .chi-btn.is-active {
+  border-color: var(--chi-color-accent);
+  background: color-mix(in srgb, var(--chi-color-accent) 10%, var(--chi-color-surface));
+  color: var(--chi-color-accent);
+}
+
+.fg-chip.is-active {
+  font-weight: var(--chi-font-weight-label);
+}
+
+.fg-platform-chips {
+  max-height: 76px;
+  overflow-y: auto;
+  align-content: flex-start;
+  padding-right: 2px;
+}
+
+/* ---------- 遊戲卡片 ---------- */
+#games.fg-grid {
+  width: 100%;
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(min(280px, 100%), 1fr));
+  align-items: start;
+  justify-content: start;
+  gap: var(--chi-space-4);
+  padding-top: var(--chi-space-5);
+}
+
+.game-card {
+  width: 100%;
+  max-width: 340px;
+  min-width: 0;
+  display: flex;
+  flex-direction: column;
+  overflow: hidden;
+  border: 1px solid var(--chi-color-border-subtle);
+  border-radius: var(--chi-radius-lg);
+  background: var(--chi-color-surface);
+  transition: border-color var(--chi-duration);
+}
+
+.game-card:hover {
+  border-color: var(--chi-color-border-strong);
+}
+
+.game-card.focused {
+  border-color: var(--chi-color-accent);
+  outline: var(--chi-focus-width) solid var(--chi-color-accent);
+  outline-offset: var(--chi-focus-offset);
+}
+
+.game-card__media {
+  display: block;
+  width: 100%;
+  height: 191px;
+  flex: 0 0 191px;
+  overflow: hidden;
+  background: var(--chi-color-surface-sunken);
+}
+
+.game-card__cover {
+  display: block;
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+}
+
+.game-card__content {
+  min-width: 0;
+  display: flex;
+  flex-direction: column;
+  align-items: stretch;
+  gap: var(--chi-space-2);
+  padding: var(--chi-space-3);
+}
+
+.game-card__topline {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: var(--chi-space-2);
+}
+
+.game-card__platform {
+  color: var(--chi-color-text-muted);
+  font-size: var(--chi-font-size-caption);
+  font-weight: 700;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+}
+
+.game-card__title {
+  margin: 0;
+  color: var(--chi-color-text-primary);
+  font-size: var(--chi-font-size-card-title);
+  font-weight: var(--chi-font-weight-card-title);
+  line-height: var(--chi-line-height-card-title);
+  overflow-wrap: anywhere;
+}
+
+.game-card__date {
+  margin: 0;
+  color: var(--chi-color-text-muted);
+  font-size: var(--chi-font-size-caption);
+}
+
+.game-card__actions {
+  display: flex;
+  flex-wrap: wrap;
+  gap: var(--chi-space-2);
+  margin-top: auto;
+  padding-top: var(--chi-space-2);
+}
+
+.game-card__link {
+  min-height: 32px;
+  padding-inline: var(--chi-space-3);
+  font-size: var(--chi-font-size-caption);
+}
+
+.game-card__claim {
+  width: 100%;
+  min-height: 38px;
+  margin-top: var(--chi-space-1);
+}
+
+.game-card__claim:disabled {
+  cursor: not-allowed;
+  opacity: 0.55;
+}
+
+.game-card__claim-note {
+  margin: 0;
+  color: var(--chi-color-text-muted);
+  font-size: var(--chi-font-size-caption);
+}
+
+/* ---------- 清單檢視 ---------- */
+/* 手機優先：預設直向堆疊；桌面以上才改橫向（唯一需要斷點之處）。 */
+#games.fg-list {
+  display: flex;
+  flex-direction: column;
+  gap: var(--chi-space-2);
+  padding-top: var(--chi-space-4);
+}
+
+.fg-list .game-card {
+  max-width: none;
+}
+
+.fg-list .game-card__media {
+  height: 180px;
+  flex-basis: 180px;
+}
+
+/* chi-breakpoint: chi-breakpoint-md */
+@media (min-width: 768px) {
+  .fg-list .game-card {
+    flex-direction: row;
+    align-items: stretch;
+    min-height: 112px;
+  }
+
+  .fg-list .game-card__media {
+    width: 160px;
+    min-width: 160px;
+    height: auto;
+    min-height: 112px;
+    flex: 0 0 160px;
+  }
+
+  .fg-list .game-card__content {
+    flex: 1;
+    display: grid;
+    grid-template-columns: minmax(0, 1fr) auto;
+    align-content: center;
+    column-gap: var(--chi-space-4);
+    row-gap: var(--chi-space-2);
+  }
+
+  .fg-list .game-card__topline,
+  .fg-list .game-card__title,
+  .fg-list .game-card__date,
+  .fg-list .game-card__claim-note {
+    grid-column: 1;
+  }
+
+  .fg-list .game-card__actions,
+  .fg-list .game-card__claim {
+    grid-column: 2;
+    grid-row: 1 / 5;
+    align-self: center;
+    justify-content: flex-end;
+  }
+
+  .fg-list .game-card__claim {
+    width: auto;
+    min-width: 150px;
+    margin: 0;
+  }
+}
+
+/* ---------- 分頁 ---------- */
+.fg-pagination {
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  flex-wrap: wrap;
+  gap: 6px;
+  padding-block: var(--chi-space-6);
+}
+
+.fg-pagination .chi-btn {
+  min-width: 38px;
+}
+
+.fg-pagination__info {
+  padding-inline: var(--chi-space-2);
+  color: var(--chi-color-text-muted);
+  font-size: var(--chi-font-size-body-small);
+}
+
+/* ---------- 資料狀態 ---------- */
+/* .chi-state 在 grid 容器內要橫跨全部欄位。 */
+#games .chi-state {
+  grid-column: 1 / -1;
+}

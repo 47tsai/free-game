@@ -1,0 +1,215 @@
+/* chi-system tokens.css — 視覺 token 唯一來源（SYSTEM.md 第 4 節、第 15 節第 5 步）
+ *
+ * 兩套完整配對：:root 為淺色預設，[data-chi-theme="dark"] 覆寫深色。
+ * 實際生效主題由 theme.js 寫在 <html data-chi-theme="light|dark">（第 5 節）；
+ * 本檔依該屬性切換，不讀 localStorage、不判斷 prefers-color-scheme。
+ * 各站不得寫死本檔已涵蓋的數值，一律引用變數；需要新數值時先在 chi-system
+ * 新增語意名稱、發新版，各站再升級（第 4 節）。
+ * 斷點不是 CSS 變數，不在本檔定義（見 breakpoints.json，第 4 節）。
+ *
+ * 色溫：中性偏冷（灰階同取 220 色相、低飽和），淺深兩套共用同一色溫家族。
+ * 品牌藍 #4A88FC 保留給 logo 與站識別色；accent 另取同色相、對比過 AA 的值，
+ * 因為 #4A88FC 作連結文字對淺色底只有 3.18:1、白字按鈕只有 3.38:1，皆未達 AA。
+ * 對比驗收（WCAG 2.2 AA，一般文字 4.5:1、focus 3:1）見檔尾附表；驗算腳本與
+ * 完整結果記錄於本檔對應的變更說明，不另存數值副本。
+ */
+
+/* ---------- 淺色（預設） ---------- */
+:root {
+  color-scheme: light;
+
+  /* 表面：canvas 非純白（DESIGN.md 7.2） */
+  --chi-color-canvas: #f7f8fa;
+  --chi-color-surface: #ffffff;
+  --chi-color-surface-raised: #ffffff;
+  --chi-color-surface-sunken: #edf0f4;
+
+  /* 文字：四級皆須過 AA（muted 亦然，DESIGN.md 7.3） */
+  --chi-color-text-primary: #17191f;
+  --chi-color-text-secondary: #4a5568;
+  --chi-color-text-muted: #5f6b7a;
+  --chi-color-text-disabled: #9aa3af;
+
+  /* 邊框：細邊框原則 */
+  --chi-color-border-subtle: #e2e6ec;
+  --chi-color-border-strong: #c6cdd6;
+
+  /* 品牌主色：連結文字與主要操作皆用此值（白字按鈕 5.17:1、連結文字 4.86:1） */
+  --chi-color-accent: #2563eb;
+  --chi-color-accent-hover: #1d4ed8;
+  --chi-color-accent-active: #1e40af;
+  --chi-color-on-accent: #ffffff;
+
+  /* focus-ring 預設沿用 accent（DESIGN.md 7.2）；對 canvas 4.86:1、對 surface 5.17:1，
+     (A) 相鄰對比與 (B) 狀態變化對比皆過 3:1。外框須以 outline-offset 2px 落在元件外，
+     使相鄰色為背景而非元件本身（見 --chi-focus-offset）。 */
+  --chi-color-focus-ring: var(--chi-color-accent);
+
+  /* 語意色：DESIGN.md 7.2 定案值（Adobe Spectrum 900 階）。-bg 為徽章淡背景，
+     -strong 為淡背景上的文字色：驗算發現 900 文字色配淡背景在淺色只有約 4.0:1，
+     未達 AA，故徽章文字用同色相加深 15% 的 -strong（對淡背景約 5.6:1），
+     一般背景上的狀態文字仍用 900 本色。 */
+  --chi-color-success: #05834e;
+  --chi-color-success-bg: #ebf5f1;
+  --chi-color-success-strong: #046f42;
+  --chi-color-warning: #9e6600;
+  --chi-color-warning-bg: #f7f3eb;
+  --chi-color-warning-strong: #865700;
+  --chi-color-danger: #d73220;
+  --chi-color-danger-bg: #fcefed;
+  --chi-color-danger-strong: #b72a1b;
+  --chi-color-info: #3b63fb;
+  --chi-color-info-bg: #eff3ff;
+  --chi-color-info-strong: #3254d5;
+
+  /* 字型：系統內建堆疊，不載入遠端字型（第 7 節） */
+  --chi-font-sans: -apple-system, blinkmacsystemfont, "Segoe UI", "Noto Sans TC",
+    "PingFang TC", "Microsoft JhengHei", "Helvetica Neue", Arial, sans-serif;
+  --chi-font-mono: ui-monospace, "SF Mono", "Cascadia Code", "JetBrains Mono",
+    Menlo, Consolas, "Noto Sans Mono TC", monospace;
+
+  /* 字級／行高／字重：層級主要靠大小與字重（DESIGN.md 7.3） */
+  --chi-font-size-display: 36px;
+  --chi-line-height-display: 44px;
+  --chi-font-weight-display: 800;
+  --chi-font-size-page-title: 28px;
+  --chi-line-height-page-title: 36px;
+  --chi-font-weight-page-title: 700;
+  --chi-font-size-section-title: 20px;
+  --chi-line-height-section-title: 28px;
+  --chi-font-weight-section-title: 700;
+  --chi-font-size-card-title: 16px;
+  --chi-line-height-card-title: 24px;
+  --chi-font-weight-card-title: 600;
+  --chi-font-size-body: 16px;
+  --chi-line-height-body: 26px;
+  --chi-font-weight-body: 400;
+  --chi-font-size-body-small: 14px;
+  --chi-line-height-body-small: 22px;
+  --chi-font-weight-body-small: 400;
+  --chi-font-size-caption: 12px;
+  --chi-line-height-caption: 18px;
+  --chi-font-weight-caption: 400;
+  --chi-font-size-label: 14px;
+  --chi-line-height-label: 20px;
+  --chi-font-weight-label: 600;
+  --chi-font-size-code: 14px;
+  --chi-line-height-code: 22px;
+  --chi-font-weight-code: 400;
+
+  /* 標題字距略收緊（中文實測前保守值，見 DESIGN.md 7.3） */
+  --chi-letter-spacing-display: -0.01em;
+  --chi-letter-spacing-page-title: -0.01em;
+
+  /* 間距：8px 基準，三級語意（DESIGN.md 7.4） */
+  --chi-space-1: 4px;
+  --chi-space-2: 8px;
+  --chi-space-3: 12px;
+  --chi-space-4: 16px;
+  --chi-space-5: 24px;
+  --chi-space-6: 32px;
+  --chi-space-7: 48px;
+  --chi-space-8: 64px;
+  --chi-space-section: 48px;
+  --chi-space-group: 24px;
+  --chi-space-item: 16px;
+  --chi-space-inline: 8px;
+
+  /* 圓角：依元件分級（DESIGN.md 7.5） */
+  --chi-radius-sm: 6px;
+  --chi-radius-md: 8px;
+  --chi-radius-lg: 12px;
+  --chi-radius-xl: 16px;
+  --chi-radius-full: 999px;
+
+  /* 陰影：淺色以邊框為主、柔影為輔（DESIGN.md 7.6） */
+  --chi-shadow-whisper: 0 1px 2px rgb(16 24 40 / 0.06);
+  --chi-shadow-raised: 0 1px 3px rgb(16 24 40 / 0.06), 0 4px 12px rgb(16 24 40 / 0.08);
+  --chi-shadow-overlay: 0 2px 8px rgb(16 24 40 / 0.08), 0 12px 32px rgb(16 24 40 / 0.16);
+
+  /* Focus Appearance 幾何（DESIGN.md 7.6）：外框 2px（WCAG 2.4.13 面積下限）、
+     偏移 2px、形狀跟隨元件圓角；實際 :focus-visible 規則在 components.css。 */
+  --chi-focus-width: 2px;
+  --chi-focus-offset: 2px;
+
+  /* 版面（與寬度相關但非媒體查詢條件者，仍為一般 token，第 4 節） */
+  --chi-layout-header-height: 60px;
+  --chi-layout-content-max: 1080px;
+
+  /* 元件尺寸：舒適模式；觸控目標下限 44px，緊湊只縮間距與列高、不縮觸控目標 */
+  --chi-size-control: 40px;
+  --chi-size-control-compact: 36px;
+  --chi-size-touch-min: 44px;
+  --chi-size-list-row: 48px;
+  --chi-size-list-row-compact: 40px;
+
+  /* 動效：只服務狀態變化（DESIGN.md 7.8）；減少動態偏好時關閉（見 components.css） */
+  --chi-duration: 150ms;
+}
+
+/* 緊湊密度：與舒適共用同一套間距角色、取較小值（DESIGN.md 7.4）；
+   用法：在需要緊湊的容器上加 data-chi-density="compact"。 */
+[data-chi-density="compact"] {
+  --chi-space-section: 32px;
+  --chi-space-group: 16px;
+  --chi-space-item: 12px;
+  --chi-size-control: var(--chi-size-control-compact);
+  --chi-size-list-row: var(--chi-size-list-row-compact);
+}
+
+/* ---------- 深色 ---------- */
+[data-chi-theme="dark"] {
+  color-scheme: dark;
+
+  /* 表面：canvas 非純黑；深度以明度階梯與邊框為主（DESIGN.md 7.6） */
+  --chi-color-canvas: #131519;
+  --chi-color-surface: #1b1e24;
+  --chi-color-surface-raised: #23272f;
+  --chi-color-surface-sunken: #0d0f12;
+
+  --chi-color-text-primary: #f2f4f7;
+  --chi-color-text-secondary: #b9c0cc;
+  --chi-color-text-muted: #8b94a1;
+  --chi-color-text-disabled: #5c6570;
+
+  --chi-color-border-subtle: #2a2f38;
+  --chi-color-border-strong: #3d434e;
+
+  /* 深色 accent 提亮：連結文字對 canvas 6.75:1；主要操作按鈕用深色字
+     （白字對此色只有 2.71:1，未達 AA），active 態即品牌藍 #4a88fc。 */
+  --chi-color-accent: #6b9bff;
+  --chi-color-accent-hover: #84adff;
+  --chi-color-accent-active: #4a88fc;
+  --chi-color-on-accent: #131519;
+
+  /* focus-ring 沿用 accent：對 canvas 6.75:1、對 surface 6.17:1 */
+  --chi-color-success: #099d59;
+  --chi-color-success-bg: #12231f;
+  --chi-color-success-strong: #099d59;
+  --chi-color-warning: #ba7c00;
+  --chi-color-warning-bg: #241f16;
+  --chi-color-warning-strong: #ba7c00;
+  --chi-color-danger: #fc432e;
+  --chi-color-danger-bg: #2a1a1b;
+  --chi-color-danger-strong: #fc432e;
+  --chi-color-info: #5681ff;
+  --chi-color-info-bg: #1a2030;
+  --chi-color-info-strong: #5681ff;
+
+  /* 深色陰影只輔助明度階梯與邊框（DESIGN.md 7.6） */
+  --chi-shadow-whisper: none;
+  --chi-shadow-raised: 0 4px 16px rgb(0 0 0 / 0.4);
+  --chi-shadow-overlay: 0 16px 40px rgb(0 0 0 / 0.5);
+}
+
+/*
+ * 對比驗收附表（WCAG 2.2 AA，實測值，2026-11-09 驗算）
+ * 淺色：text-primary 16.53:1、text-secondary 7.08:1、text-muted 5.11:1（皆對 canvas）；
+ *   accent 連結文字 4.86:1、白字按鈕 5.17:1；語意色文字對 canvas 約 4.53:1；
+ *   語意 -strong 文字對 -bg 約 5.6:1；focus-ring 對 canvas 4.86:1。
+ * 深色：text-primary 16.59:1、text-secondary 9.99:1、text-muted 5.96:1（皆對 canvas）；
+ *   accent 連結文字 6.75:1、深色字按鈕 6.75:1；語意色文字對 canvas 約 5.20:1；
+ *   語意文字對 -bg 約 4.6:1；focus-ring 對 canvas 6.75:1。
+ * text-muted 淺色初選 #667085 對 sunken 只有 4.35:1，已改為 #5f6b7a（4.75:1）。
+ * text-disabled 僅限真正不可操作的元件，適用 WCAG inactive 豁免（DESIGN.md 7.2）。
+ */
