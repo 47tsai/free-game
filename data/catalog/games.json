@@ -20,6 +20,25 @@
       "updated_at": "2026-11-07T00:32:33.454840Z"
     },
     {
+      "added_at": "2026-11-10T16:01:27.441249Z",
+      "article_url": "https://www.4gamers.com.tw/news/detail/83209/battle-sweeper-steam-delisting",
+      "claim_notification_pending": false,
+      "claim_source": null,
+      "claim_status": "unclaimed",
+      "claimed_at": null,
+      "cover_image_url": "https://img.4gamers.com.tw/news-image/17a506f6-4657-4339-a4ea-b9348a427681.jpg",
+      "created_at": "2026-11-10T16:01:27.441249Z",
+      "external_product_id": "1380360",
+      "id": "game_779c66ee-04d5-5fc9-a989-2a74e3c2e757",
+      "normalized_title": "戰鬥掃雷",
+      "offer_end_at": null,
+      "platform": "steam",
+      "reminder_last_sent_at": null,
+      "store_url": "https://store.steampowered.com/app/1380360/",
+      "title": "戰鬥掃雷",
+      "updated_at": "2026-11-10T16:01:27.441249Z"
+    },
+    {
       "added_at": "2026-11-04T09:21:32.963766Z",
       "article_url": "https://www.4gamers.com.tw/news/detail/83068/last-gambit-is-free-to-keep-before-early-access-end",
       "claim_notification_pending": false,
@@ -37,6 +56,25 @@
       "store_url": "https://store.steampowered.com/news/app/4983490/view/712290761518876561",
       "title": "Last Gambit",
       "updated_at": "2026-11-04T10:01:29.654708Z"
+    },
+    {
+      "added_at": "2026-11-10T16:01:27.441794Z",
+      "article_url": "https://www.4gamers.com.tw/news/detail/83206/sadball-free-steam-game-delisting-soon",
+      "claim_notification_pending": false,
+      "claim_source": null,
+      "claim_status": "unclaimed",
+      "claimed_at": null,
+      "cover_image_url": "https://img.4gamers.com.tw/news-image/9ef07178-cb46-426e-9a5e-ce6454cd8312.jpg",
+      "created_at": "2026-11-10T16:01:27.441794Z",
+      "external_product_id": "2954030",
+      "id": "game_c0dbb454-be35-5b19-8428-44fa658d25d0",
+      "normalized_title": "sadball",
+      "offer_end_at": null,
+      "platform": "steam",
+      "reminder_last_sent_at": null,
+      "store_url": "https://store.steampowered.com/app/2954030/",
+      "title": "Sadball",
+      "updated_at": "2026-11-10T16:01:27.441794Z"
     },
     {
       "added_at": "2026-11-04T03:51:49.717616Z",
@@ -77,5 +115,5 @@
     }
   ],
   "schema_version": 1,
-  "updated_at": "2026-11-08T10:52:16.007456Z"
+  "updated_at": "2026-11-10T16:01:27.789016Z"
 }
