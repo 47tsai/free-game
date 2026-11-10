@@ -93,6 +93,19 @@ class _ArticleHTMLParser(HTMLParser):
             if parsed.scheme == "https" and host and not ignored and not same_site:
                 self._active_url = urlunparse(parsed._replace(query="", fragment=""))
                 self._active_text = []
+        # 4Gamers embeds Steam products as widget iframes rather than anchors.
+        # Convert the widget URL to its canonical app URL so the existing ID
+        # extraction and candidate pipeline can handle it unchanged.
+        if tag == "iframe" and attrs_map.get("src") and not self.skip_depth:
+            absolute = urljoin(self.base_url, unescape(attrs_map["src"]))
+            parsed = urlparse(absolute)
+            host = (parsed.hostname or "").lower().rstrip(".")
+            widget = re.fullmatch(r"/widget/(\d+)/?", parsed.path)
+            if parsed.scheme == "https" and host == "store.steampowered.com" and widget:
+                app_url = urlunparse(parsed._replace(
+                    path=f"/app/{widget.group(1)}/", query="", fragment=""
+                ))
+                self.links.append((app_url, ""))
 
     def _finish_active_link(self) -> None:
         if self._active_url:
