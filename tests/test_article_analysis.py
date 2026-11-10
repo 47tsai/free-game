@@ -253,3 +253,45 @@ def test_excludes_free_to_play_base_game_when_article_offers_only_dlc():
     assert len(result) == 1
     assert result[0].title == "Flotsam"
     assert result[0].external_product_id == "flotsam-266287"
+
+
+
+def test_extracts_steam_products_from_4gamers_steam_widget_iframes():
+    analyzer = FourGamersArticleAnalyzer()
+    cases = [
+        (
+            observation(title="Steam限免：《戰鬥掃雷》將下架"),
+            '<iframe src="https://store.steampowered.com/widget/1380360/" '
+            'width="646" height="190"></iframe>',
+            "1380360",
+            "戰鬥掃雷",
+        ),
+        (
+            observation(title="Steam限免：《Sadball》將下架"),
+            '<iframe src="https://store.steampowered.com/widget/2954030/" '
+            'width="646" height="190"></iframe>',
+            "2954030",
+            "Sadball",
+        ),
+    ]
+
+    for article, html, app_id, title in cases:
+        result = analyzer.analyze(article, f"<html><body>{html}</body></html>")
+
+        assert len(result) == 1
+        assert result[0].platform == "steam"
+        assert result[0].external_product_id == app_id
+        assert result[0].title == title
+        assert result[0].product_url == f"https://store.steampowered.com/app/{app_id}/"
+        assert result[0].verification_status == "candidate"
+
+
+def test_ignores_non_steam_and_non_widget_iframes():
+    html = """
+    <html><body>
+      <iframe src="https://www.youtube.com/embed/example"></iframe>
+      <iframe src="https://store.steampowered.com/app/12345/example/"></iframe>
+      <iframe src="https://store.steampowered.com/widget/not-a-number/"></iframe>
+    </body></html>
+    """
+    assert FourGamersArticleAnalyzer().analyze(observation(), html) == ()
