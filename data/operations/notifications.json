@@ -33,8 +33,8 @@
       "idempotency_key": "new_game:game_c0dbb454-be35-5b19-8428-44fa658d25d0:discord",
       "last_error": null,
       "notification_type": "new_offer",
-      "sent_at": null,
-      "status": "pending"
+      "sent_at": "2026-11-10T16:01:36.520544Z",
+      "status": "sent"
     },
     {
       "attempt_count": 1,
@@ -146,5 +146,5 @@
     }
   ],
   "schema_version": 1,
-  "updated_at": "2026-11-10T16:01:34.367993Z"
+  "updated_at": "2026-11-10T16:01:36.939544Z"
 }
