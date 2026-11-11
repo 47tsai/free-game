@@ -60,7 +60,7 @@
     {
       "added_at": "2026-11-10T16:01:27.441794Z",
       "article_url": "https://www.4gamers.com.tw/news/detail/83206/sadball-free-steam-game-delisting-soon",
-      "claim_notification_pending": true,
+      "claim_notification_pending": false,
       "claim_source": "manual",
       "claim_status": "claimed",
       "claimed_at": "2026-11-11T13:41:45.208Z",
@@ -74,7 +74,7 @@
       "reminder_last_sent_at": null,
       "store_url": "https://store.steampowered.com/app/2954030/",
       "title": "Sadball",
-      "updated_at": "2026-11-11T13:41:45.208Z"
+      "updated_at": "2026-11-11T16:01:29.320736Z"
     },
     {
       "added_at": "2026-11-04T03:51:49.717616Z",
@@ -115,5 +115,5 @@
     }
   ],
   "schema_version": 1,
-  "updated_at": "2026-11-11T16:01:25.580397Z"
+  "updated_at": "2026-11-11T16:01:29.427584Z"
 }
