@@ -20,6 +20,25 @@
       "updated_at": "2026-11-07T00:32:33.454840Z"
     },
     {
+      "added_at": "2026-11-13T04:01:29.025011Z",
+      "article_url": "https://www.4gamers.com.tw/news/detail/83277/pokemon-legends-z-a-shiny-xerneas-yveltal-mystery-gift-code",
+      "claim_notification_pending": false,
+      "claim_source": null,
+      "claim_status": "unclaimed",
+      "claimed_at": null,
+      "cover_image_url": "https://img.4gamers.com.tw/news-image/e04a6280-e20f-4380-9b22-b36c3567a836.jpg",
+      "created_at": "2026-11-13T04:01:29.025011Z",
+      "external_product_id": "receive",
+      "id": "game_543cf611-5be8-5932-bdf6-08a325f6ca8c",
+      "normalized_title": "官方領取說明",
+      "offer_end_at": null,
+      "platform": "pokemon.co.jp",
+      "reminder_last_sent_at": null,
+      "store_url": "https://www.pokemon.co.jp/ex/legends_z-a/tc/lineup/receive",
+      "title": "官方領取說明",
+      "updated_at": "2026-11-13T04:01:29.025011Z"
+    },
+    {
       "added_at": "2026-11-10T16:01:27.441249Z",
       "article_url": "https://www.4gamers.com.tw/news/detail/83209/battle-sweeper-steam-delisting",
       "claim_notification_pending": false,
@@ -75,6 +94,25 @@
       "store_url": "https://store.steampowered.com/news/app/4983490/view/712290761518876561",
       "title": "Last Gambit",
       "updated_at": "2026-11-04T10:01:29.654708Z"
+    },
+    {
+      "added_at": "2026-11-13T04:01:29.025819Z",
+      "article_url": "https://www.4gamers.com.tw/news/detail/83277/pokemon-legends-z-a-shiny-xerneas-yveltal-mystery-gift-code",
+      "claim_notification_pending": false,
+      "claim_source": null,
+      "claim_status": "unclaimed",
+      "claimed_at": null,
+      "cover_image_url": "https://img.4gamers.com.tw/news-image/e04a6280-e20f-4380-9b22-b36c3567a836.jpg",
+      "created_at": "2026-11-13T04:01:29.025819Z",
+      "external_product_id": "188",
+      "id": "game_85e0fb88-9565-5d27-8e2c-0d52e3376ec4",
+      "normalized_title": "官方網站公告",
+      "offer_end_at": null,
+      "platform": "pocoapokemon.jp",
+      "reminder_last_sent_at": null,
+      "store_url": "https://www.pocoapokemon.jp/tc/news/188",
+      "title": "官方網站公告",
+      "updated_at": "2026-11-13T04:01:29.025819Z"
     },
     {
       "added_at": "2026-11-10T16:01:27.441794Z",
@@ -134,5 +172,5 @@
     }
   ],
   "schema_version": 1,
-  "updated_at": "2026-11-12T16:01:21.473732Z"
+  "updated_at": "2026-11-13T04:01:29.166538Z"
 }
