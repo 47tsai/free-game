@@ -39,7 +39,8 @@ const assetRefs = [
 for (const match of assetRefs) {
   const ref = match[1];
   if (/^(?:https?:)?\/\//.test(ref) || ref.startsWith("data:") || ref.startsWith("#")) continue;
-  const path = resolve(site, ref);
+  const localRef = ref.split(/[?#]/, 1)[0];
+  const path = resolve(site, localRef);
   const rel = relative(site, path);
   if (rel.startsWith("..") || !existsSync(path)) errors.push("Missing or unsafe local asset reference: " + ref);
 }
