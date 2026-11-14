@@ -403,3 +403,18 @@
 #games .chi-state {
   grid-column: 1 / -1;
 }
+
+/* ---------- Mobile page-title spacing ---------- */
+@media (max-width: 767px) {
+  .fg-main {
+    padding-top: var(--chi-space-3);
+  }
+
+  .fg-page-header {
+    padding-block: var(--chi-space-3) var(--chi-space-2);
+  }
+
+  .fg-controls {
+    padding-top: var(--chi-space-2);
+  }
+}
