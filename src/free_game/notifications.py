@@ -74,6 +74,8 @@ class DiscordWebhookSender:
 
 
 class DiscordNotificationService:
+    HIDDEN_PATH = "data/catalog/hidden-games.json"
+
     def __init__(self, writer: GitHubJsonWriter, sender: DiscordWebhookSender) -> None:
         self.writer = writer
         self.sender = sender
@@ -84,6 +86,11 @@ class DiscordNotificationService:
         notifications = self.writer.store.read(GitHubJsonWriter.NOTIFICATIONS_PATH).document.get("records")
         if not isinstance(games, list) or not isinstance(notifications, list):
             raise ValueError("game_or_notification_records_invalid")
+        hidden_document = self.writer.store.read(self.HIDDEN_PATH).document
+        hidden_ids = hidden_document.get("ids", [])
+        if not isinstance(hidden_ids, list) or any(not isinstance(item, str) for item in hidden_ids):
+            raise ValueError("hidden_games:ids_must_be_string_array")
+        hidden_set = set(hidden_ids)
         notification_by_key = {item.get("idempotency_key"): item for item in notifications if isinstance(item, dict)}
         known = set(notification_by_key)
         sent = skipped = failed = 0
@@ -117,7 +124,7 @@ class DiscordNotificationService:
             if not isinstance(game, dict) or not game.get("article_url"):
                 continue
             game_id = game.get("id")
-            if not isinstance(game_id, str):
+            if not isinstance(game_id, str) or game_id in hidden_set:
                 continue
             new_key = f"new_game:{game_id}:discord"
             was_announced = notification_by_key.get(new_key, {}).get("status") == "sent"
