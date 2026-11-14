@@ -33,10 +33,10 @@
       "normalized_title": "官方領取說明",
       "offer_end_at": null,
       "platform": "pokemon.co.jp",
-      "reminder_last_sent_at": null,
+      "reminder_last_sent_at": "2026-11-14T09:40:48.614665Z",
       "store_url": "https://www.pokemon.co.jp/ex/legends_z-a/tc/lineup/receive",
       "title": "官方領取說明",
-      "updated_at": "2026-11-13T04:01:29.025011Z"
+      "updated_at": "2026-11-14T09:40:51.713100Z"
     },
     {
       "added_at": "2026-11-10T16:01:27.441249Z",
@@ -172,5 +172,5 @@
     }
   ],
   "schema_version": 1,
-  "updated_at": "2026-11-13T16:01:29.913188Z"
+  "updated_at": "2026-11-14T09:40:51.940865Z"
 }
