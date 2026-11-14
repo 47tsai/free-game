@@ -50,8 +50,12 @@
   min-height: 100vh;
 }
 
+/* .chi-main uses auto horizontal margins; as a flex item this needs an explicit
+   width or it shrink-wraps to its contents instead of filling the desktop shell. */
 .fg-main {
   flex: 1;
+  width: 100%;
+  box-sizing: border-box;
   padding-bottom: var(--chi-space-8);
 }
 
