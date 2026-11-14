@@ -1,12 +1,8 @@
 <!doctype html>
-<!-- Free Game 網站（fg.chi.qzz.io）— chi-system 重寫版
-  - 共用件（tokens/components/navigation/theme.js/icons.svg/logo）由 chi-system 釘版複製進
-    本站 chi-system/，來源 commit 見 README；不得熱連結 chi-system main。
-  - 主題、圖示、header、頁尾、徽章、資料狀態皆用 chi-system；本站專屬樣式在 fg.css。
-  - 本站獨立，不設跨站導覽：header 無「其他站」切換、頁尾無其他站連結。
-  - 舊寫法（舊主題 key、舊設計系統熱連結、頁內樣式）已移除。
--->
-<html lang="zh-Hant" data-chi-theme="light" data-chi-theme-mode="system">
+<!-- Free Game site shell: CHI Design System v1.0.0, pinned to c71c30c44b6934049ed817964a392feb7c9345b3.
+     CHI owns the shared header, footer, theme, tokens and component primitives.
+     fg.css contains only Free Game-specific layout and game-list styling. -->
+<html lang="zh-Hant" data-chi-theme="light" data-chi-theme-mode="system" data-chi-layout="header" data-chi-brand="fg">
 <head>
   <meta charset="utf-8">
   <meta name="viewport" content="width=device-width, initial-scale=1">
@@ -18,34 +14,28 @@
   <script src="chi-system/theme.js"></script>
   <link rel="stylesheet" href="chi-system/tokens.css">
   <link rel="stylesheet" href="chi-system/components.css">
-  <link rel="stylesheet" href="chi-system/navigation.css">
   <link rel="stylesheet" href="fg.css">
 </head>
 <body>
-  <div class="chi-page">
-    <a class="fg-skip-link" href="#main-content">跳至主要內容</a>
+  <div class="chi-shell">
+    <div class="chi-content">
+      <a class="fg-skip-link" href="#main-content">跳至主要內容</a>
 
-    <header class="chi-header">
-      <div class="chi-header__inner">
-        <!-- 1. Logo + 站名 -->
+      <header class="chi-header">
         <a class="chi-header__brand" href="/">
-          <img class="chi-header__logo chi-header__logo--light" src="chi-system/logo/fg-b.png" alt="Free Game" width="32" height="32">
-          <img class="chi-header__logo chi-header__logo--dark" src="chi-system/logo/fg-w.png" alt="Free Game" width="32" height="32">
-          <span>Free Game</span>
+          <img class="chi-header__logo chi-header__logo--light" src="chi-system/logo/fg-b.png" alt="" width="32" height="32">
+          <img class="chi-header__logo chi-header__logo--dark" src="chi-system/logo/fg-w.png" alt="" width="32" height="32">
+          <span class="chi-header__name">Free Game</span>
         </a>
+        <div class="chi-header__actions">
+          <button id="login" class="chi-btn chi-btn--primary" type="button"><span class="fg-login__full">使用 Chi Auth 登入</span><span class="fg-login__short">登入</span></button>
+          <button class="chi-header__theme" type="button" data-chi-theme-toggle aria-label="切換主題" title="切換主題">
+            <span aria-hidden="true" data-chi-theme-icon>◐</span>
+          </button>
+        </div>
+      </header>
 
-        <!-- 2. 主題切換按鈕（三態，見 theme.js） -->
-        <button class="chi-header__theme" type="button" data-chi-theme-toggle aria-label="目前色彩模式：跟隨系統，點擊切換">
-          <svg class="chi-icon" aria-hidden="true"><use href="chi-system/icons.svg#sun-moon"></use></svg>
-        </button>
-
-        <!-- 本站操作：登入（標記領取狀態用） -->
-        <button id="login" class="chi-btn chi-btn--primary" type="button"><span class="fg-login__full">使用 Chi Auth 登入</span><span class="fg-login__short">登入</span></button>
-      </div>
-    </header>
-
-    <main class="chi-main fg-main" id="main-content" tabindex="-1">
-      <div class="chi-container">
+      <main class="chi-main fg-main" id="main-content" tabindex="-1">
         <section class="fg-page-header">
           <h1 class="fg-page-title">免費遊戲</h1>
         </section>
@@ -86,12 +76,8 @@
                 <span>筆</span>
               </label>
               <div class="fg-view-toggle" role="group" aria-label="顯示模式">
-                <button id="view-grid" class="chi-btn chi-btn--secondary is-active" type="button" aria-pressed="true">
-                  <svg class="chi-icon chi-icon--sm" aria-hidden="true"><use href="chi-system/icons.svg#layout-grid"></use></svg>卡片
-                </button>
-                <button id="view-list" class="chi-btn chi-btn--secondary" type="button" aria-pressed="false">
-                  <svg class="chi-icon chi-icon--sm" aria-hidden="true"><use href="chi-system/icons.svg#list"></use></svg>清單
-                </button>
+                <button id="view-grid" class="chi-btn chi-btn--secondary is-active" type="button" aria-pressed="true">卡片</button>
+                <button id="view-list" class="chi-btn chi-btn--secondary" type="button" aria-pressed="false">清單</button>
               </div>
             </div>
           </div>
@@ -100,16 +86,14 @@
         </section>
 
         <section id="games" class="fg-grid" aria-label="免費遊戲清單"></section>
-
         <nav id="pagination" class="fg-pagination" aria-label="遊戲清單分頁"></nav>
-      </div>
-    </main>
+      </main>
 
-    <footer class="chi-footer">
-      <div class="chi-footer__inner">
-        <p class="chi-footer__meta">Free Game · <span id="fg-version">版本 —</span></p>
-      </div>
-    </footer>
+      <footer class="chi-footer">
+        <span class="chi-footer__name">Free Game</span>
+        <span class="chi-footer__version" data-chi-version id="fg-version">版本 —</span>
+      </footer>
+    </div>
   </div>
 
   <script src="app.js" defer></script>
