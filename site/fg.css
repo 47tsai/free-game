@@ -346,9 +346,6 @@
 
 .fg-list .game-card {
   max-width: none;
-}
-
-.fg-list .game-card {
   flex-direction: row;
   align-items: stretch;
   min-height: 132px;
