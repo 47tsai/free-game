@@ -34,6 +34,10 @@
 
 /* chi-breakpoint: chi-breakpoint-md */
 @media (min-width: 768px) {
+  #games.fg-grid {
+    grid-template-columns: repeat(auto-fill, minmax(min(280px, 100%), 1fr));
+  }
+
   .fg-login__full {
     display: inline;
   }
