@@ -130,69 +130,385 @@ function clearToken() {
 }
 
 function restoreToken() {
-{­²Ö­ºÍHÂˆÛÛœİÚÙ[ˆHÙ\ÜÚ[Û”İÜ˜YÙK™Ù]][JÒÑS—ÒÑVJNÂˆÛÛœİ^\™\Ğ]H[X™\ŠÙ\ÜÚ[Û”İÜ˜YÙK™Ù]][JÒÑS—ÑVT–WÒÑVJH
-NÂˆYˆ
-ÚÙ[ˆ	‰ˆ^\™\Ğ]ˆ]K››İÊ
-JHÂˆİ]K˜XØÙ\ÜÕÚÙ[ˆHÚÙ[Âˆİ]K˜XØÙ\ÜÕÚÙ[‘^\™\Ğ]H^\™\Ğ]Âˆ™]\›ˆYNÂˆBˆHØ]ÚÂˆËÈ9oïyåiBˆBˆÛX\•ÚÙ[Š
-NÂˆ™]\›ˆ˜[ÙNÂŸB‚™[˜İ[Ûˆ™XY[™[™ĞÛZ[J
-HÂˆHÂˆÛÛœİ[™[™ÒYHÙ\ÜÚ[Û”İÜ˜YÙK™Ù]][JS‘S‘×ĞÓRSWÒÑVJNÂˆYˆ
-[™[™ÒY
-HÙ\ÜÚ[Û”İÜ˜YÙKœ™[[İ™R][JS‘S‘×ĞÓRSWÒÑVJNÂˆ™]\›ˆ[™[™ÒYÂˆHØ]ÚÂˆ™]\›ˆ[ÂˆBŸB‚˜\Ş[˜È[˜İ[ÛˆÙÚ[Š
-HÂˆYˆ
-\İ]K˜]]ÛY[Y
-HÂˆØ^JÚH]]9l&¹§*¹k£9¢$9¡âyå*:*+yk¦¸à ˆŠNÂˆ™]\›ÂˆBˆÛÛœİ™\šYšY\ˆH\›
-Ü\Ë™Ù]˜[™ÛU˜[Y\Ê™]ÈZ[\œ˜^J
-JJNÂˆÛÛœİØ]]İ]HH\›
-Ü\Ë™Ù]˜[™ÛU˜[Y\Ê™]ÈZ[\œ˜^J
-JJNÂˆHÂˆÙ\ÜÚ[Û”İÜ˜YÙKœÙ]][JĞÑWÕ‘T’Q’QT—ÒÑVK™\šYšY\ŠNÂˆÙ\ÜÚ[Û”İÜ˜YÙKœÙ]][JĞUUÔÕUWÒÑVKØ]]İ]JNÂˆHØ]ÚÂˆØ^J¹à#ú)¯yfj9.#ya`z*,ya,¹kf9ænùaiyâà9¡bûï#:*âùª¨¹§éz*+yk¦¹o£9a£z*i¸à ˆŠNÂˆ™]\›ÂˆBˆÛÛœİ\˜[\ÈH™]ÈT“ÙX\˜Ú\˜[\ÊÂˆ™\ÜÛœÙWİ\Nˆ˜ÛÙH‹ˆÛY[ÚYˆİ]K˜]]ÛY[Yˆ™Y\™Xİİ\šNˆØØ][Û‹›ÜšYÚ[ˆ
-È‹È‹ˆÛÙWØÚ[[™ÙNˆ]ØZ]YÙ\İ
-™\šYšY\ŠKˆÛÙWØÚ[[™ÙWÛY]Ùˆ”ÌMˆ‹ˆİ]NˆØ]]İ]KˆJNÂˆØØ][Û‹š™YˆHUU
-È‹Ø\KØ]]Üš^™OÈˆ
-È\˜[\ËÔİš[™Ê
-NÂŸB‚˜\Ş[˜È[˜İ[Ûˆš[š\ÚÙÚ[Š
-HÂˆÛÛœİ\˜[\ÈH™]ÈT“ÙX\˜Ú\˜[\ÊØØ][Û‹œÙX\˜Ú
-NÂˆÛÛœİÛÙHH\˜[\Ë™Ù]
-˜ÛÙHŠNÂˆYˆ
-XÛÙH\İ]K˜]]ÛY[Y
-H™]\›ÂˆÛÛœİØ]]İ]HH\˜[\Ë™Ù]
-œİ]HŠNÂˆ]™\šYšY\ˆH[Âˆ]^XİYİ]HH[ÂˆHÂˆ™\šYšY\ˆHÙ\ÜÚ[Û”İÜ˜YÙK™Ù]][JĞÑWÕ‘T’Q’QT—ÒÑVJNÂˆ^XİYİ]HHÙ\ÜÚ[Û”İÜ˜YÙK™Ù]][JĞUUÔÕUWÒÑVJNÂˆÙ\ÜÚ[Û”İÜ˜YÙKœ™[[İ™R][JĞÑWÕ‘T’Q’QT—ÒÑVJNÂˆÙ\ÜÚ[Û”İÜ˜YÙKœ™[[İ™R][JĞUUÔÕUWÒÑVJNÂˆHØ]ÚÂˆËÈ9oïyåiBˆBˆYˆ
-[Ø]]İ]HØ]]İ]HOOH^XİYİ]H]™\šYšY\ŠHÂˆØ^J¹ænùaizjeú+byi,y¥eûï#:*âúaãy¥¬9ænùaixà ˆŠNÂˆ™]\›ÂˆBˆHÂˆÛÛœİ]HH]ØZ]™]ÚœÛÛŠˆUU
-È‹Ø\KİÚÙ[ØÛY[ÚYHˆ
-È[˜ÛÙUT’PÛÛ\Û™[
-İ]K˜]]ÛY[Y
-KˆÂˆY]Ùˆ”ÔÕ‹ˆXY\œÎˆÈÛÛ[U\Hˆ˜\XØ][Û‹ÚœÛÛˆˆKˆ›ÙNˆ”ÓÓ‹œİš[™ÚYJÂˆÛY[ÚYˆİ]K˜]]ÛY[YˆÛÙKˆ™Y\™Xİİ\šNˆØØ][Û‹›ÜšYÚ[ˆ
-È‹È‹ˆÛÙWİ™\šYšY\ˆ™\šYšY\‹ˆJKˆBˆ
-NÂˆØ]™UÚÙ[Š]K˜XØÙ\Ü×İÚÙ[‹]K™^\™\×Ú[ŠNÂˆ\İÜKœ™\XÙTİ]JßKˆ‹ØØ][Û‹œ]˜[YH
-ÈØØ][Û‹š\Ú
-NÂˆÙ]ÙÚ[“X™[
-¹mì¹ænùaiHÚH]]‹¹mì¹ænùaiHŠNÂˆØ^J¹ænùaiy¢$9b§ûï#9cëù.éy¢bùbåyª&z*&:h&9cå¹âà9¡bøà ˆŠNÂˆHØ]Ú
-\œ›ÜŠHÂˆØ^J\œ›Ü‹›Y\ÜØYÙJNÂˆBŸB‚‹ËÈKKKKKKKKKH:,áù¥¦z/"yaiHKKKKKKKKKB‚˜\Ş[˜È[˜İ[ÛˆØYÛÛ™šYÊ
-HÂˆHÂˆÛÛœİÛÛ™šYÈH]ØZ]™]ÚœÛÛŠTH
-È‹ØÛÛ™šYÈŠNÂˆİ]K˜]]ÛY[YHÛÛ™šYË˜]]ØÛY[ÚYÂˆİ]K˜ÛZ[Q[˜X›YH›ÛÛX[ŠÛÛ™šYË˜ÛZ[WÙ[˜X›Y
-NÂˆİ]K˜ÛÛ™šYÓÚÈHYNÂˆYˆ
-\İ]K˜]]ÛY[Y
-HÂˆ	
-›ÙÚ[ˆŠK™\ØX›YHYNÂˆÙ]ÙÚ[“X™[
-ÚH]]9l&¹§*º*+yk¦ˆ‹¹§*º*+yk¦ˆŠNÂˆBˆHØ]ÚÂˆËÈ:*+yk¦º+ 9.#yb,9.#y¤âù®!ye«»ï&¹cêºeç9ª&z*&9b§ú ï{ï#:+¤ù/oùå*: !z!ìùl$z ïyç"ú`b¹¢,‚ˆİ]K˜ÛZ[Q[˜X›YH˜[ÙNÂˆİ]K˜ÛÛ™šYÓÚÈH˜[ÙNÂˆ	
-›ÙÚ[ˆŠK™\ØX›YHYNÂˆØ^J¹í¬¹êæz*+yk¦º+ 9cå¹i,y¥eûï#9ª&z*&9b§ú ïy¦ªù`g;ï#:`b¹¢,¹®!ye«¹.ãycëùà#ú)¯xà ˆŠNÂˆBŸB‚˜\Ş[˜È[˜İ[ÛˆØYØ[Y\Ê
-HÂˆÛÛœİØ[Y\Ñ[H	
-™Ø[Y\ÈŠNÂˆØ[Y\Ñ[œ™\XÙPÚ[™[Š™[™\”İ]J›ØY[™ÈŠJNÂˆ	
-œİ[[X\HŠK^ÛÛ[H¹«hùg*:+ 9cåº`b¹¢,º,áù¥¦x )ˆÂˆHÂˆÛÛœİ™\İ[H]ØZ]™]ÚœÛÛŠTH
-È‹ÙØ[Y\ÈŠNÂˆYˆ
-\™\İ[™Ø[Y\ÊH›İÈ™]È\œ›ÜŠ¹á(y¬åz+ 9cåº`b¹¢,º,áù¥¦HŠNÂˆİ]K™Ø[Y\ÈH™\İ[™Ø[Y\ÎÂˆÜ[]T]›Ü›\Ê
-NÂˆ™[™\Š
-NÂˆHØ]Ú
-\œ›ÜŠHÂˆ	
-œİ[[X\HŠK^ÛÛ[H¹æë¹bcyá(y¬åz/"yaiz,áù¥¦HÂˆØ[Y\Ñ[œ™\XÙPÚ[™[Š™[™\”İ]J™\œ›Üˆ‹\œ›Ü‹›Y\ÜØYÙJJNÂˆØ^J\œ›Ü‹›Y\ÜØYÙJNÂˆBŸB‚˜\Ş[˜È[˜İ[ÛˆØY™\œÚ[ÛŠ
-HÂˆHÂˆÛÛœİ]HH]ØZ]™]ÚœÛÛŠ™\œÚ[Û‹šœÛÛˆ‹È[Y[İ]\ÎˆLJNÂˆYˆ
-]H	‰ˆ]K™\œÚ[ÛŠHÂˆ	
-™™Ë]™\œÚ[ÛˆŠK^ÛÛ[H¹âb9§+ˆˆ
-È]K™\œÚ[ÛÂˆBˆHØ]ÚÂˆËÈ9âb9§+:hkùé.ºggºeç:cm{ï#9i,y¥eùl,yåfzh$:*+y¥¡ùkeÂˆBŸB‚‹ËÈKKKKKKKKKH9ëêz`n:"!ù®,¹§äÈKKKKKKKKKB‚™[˜İ[Ûˆš[\™YØ[Y\Ê
-HÂˆÛÛœİÙ^]ÛÜ™H	
-œÙX\˜ÚŠK˜[YKš[J
-KÓİÙ\Ø\ÙJ
-NÂˆÛÛœİİ]\ÈHØİ[Y[œ]Y\TÙ[XİÜŠˆÜİ]\ËYš[\ˆ™™ËXÚ\š\ËXXİ]™HŠOË™]\Ù]œİ]\È˜[ÂˆÛÛœİ]›Ü›HHØİ[Y[œ]Y\TÙ^Æ+lµ«n³FÆV7F÷"‚"7ÆFf÷&ÒÖf–ÇFW"æfrÖ6†—æ—2Ö7F—fR"“òæFF6WBçÆFf÷&ÒÇÂ&ÆÂ#°¢&WGW&â7FFRævÖW2æf–ÇFW"‚†vÖR’Óâ°¢–b†¶W—v÷&Bbb7G&–ær†vÖRçF—FÆRÇÂ""’çFôÆ÷vW$66R‚’æ–æ6ÇVFW2†¶W—v÷&B’’&WGW&âfÇ6S°¢–b‡7FGW2ÓÓÒ&6Æ–ÖVB"bb—46Æ–ÖVB†vÖR’’&WGW&âfÇ6S°¢–b‡7FGW2ÓÓÒ'Væ6Æ–ÖVB"bb—46Æ–ÖVB†vÖR’’&WGW&âfÇ6S°¢–b‡ÆFf÷&ÒÓÒ&ÆÂ"bbvÖRçÆFf÷&ÒÓÒÆFf÷&Ò’&WGW&âfÇ6S°¢&WGW&âG'VS°¢Ò“°§Ğ ¦gVæ7F–öâ6Æ–Ô&FvR†vÖR’°¢6öç7B&FvRÒVÆVÖVçB‚'7â"Â&6†’Ö&FvR"²†—46Æ–ÖVB†vÖR’ò&6†’Ö&FvRÒ×7V66W72"¢&6†’Ö&FvRÒ×v&æ–ær"’“°¢&FvRæVæB†VÆVÖVçB‚'7â"Â&6†’Ö&FvUõöF÷B"’“°¢&FvRæVæB†Fö7VÖVçBæ7&VFUFW‡DæöFR†—46Æ–ÖVB†vÖR’ò.[{.š	Xùb"¢.[	®iÊ®š	Xùb"’“°¢&WGW&â&FvS°§Ğ ¦gVæ7F–öâ'V–ÆD6&B†vÖR’°¢6öç7B6&BÒVÆVÖVçB‚&'F–6ÆR"Â&vÖRÖ6&B"“°¢6&Bæ–BÒ&vÖRÒ"²vÖRæ–C° ¢6öç7B6÷fW%W&ÂÒvÖRæ6÷fW%ö–ÖvU÷W&ÂÇÂvÖRæ6÷fW%÷W&Ã°¢6öç7B6÷fW$Æ–æ²Ò6fTÆ–æ²†vÖRç7F÷&U÷W&Â’ÇÂ6fTÆ–æ²†vÖRæ'F–6ÆU÷W&Â“°¢–b†6÷fW%W&Âbb6÷fW$Æ–æ²’°¢6öç7BÖVF–ÒVÆVÖVçB‚&"Â&vÖRÖ6&EõöÖVF–"“°¢ÖVF–æ‡&VbÒ6÷fW$Æ–æ³°¢ÖVF–çF&vWBÒ%ö&Ææ²#°¢ÖVF–ç&VÂÒ&æö÷VæW"#°¢ÖVF–ç6WDGG&–'WFR‚&&–ÖÆ&VÂ"ÂX˜Ş[èG¶vÖRçF—FÆWÖ“°¢6öç7B6÷fW"ÒVÆVÖVçB‚&–Ör"Â&vÖRÖ6&Eõö6÷fW""“°¢6÷fW"ç7&2Ò6÷fW%W&Ã°¢6÷fW"æÇBÒ"#°¢6÷fW"æÆöF–ærÒ&Æ§’#°¢ÖVF–æVæB†6÷fW"“°¢6&BæVæB†ÖVF–“°¢ÒVÇ6R°¢6&BæVæB†VÆVÖVçB‚&F—b"Â&vÖRÖ6&EõöÖVF–"’“°¢Ğ ¢6öç7B6öçFVçBÒVÆVÖVçB‚&F—b"Â&vÖRÖ6&Eõö6öçFVçB"“° ¢6öç7BF÷Æ–æRÒVÆVÖVçB‚&F—b"Â&vÖRÖ6&Eõ÷F÷Æ–æR"“°¢F÷Æ–æRæVæB†VÆVÖVçB‚'7â"Â&vÖRÖ6&Eõ÷ÆFf÷&Ò"Â7G&–ær†vÖRçÆFf÷&ÒÇÂ""’çFõWW$66R‚’’“°¢F÷Æ–æRæVæB†6Æ–Ô&FvR†vÖR’“°¢6öçFVçBæVæB‡F÷Æ–æR“° ¢6öçFVçBæVæB†VÆVÖVçB‚&ƒ2"Â&vÖRÖ6&Eõ÷F—FÆR"ÂvÖRçF—FÆR’“° ¢6öç7BFFVDFFRÒvÖRæFFVEöBòæWrFFR†vÖRæFFVEöB’çFôÆö6ÆTFFU7G&–ær‚'¦‚ÕEr"’¢"#°¢6öç7BöffW$VæBÒvÖRæöffW%öVæEö@¢òæWrFFR†vÖRæöffW%öVæEöB’çFôÆö6ÆU7G&–ær‚'¦‚ÕEr"Â°¢F–ÖU¦öæS¢$6–õF—V’"À¢FFU7G–ÆS¢&ÖVF—VÒ"À¢F–ÖU7G–ÆS¢'6†÷'B"À¢Ò¢¢"#°¢6öç7BFFUFW‡BÒöffW$Væ@¢òFFVDFFP¢òikZ)âG¶FFVDFFWÒ+rXXŞ‹+¾hŠ®jÚ"G¶öffW$VæGÖ ¢¢XXŞ‹+¾hŠ®jÚ"G¶öffW$VæGÖ ¢¢FFVDFFP¢òikZ)âG¶FFVDFFWÖ ¢¢"#°¢–b†FFUFW‡B’6öçFVçBæVæB†VÆVÖVçB‚'"Â&vÖRÖ6&EõöFFR"ÂFFUFW‡B’“° ¢6öç7B7F–öç2ÒVÆVÖVçB‚&F—b"Â&vÖRÖ6&Eõö7F–öç2"“°¢6öç7B7F÷&TÆ–æ²Ò6fTÆ–æ²†vÖRç7F÷&U÷W&Â“°¢–b‡7F÷&TÆ–æ²’°¢6öç7BÆ–æ²ÒVÆVÖVçB‚&"Â&6†’Ö'Fâ6†’Ö'FâÒ×6V6öæF'’vÖRÖ6&EõöÆ–æ²"Â.X˜Ş[èYXn[©r"“°¢Æ–æ²æ‡&VbÒ7F÷&TÆ–æ³°¢Æ–æ²çF&vWBÒ%ö&Ææ²#°¢Æ–æ²ç&VÂÒ&æö÷VæW"#°¢7F–öç2æVæB†Æ–æ²“°¢Ğ¢6öç7B'F–6ÆTÆ–æ²Ò6fTÆ–æ²†vÖRæ'F–6ÆU÷W&Â“°¢–b†'F–6ÆTÆ–æ²’°¢6öç7BÆ–æ²ÒVÆVÖVçB‚&"Â&6†’Ö'Fâ6†’Ö'FâÒ×6V6öæF'’vÖRÖ6&EõöÆ–æ²"Â.iú^yÈ¾K¸¾{K’"“°¢Æ–æ²æ‡&VbÒ'F–6ÆTÆ–æ³°¢Æ–æ²çF&vWBÒ%ö&Ææ²#°¢Æ–æ²ç&VÂÒ&æö÷VæW"#°¢7F–öç2æVæB†Æ–æ²“°¢Ğ¢–b‡7FFRæ6Æ–ÔVæ&ÆVBbb7FFRæ66W75Fö¶VâbbFFRææ÷r‚’Â7FFRæ66W75Fö¶VäW‡—&W4B’°¢6öç7B†–FT'WGFöâÒVÆVÖVçB‚&'WGFöâ"Â&6†’Ö'Fâ6†’Ö'FâÒ×6V6öæF'’vÖRÖ6&EõöÆ–æ²vÖRÖ6&Eõö†–FR"Â.h˜¾X¹^™«‰xò"“°¢†–FT'WGFöâçG—RÒ&'WGFöâ#°¢†–FT'WGFöâæFDWfVçDÆ—7FVæW"‚&6Æ–6²"Â‚’Óâ†–FTvÖR†vÖRÂ†–FT'WGFöâ’“°¢7F–öç2æVæB††–FT'WGFöâ“°¢Ğ¢6öçFVçBæVæB†7F–öç2“° ¢–b†—46Æ–ÖVB†vÖR’’°¢6öç7Bæ÷FRÒvÖRæ6Æ–Õ÷6÷W&6RÓÓÒ&fv2"ò$dt2ˆz®X¹^YÎjÚ^ûÉ®[{.š	Xùb"¢.[{.h˜¾X¹^j‰Š‰š	Xùb#°¢6öçFVçBæVæB†VÆVÖVçB‚'"Â&vÖRÖ6&Eõö6Æ–ÒÖæ÷FR"Âæ÷FR’“°¢ÒVÇ6R°¢6öç7B6Æ–Ô'WGFöâÒVÆVÖVçB€¢&'WGFöâ"À¢&6†’Ö'Fâ6†’Ö'FâÒ×&–Ö'’vÖRÖ6&Eõö6Æ–Ò"À¢7FFRæ6Æ–ÔVæ&ÆVBò‡7FFRæ66W75Fö¶Vâò.j‰Š‰[{.š	Xùb"¢.y›¾XZ^KŠnj‰Š‰[{.š	Xùb"’¢.j‰Š‰[{.š	Xùb ¢“°¢6Æ–Ô'WGFöâçG—RÒ&'WGFöâ#°¢6Æ–Ô'WGFöâæF—6&ÆVBÒ7FFRæ6Æ–ÔVæ&ÆVC°¢6Æ–Ô'WGFöâæFDWfVçDÆ—7FVæW"‚&6Æ–6²"Â‚’ÓâÖ&´6Æ–ÖVB†vÖRÂ6Æ–Ô'WGFöâ’“°¢6öçFVçBæVæB†6Æ–Ô'WGFöâ“°¢Ğ ¢6&BæVæB†6öçFVçB“°¢&WGW&â6&C°§Ğ ¦gVæ7F–öâ&VæFW%v–æF–öâ‡F÷FÅvW2’°¢6öç7BæbÒB‚'v–æF–öâ"“°¢æbç&WÆ6T6†–ÆG&Vâ‚“°¢–b‡F÷FÅvW2ÃÒ’&WGW&ã°¢6öç7BFBÒ†Æ&VÂÂF&vWBÂF—6&ÆVBÒfÇ6RÂ7F—fRÒfÇ6R’Óâ°¢6öç7B'WGFöâÒVÆVÖVçB‚&'WGFöâ"Â&6†’Ö'Fâ6†’Ö'FâÒ×6V6öæF'’"²†7F—fRò"—2Ö7F—fR"¢""’ÂÆ&VÂ“°¢'WGFöâçG—RÒ&'WGFöâ#°¢'WGFöâæF—6&ÆVBÒF—6&ÆVC°¢'WGFöâç6WDGG&–'WFR€¢&&–ÖÆ&VÂ"À¢Æ&VÂÓÓÒ.(’"ò.Kˆ®Kˆš"¢Æ&VÂÓÓÒ.(¢"ò.Kˆ¾Kˆš"±ŠÛ-jÛ¬Ğè€‹²°€ˆ€¬±…‰•°€¬€ˆƒ¦‚ˆ(€€€€¤ì(€€€¥˜€¡…Ñ¥Ù”¤‰ÕÑÑ½¸¹Í•ÑÑÑÉ¥‰ÕÑ” ‰…É¥„µÕÉÉ•¹Ğˆ°€‰Á…”ˆ¤ì(€€€‰ÕÑÑ½¸¹…‘‘Ù•¹Ñ1¥ÍÑ•¹•È ‰±¥¬ˆ°€ ¤€ôøì(€€€€€ÍÑ…Ñ”¹Á…”€ôÑ…É•Ğì(€€€€€É•¹‘•È ¤ì(€€€ô¤ì(€€€¹…Ø¹…ÁÁ•¹¡‰ÕÑÑ½¸¤ì(€ôì(€…‘ ‹Šäˆ°ÍÑ…Ñ”¹Á…”€´€Ä°ÍÑ…Ñ”¹Á…”€ôôô€Ä¤ì(€±•ĞÍÑ…ÉĞ€ô5…Ñ ¹µ…à Ä°5…Ñ ¹µ¥¸¡ÍÑ…Ñ”¹Á…”€´€È°Ñ½Ñ…±A…•Ì€´€Ğ¤¤ì(€±•Ğ•¹€ô5…Ñ ¹µ¥¸¡Ñ½Ñ…±A…•Ì°ÍÑ…ÉĞ€¬€Ğ¤ì(€¥˜€¡ÍÑ…ÉĞ€ø€Ä¤ì(€€€…‘ ˆÄˆ°€Ä°™…±Í”°ÍÑ…Ñ”¹Á…”€ôôô€Ä¤ì(€€€¥˜€¡ÍÑ…ÉĞ€ø€È¤¹…Ø¹…ÁÁ•¹¡•±•µ•¹Ğ ‰ÍÁ…¸ˆ°€‰™œµÁ…¥¹…Ñ¥½¹}}¥¹™¼ˆ°€‹Š˜ˆ¤¤ì(€ô(€™½È€¡±•ĞÁ…”€ôÍÑ…ÉĞìÁ…”€ğô•¹ìÁ…”¬¬¤…‘¡MÑÉ¥¹œ¡Á…”¤°Á…”°™…±Í”°Á…”€ôôôÍÑ…Ñ”¹Á…”¤ì(€¥˜€¡•¹€ğÑ½Ñ…±A…•Ì¤ì(€€€¥˜€¡•¹€ğÑ½Ñ…±A…•Ì€´€Ä¤¹…Ø¹…ÁÁ•¹¡•±•µ•¹Ğ ‰ÍÁ…¸ˆ°€‰™œµÁ…¥¹…Ñ¥½¹}}¥¹™¼ˆ°€‹Š˜ˆ¤¤ì(€€€…‘¡MÑÉ¥¹œ¡Ñ½Ñ…±A…•Ì¤°Ñ½Ñ…±A…•Ì°™…±Í”°ÍÑ…Ñ”¹Á…”€ôôôÑ½Ñ…±A…•Ì¤ì(€ô(€…‘ ‹Šèˆ°ÍÑ…Ñ”¹Á…”€¬€Ä°ÍÑ…Ñ”¹Á…”€ôôôÑ½Ñ…±A…•Ì¤ì)ô()™Õ¹Ñ¥½¸É•¹‘•ÉMÑ…Ñ”¡­¥¹°µ•ÍÍ…”¤ì(€½¹ÍĞİÉ…À€ô•±•µ•¹Ğ ‰‘¥Øˆ°€‰¡¤µÍÑ…Ñ”ˆ¤ì(€İÉ…À¹Í•ÑÑÑÉ¥‰ÕÑ” ‰É½±”ˆ°­¥¹€ôôô€‰•ÉÉ½Èˆ€ü€‰…±•ÉĞˆ€è€‰ÍÑ…ÑÕÌˆ¤ì(€¥˜€¡­¥¹€ôôô€‰±½…‘¥¹œˆ¤İÉ…À¹Í•ÑÑÑÉ¥‰ÕÑ” ‰…É¥„µ‰ÕÍäˆ°€‰ÑÉÕ”ˆ¤ì(€¥˜€¡­¥¹€ôôô€‰±½…‘¥¹œˆ¤ì(€€€½¹ÍĞÍÁ¥¹¹•È€ô•±•µ•¹Ğ ‰‘¥Øˆ°€‰¡¤µÍÁ¥¹¹•Èˆ¤ì(€€€ÍÁ¥¹¹•È¹Í•ÑÑÑÉ¥‰ÕÑ” ‰É½±”ˆ°€‰ÍÑ…ÑÕÌˆ¤ì(€€€ÍÁ¥¹¹•È¹Í•ÑÑÑÉ¥‰ÕÑ” ‰…É¥„µ±…‰•°ˆ°€‹¢ò'–—’â´ˆ¤ì(€€€ÍÁ¥¹¹•È¹ÍÑå±”¹µ…É¥¸€ô€ˆÀ…ÕÑ¼€ÄÙÁàˆì(€€€İÉ…À¹…ÁÁ•¹¡ÍÁ¥¹¹•È¤ì(€€€İÉ…À¹…ÁÁ•¹¡•±•µ•¹Ğ ‰ Ìˆ°€‰¡¤µÍÑ…Ñ•}}Ñ¥Ñ±”ˆ°€‹¢ò'–—’â´ˆ¤¤ì(€€€İÉ…À¹…ÁÁ•¹¡•±•µ•¹Ğ ‰Àˆ°€‰¡¤µÍÑ…Ñ•}}‘•ÍŒˆ°€‹š¶–r£–>[–ú_¢ÎšZg¾ò3¢®/¢7–gˆ¤¤ì(€ô•±Í”¥˜€¡­¥¹€ôôô€‰•µÁÑäˆ¤ì(€€€İÉ…À¹…ÁÁ•¹¡•±•µ•¹Ğ ‰ Ìˆ°€‰¡¤µÍÑ…Ñ•}}Ñ¥Ñ±”ˆ°€‹šÊKšr'²›–B#šŠw’îÛj¦+š"Èˆ¤¤ì(€€€İÉ…À¹…ÁÁ•¹¡•±•µ•¹Ğ ‰Àˆ°€‰¡¤µÍÑ…Ñ•}}‘•ÍŒˆ°µ•ÍÍ…”ñğ€‹¢ªÿšVÓ¾§¦ãšŠw’îÛ¾ò3š"[¶'šZÃ¦+š"Ë’â+šzÛˆ¤¤ì(€ô•±Í”¥˜€¡­¥¹€ôôô€‰•ÉÉ½Èˆ¤ì(€€€İÉ…À¹…ÁÁ•¹¡•±•µ•¹Ğ ‰ Ìˆ°€‰¡¤µÍÑ…Ñ•}}Ñ¥Ñ±”ˆ°€‹¢ò'–—–’ÇšV\ˆ¤¤ì(€€€İÉ…À¹…ÁÁ•¹¡•±•µ•¹Ğ ‰Àˆ°€‰¡¤µÍÑ…Ñ•}}‘•ÍŒˆ°µ•ÍÍ…”ñğ€‹ÚË¢Ş¿fóR–V?¦†3¾ò3¢®/šª‹š~—¦Şk–ú3–7¢¦›’âš²‡ˆ¤¤ì(€€€½¹ÍĞ…Ñ¥½¸€ô•±•µ•¹Ğ ‰‘¥Øˆ°€‰¡¤µÍÑ…Ñ•}}…Ñ¥½¸ˆ¤ì(€€€½¹ÍĞÉ•ÑÉä€ô•±•µ•¹Ğ ‰‰ÕÑÑ½¸ˆ°€‰¡¤µ‰Ñ¸¡¤µ‰Ñ¸´µÍ•½¹‘…Éäˆ°€‹–7¢¦›’âš²„ˆ¤ì(€€€É•ÑÉä¹ÑåÁ”€ô€‰‰ÕÑÑ½¸ˆì(€€€É•ÑÉä¹‘…Ñ…Í•Ğ¹™I•ÑÉä€ô€ˆˆì(€€€…Ñ¥½¸¹…ÁÁ•¹¡É•ÑÉä¤ì(€€€İÉ…À¹…ÁÁ•¹¡…Ñ¥½¸¤ì(€ô(€É•ÑÕÉ¸İÉ…Àì)ô()™Õ¹Ñ¥½¸™½ÕÍ…µ•=¹” ¤ì(€¥˜€¡ÍÑ…Ñ”¹‘¥‘½ÕÍ…µ”¤É•ÑÕÉ¸ì(€ÍÑ…Ñ”¹‘¥‘½ÕÍ…µ”€ôÑÉÕ”ì(€½¹ÍĞ™½ÕÍ%€ô¹•ÜUI1M•…É¡A…É…µÌ¡±½…Ñ¥½¸¹Í•…É ¤¹•Ğ ‰…µ”ˆ¤ì(€¥˜€ …™½ÕÍ%¤É•ÑÕÉ¸ì(€½¹ÍĞÑ…É•Ğ€ô‘½Õµ•¹Ğ¹•Ñ±•µ•¹Ñ	å% ‰…µ”´ˆ€¬™½ÕÍ%¤ì(€¥˜€ …Ñ…É•Ğ¤É•ÑÕÉ¸ì(€Ñ…É•Ğ¹±…ÍÍ1¥ÍĞ¹…‘ ‰™½ÕÍ•ˆ¤ì(€Ñ…É•Ğ¹ÍÉ½±±%¹Ñ½Y¥•Ü¡ì‰•¡…Ù¥½Èè€‰Íµ½½Ñ ˆ°‰±½¬è€‰•¹Ñ•Èˆô¤ì)ô()™Õ¹Ñ¥½¸É•¹‘•È ¤ì(€½¹ÍĞ™¥±Ñ•É•€ô™¥±Ñ•É•‘…µ•Ì ¤ì(€½¹ÍĞÁ…•M¥é•Y…±Õ”€ô€ ‰Á…”µÍ¥é”ˆ¤¹Ù…±Õ”ì(€½¹ÍĞÍ¥é”€ôÁ…•M¥é•Y…±Õ”€ôôô€‰…±°ˆ€ü™¥±Ñ•É•¹±•¹Ñ €è9Õµ‰•È¡Á…•M¥é•Y…±Õ”¤ì(€½¹ÍĞÑ½Ñ…±A…•Ì€ô5…Ñ ¹µ…à Ä°5…Ñ ¹•¥°¡™¥±Ñ•É•¹±•¹Ñ €¼Í¥é”¤¤ì(€ÍÑ…Ñ”¹Á…”€ô5…Ñ ¹µ¥¸¡ÍÑ…Ñ”¹Á…”°Ñ½Ñ…±A…•Ì¤ì(€½¹ÍĞÁ…•…µ•Ì€ô™¥±Ñ•É•¹Í±¥” ¡ÍÑ…Ñ”¹Á…”€´€Ä¤€¨Í¥é”°ÍÑ…Ñ”¹Á…”€¨Í¥é”¤ì(€€ ‰ÍÕµµ…Éäˆ¤¹Ñ•áÑ½¹Ñ•¹Ğ€ôƒ–Ä€‘í™¥±Ñ•É•¹±•¹Ñ¡ôƒ¶¦+š"É€ì(€½¹ÍĞ…µ•Í°€ô€ ‰…µ•Ìˆ¤ì(€…µ•Í°¹É•Á±…•¡¥±‘É•¸ ¤ì(€…µ•Í°¹±…ÍÍ9…µ”€ôÍÑ…Ñ”¹Ù¥•İ5½‘”€ôôô€‰±¥ÍĞˆ€ü€‰™œµ±¥ÍĞˆ€è€‰™œµÉ¥ˆì(€¥˜€ …Á…•…µ•Ì¹±•¹Ñ ¤ì(€€€…µ•Í°¹…ÁÁ•¹¡É•¹‘•ÉMÑ…Ñ” ‰•µÁÑäˆ°™¥±Ñ•É•¹±•¹Ñ €ü€‹šÊKšr'²›–B#šŠw’îÛj¦+š"Ëˆ€è€‹n»–&7¦
-šÊKšr'¦+š"Ë¢ÎšZgˆ¤¤ì(€ô•±Í”ì(€€€Á…•…µ•Ì¹™½É…  ¡…µ”¤€ôø…µ•Í°¹…ÁÁ•¹¡‰Õ¥±‘…É¡…µ”¤¤¤ì(€ô(€É•¹‘•ÉA…¥¹…Ñ¥½¸¡Ñ½Ñ…±A…•Ì¤ì(€™½ÕÍ…µ•=¹” ¤ì)ô()™Õ¹Ñ¥½¸Á½ÁÕ±…Ñ•A±…Ñ™½ÉµÌ ¤ì(€½¹ÍĞÁ±…Ñ™½ÉµÌ€ôl¸¸¹¹•ÜM•Ğ¡ÍÑ…Ñ”¹…µ•Ì¹µ…À ¡…µ”¤€ôø…µ”¹Á±…Ñ™½É´¤¹™¥±Ñ•È¡	½½±•…¸¤¥t¹Í½ÉĞ ¤ì(€½¹ÍĞÉ½ÕÀ€ô€ ‰Á±…Ñ™½É´µ™¥±Ñ•Èˆ¤ì(€É½ÕÀ¹ÅÕ•ÉåM•±•Ñ½É±° ‰m‘…Ñ„µÁ±…Ñ™½Éµté¹½Ğ¡m‘…Ñ„µÁ±…Ñ™½É´ô…±°t¤ˆ¤¹™½É…  ¡¡¥À¤€ôø¡¥À¹É•µ½Ù” ¤¤ì(€Á±…Ñ™½ÉµÌ¹™½É…  ¡Á±…Ñ™½É´¤€ôøì(€€€½¹ÍĞ¡¥À€ô•±•µ•¹Ğ ‰‰ÕÑÑ½¸ˆ°€‰™œµ¡¥Àˆ°Á±…Ñ™½É´¤ì(€€€¡¥À¹ÑåÁ”€ô€‰‰ÕÑÑ½¸ˆì(€€€¡¥À¹‘…Ñ…Í•Ğ¹Á±…Ñ™½É´€ôÁ±…Ñ™½É´ì(€€€¡¥À¹Í•ÑÑÑÉ¥‰ÕÑ” ‰…É¥„µÁÉ•ÍÍ•ˆ°€‰™…±Í”ˆ¤ì(€€€É½ÕÀ¹…ÁÁ•¹¡¡¥À¤ì(€ô¤ì)ô()™Õ¹Ñ¥½¸Í•ÑY¥•Ü¡µ½‘”¤ì(€ÍÑ…Ñ”¹Ù¥•İ5½‘”€ôµ½‘”ì(€€ ‰Ù¥•ÜµÉ¥ˆ¤¹±…ÍÍ1¥ÍĞ¹Ñ½±” ‰¥Ìµ…Ñ¥Ù”ˆ°µ½‘”€ôôô€‰É¥ˆ¤ì(€€ ‰Ù¥•ÜµÉ¥ˆ¤¹Í•ÑÑÑÉ¥‰ÕÑ” ‰…É¥„µÁÉ•ÍÍ•ˆ°MÑÉ¥¹œ¡µ½‘”€ôôô€‰É¥ˆ¤¤ì(€€ ‰Ù¥•Üµ±¥ÍĞˆ¤¹±…ÍÍ1¥ÍĞ¹Ñ½±” ‰¥Ìµ…Ñ¥Ù”ˆ°µ½‘”€ôôô€‰±¥ÍĞˆ¤ì(€€ ‰Ù¥•Üµ±¥ÍĞˆ¤¹Í•ÑÑÑÉ¥‰ÕÑ” ‰…É¥„µÁÉ•ÍÍ•ˆ°MÑÉ¥¹œ¡µ½‘”€ôôô€‰±¥ÍĞˆ¤¤ì(€É•¹‘•È ¤ì)ô()™Õ¹Ñ¥½¸Í•ÑÕÁ½¹ÑÉ½±Ì ¤ì(€€ ‰Í•…É ˆ¤¹…‘‘Ù•¹Ñ1¥ÍÑ•¹•È ‰¥¹ÁÕĞˆ°€ ¤€ôøì(€€€ÍÑ…Ñ”¹Á…”€ô€Äì(€€€É•¹‘•È ¤ì(€ô¤ì(€€ ‰Á…”µÍ¥é”ˆ¤¹…‘‘Ù•¹Ñ1¥ÍÑ•¹•È ‰¡…¹”ˆ°€ ¤€ôøì(€€€ÍÑ…Ñ”¹Á…”€ô€Äì(€€€É•¹‘•È ¤ì(€õìb¶ËZ¶ë4);
+  try {
+    const token = sessionStorage.getItem(TOKEN_KEY);
+    const expiresAt = Number(sessionStorage.getItem(TOKEN_EXPIRY_KEY) || 0);
+    if (token && expiresAt > Date.now()) {
+      state.accessToken = token;
+      state.accessTokenExpiresAt = expiresAt;
+      return true;
+    }
+  } catch {
+    // å¿½ç•¥
+  }
+  clearToken();
+  return false;
+}
+
+function readPendingClaim() {
+  try {
+    const pendingId = sessionStorage.getItem(PENDING_CLAIM_KEY);
+    if (pendingId) sessionStorage.removeItem(PENDING_CLAIM_KEY);
+    return pendingId;
+  } catch {
+    return null;
+  }
+}
+
+async function login() {
+  if (!state.authClientId) {
+    say("Chi Auth å°šæœªå®Œæˆæ‡‰ç”¨è¨­å®šã€‚");
+    return;
+  }
+  const verifier = b64url(crypto.getRandomValues(new Uint8Array(48)));
+  const oauthState = b64url(crypto.getRandomValues(new Uint8Array(24)));
+  try {
+    sessionStorage.setItem(PKCE_VERIFIER_KEY, verifier);
+    sessionStorage.setItem(OAUTH_STATE_KEY, oauthState);
+  } catch {
+    say("ç€è¦½å™¨ä¸å…è¨±å„²å­˜ç™»å…¥ç‹€æ…‹ï¼Œè«‹æª¢æŸ¥è¨­å®šå¾Œå†è©¦ã€‚");
+    return;
+  }
+  const params = new URLSearchParams({
+    response_type: "code",
+    client_id: state.authClientId,
+    redirect_uri: location.origin + "/",
+    code_challenge: await digest(verifier),
+    code_challenge_method: "S256",
+    state: oauthState,
+  });
+  location.href = AUTH + "/api/authorize?" + params.toString();
+}
+
+async function finishLogin() {
+  const params = new URLSearchParams(location.search);
+  const code = params.get("code");
+  if (!code || !state.authClientId) return;
+  const oauthState = params.get("state");
+  let verifier = null;
+  let expectedState = null;
+  try {
+    verifier = sessionStorage.getItem(PKCE_VERIFIER_KEY);
+    expectedState = sessionStorage.getItem(OAUTH_STATE_KEY);
+    sessionStorage.removeItem(PKCE_VERIFIER_KEY);
+    sessionStorage.removeItem(OAUTH_STATE_KEY);
+  } catch {
+    // å¿½ç•¥
+  }
+  if (!oauthState || oauthState !== expectedState || !verifier) {
+    say("ç™»å…¥é©—è­‰å¤±æ•—ï¼Œè«‹é‡æ–°ç™»å…¥ã€‚");
+    return;
+  }
+  try {
+    const data = await fetchJson(
+      AUTH + "/api/token?client_id=" + encodeURIComponent(state.authClientId),
+      {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({
+          client_id: state.authClientId,
+          code,
+          redirect_uri: location.origin + "/",
+          code_verifier: verifier,
+        }),
+      }
+    );
+    saveToken(data.access_token, data.expires_in);
+    history.replaceState({}, "", location.pathname + location.hash);
+    setLoginLabel("å·²ç™»å…¥ Chi Auth", "å·²ç™»å…¥");
+    say("ç™»å…¥æˆåŠŸï¼Œå¯ä»¥æ‰‹å‹•æ¨™è¨˜é ˜å–ç‹€æ…‹ã€‚");
+  } catch (error) {
+    say(error.message);
+  }
+}
+
+// ---------- è³‡æ–™è¼‰å…¥ ----------
+
+async function loadConfig() {
+  try {
+    const config = await fetchJson(API + "/config");
+    state.authClientId = config.auth_client_id;
+    state.claimEnabled = Boolean(config.claim_enabled);
+    state.configOk = true;
+    if (!state.authClientId) {
+      $("login").disabled = true;
+      setLoginLabel("Chi Auth å°šæœªè¨­å®š", "æœªè¨­å®š");
+    }
+  } catch {
+    // è¨­å®šè®€ä¸åˆ°ä¸æ“‹æ¸…å–®ï¼šåªé—œæ¨™è¨˜åŠŸèƒ½ï¼Œè®“ä½¿ç”¨è€…è‡³å°‘èƒ½çœ‹éŠæˆ²
+    state.claimEnabled = false;
+    state.configOk = false;
+    $("login").disabled = true;
+    say("ç¶²ç«™è¨­å®šè®€å–å¤±æ•—ï¼Œæ¨™è¨˜åŠŸèƒ½æš«åœï¼ŒéŠæˆ²æ¸…å–®ä»å¯ç€è¦½ã€‚");
+  }
+}
+
+async function loadGames() {
+  const gamesEl = $("games");
+  gamesEl.replaceChildren(renderState("loading"));
+  $("summary").textContent = "æ­£åœ¨è®€å–éŠæˆ²è³‡æ–™â€¦";
+  try {
+    const result = await fetchJson(API + "/games");
+    if (!result.games) throw new Error("ç„¡æ³•è®€å–éŠæˆ²è³‡æ–™");
+    state.games = result.games;
+    populatePlatforms();
+    render();
+  } catch (error) {
+    $("summary").textContent = "ç›®å‰ç„¡æ³•è¼‰å…¥è³‡æ–™";
+    gamesEl.replaceChildren(renderState("error", error.message));
+    say(error.message);
+  }
+}
+
+async function loadVersion() {
+  try {
+    const data = await fetchJson("version.json", { timeoutMs: 5000 });
+    if (data && data.version) {
+      $("fg-version").textContent = "ç‰ˆæœ¬ v" + data.version;
+    }
+  } catch {
+    // ç‰ˆæœ¬é¡¯ç¤ºéé—œéµï¼Œå¤±æ•—å°±ç•™é è¨­æ–‡å­—
+  }
+}
+
+// ---------- ç¯©é¸èˆ‡æ¸²æŸ“ ----------
+
+function filteredGames() {
+  const keyword = $("search").value.trim().toLowerCase();
+  const status = document.querySelector("#status-filter .fg-chip.is-active")?.dataset.status || "all";
+  const platform = document.querySelector("#platform-filter .fg-chip.is-active")?.dataset.platform || "all";
+  return state.games.filter((game) => {
+    if (keyword && !String(game.title || "").toLowerCase().includes(keyword)) return false;
+    if (status === "claimed" && !isClaimed(game)) return false;
+    if (status === "unclaimed" && isClaimed(game)) return false;
+    if (platform !== "all" && game.platform !== platform) return false;
+    return true;
+  });
+}
+
+function claimBadge(game) {
+  const badge = element("span", "chi-badge " + (isClaimed(game) ? "chi-badge--success" : "chi-badge--warning"));
+  badge.append(element("span", "chi-badge__dot"));
+  badge.append(document.createTextNode(isClaimed(game) ? "å·²é ˜å–" : "å°šæœªé ˜å–"));
+  return badge;
+}
+
+function buildCard(game) {
+  const card = element("article", "game-card");
+  card.id = "game-" + game.id;
+
+  const coverUrl = game.cover_image_url || game.cover_url;
+  const coverLink = safeLink(game.store_url) || safeLink(game.article_url);
+  if (coverUrl && coverLink) {
+    const media = element("a", "game-card__media");
+    media.href = coverLink;
+    media.target = "_blank";
+    media.rel = "noopener";
+    media.setAttribute("aria-label", `å‰å¾€ ${game.title}`);
+    const cover = element("img", "game-card__cover");
+    cover.src = coverUrl;
+    cover.alt = "";
+    cover.loading = "lazy";
+    media.append(cover);
+    card.append(media);
+  } else {
+    card.append(element("div", "game-card__media"));
+  }
+
+  const content = element("div", "game-card__content");
+
+  const topline = element("div", "game-card__topline");
+  topline.append(element("span", "game-card__platform", String(game.platform || "").toUpperCase()));
+  topline.append(claimBadge(game));
+  content.append(topline);
+
+  content.append(element("h3", "game-card__title", game.title));
+
+  const addedDate = game.added_at ? new Date(game.added_at).toLocaleDateString("zh-TW") : "";
+  const offerEnd = game.offer_end_at
+    ? new Date(game.offer_end_at).toLocaleString("zh-TW", {
+        timeZone: "Asia/Taipei",
+        dateStyle: "medium",
+        timeStyle: "short",
+      })
+    : "";
+  const dateText = offerEnd
+    ? addedDate
+      ? `æ–°å¢ ${addedDate} Â· å…è²»æˆªæ­¢ ${offerEnd}`
+      : `å…è²»æˆªæ­¢ ${offerEnd}`
+    : addedDate
+      ? `æ–°å¢ ${addedDate}`
+      : "";
+  if (dateText) content.append(element("p", "game-card__date", dateText));
+
+  const actions = element("div", "game-card__actions");
+  const storeLink = safeLink(game.store_url);
+  if (storeLink) {
+    const link = element("a", "chi-btn chi-btn--secondary game-card__link", "å‰å¾€å•†åº—");
+    link.href = storeLink;
+    link.target = "_blank";
+    link.rel = "noopener";
+    actions.append(link);
+  }
+  const articleLink = safeLink(game.article_url);
+  if (articleLink) {
+    const link = element("a", "chi-btn chi-btn--secondary game-card__link", "æŸ¥çœ‹ä»‹ç´¹");
+    link.href = articleLink;
+    link.target = "_blank";
+    link.rel = "noopener";
+    actions.append(link);
+  }
+  if (state.claimEnabled && state.accessToken && Date.now() < state.accessTokenExpiresAt) {
+    const hideButton = element("button", "chi-btn chi-btn--secondary game-card__link game-card__hide", "æ‰‹å‹•éš±è—");
+    hideButton.type = "button";
+    hideButton.addEventListener("click", () => hideGame(game, hideButton));
+    actions.append(hideButton);
+  }
+  content.append(actions);
+
+  if (isClaimed(game)) {
+    const note = game.claim_source === "fgc" ? "FGC è‡ªå‹•åŒæ­¥ï¼šå·²é ˜å–" : "å·²æ‰‹å‹•æ¨™è¨˜é ˜å–";
+    content.append(element("p", "game-card__claim-note", note));
+  } else {
+    const claimButton = element(
+      "button",
+      "chi-btn chi-btn--primary game-card__claim",
+      state.claimEnabled ? (state.accessToken ? "æ¨™è¨˜å·²é ˜å–" : "ç™»å…¥ä¸¦æ¨™è¨˜å·²é ˜å–") : "æ¨™è¨˜å·²é ˜å–"
+    );
+    claimButton.type = "button";
+    claimButton.disabled = !state.claimEnabled;
+    claimButton.addEventListener("click", () => markClaimed(game, claimButton));
+    content.append(claimButton);
+  }
+
+  card.append(content);
+  return card;
+}
+
+function renderPagination(totalPages) {
+  const nav = $("pagination");
+  nav.replaceChildren();
+  if (totalPages <= 1) return;
+  const add = (label, target, disabled = false, active = false) => {
+    const button = element("button", "chi-btn chi-btn--secondary" + (active ? " is-active" : ""), label);
+    button.type = "button";
+    button.disabled = disabled;
+    button.setAttribute(
+      "aria-label",
+      label === "â€¹" ? "ä¸Šä¸€é " : label === "â€º" ? "ä¸‹ä¸€é " : "ç¬¬ " + label + " é "
+    );
+    if (active) button.setAttribute("aria-current", "page");
+    button.addEventListener("click", () => {
+      state.page = target;
+      render();
+    });
+    nav.append(button);
+  };
+  add("â€¹", state.page - 1, state.page === 1);
+  let start = Math.max(1, Math.min(state.page - 2, totalPages - 4));
+  let end = Math.min(totalPages, start + 4);
+  if (start > 1) {
+    add("1", 1, false, state.page === 1);
+    if (start > 2) nav.append(element("span", "fg-pagination__info", "â€¦"));
+  }
+  for (let page = start; page <= end; page++) add(String(page), page, false, page === state.page);
+  if (end < totalPages) {
+    if (end < totalPages - 1) nav.append(element("span", "fg-pagination__info", "â€¦"));
+    add(String(totalPages), totalPages, false, state.page === totalPages);
+  }
+  add("â€º", state.page + 1, state.page === totalPages);
+}
+
+function renderState(kind, message) {
+  const wrap = element("div", "chi-state");
+  wrap.setAttribute("role", kind === "error" ? "alert" : "status");
+  if (kind === "loading") wrap.setAttribute("aria-busy", "true");
+  if (kind === "loading") {
+    const spinner = element("div", "chi-spinner");
+    spinner.setAttribute("role", "status");
+    spinner.setAttribute("aria-label", "è¼‰å…¥ä¸­");
+    spinner.style.margin = "0 auto 16px";
+    wrap.append(spinner);
+    wrap.append(element("h3", "chi-state__title", "è¼‰å…¥ä¸­"));
+    wrap.append(element("p", "chi-state__desc", "æ­£åœ¨å–å¾—è³‡æ–™ï¼Œè«‹ç¨å€™ã€‚"));
+  } else if (kind === "empty") {
+    wrap.append(element("h3", "chi-state__title", "æ²’æœ‰ç¬¦åˆæ¢ä»¶çš„éŠæˆ²"));
+    wrap.append(element("p", "chi-state__desc", message || "èª¿æ•´ç¯©é¸æ¢ä»¶ï¼Œæˆ–ç­‰æ–°éŠæˆ²ä¸Šæ¶ã€‚"));
+  } else if (kind === "error") {
+    wrap.append(element("h3", "chi-state__title", "è¼‰å…¥å¤±æ•—"));
+    wrap.append(element("p", "chi-state__desc", message || "ç¶²è·¯ç™¼ç”Ÿå•é¡Œï¼Œè«‹æª¢æŸ¥é€£ç·šå¾Œå†è©¦ä¸€æ¬¡ã€‚"));
+    const action = element("div", "chi-state__action");
+    const retry = element("button", "chi-btn chi-btn--secondary", "å†è©¦ä¸€æ¬¡");
+    retry.type = "button";
+    retry.dataset.fgRetry = "";
+    action.append(retry);
+    wrap.append(action);
+  }
+  return wrap;
+}
+
+function focusGameOnce() {
+  if (state.didFocusGame) return;
+  state.didFocusGame = true;
+  const focusId = new URLSearchParams(location.search).get("game");
+  if (!focusId) return;
+  const target = document.getElementById("game-" + focusId);
+  if (!target) return;
+  target.classList.add("focused");
+  target.scrollIntoView({ behavior: "smooth", block: "center" });
+}
+
+function render() {
+  const filtered = filteredGames();
+  const pageSizeValue = $("page-size").value;
+  const size = pageSizeValue === "all" ? filtered.length : Number(pageSizeValue);
+  const totalPages = Math.max(1, Math.ceil(filtered.length / size));
+  state.page = Math.min(state.page, totalPages);
+  const pageGames = filtered.slice((state.page - 1) * size, state.page * size);
+  $("summary").textContent = `å…± ${filtered.length} ç­†éŠæˆ²`;
+  const gamesEl = $("games");
+  gamesEl.replaceChildren();
+  gamesEl.className = state.viewMode === "list" ? "fg-list" : "fg-grid";
+  if (!pageGames.length) {
+    gamesEl.append(renderState("empty", filtered.length ? "æ²’æœ‰ç¬¦åˆæ¢ä»¶çš„éŠæˆ²ã€‚" : "ç›®å‰é‚„æ²’æœ‰éŠæˆ²è³‡æ–™ã€‚"));
+  } else {
+    pageGames.forEach((game) => gamesEl.append(buildCard(game)));
+  }
+  renderPagination(totalPages);
+  focusGameOnce();
+}
+
+function populatePlatforms() {
+  const platforms = [...new Set(state.games.map((game) => game.platform).filter(Boolean))].sort();
+  const group = $("platform-filter");
+  group.querySelectorAll("[data-platform]:not([data-platform='all'])").forEach((chip) => chip.remove());
+  platforms.forEach((platform) => {
+    const chip = element("button", "fg-chip", platform);
+    chip.type = "button";
+    chip.dataset.platform = platform;
+    chip.setAttribute("aria-pressed", "false");
+    group.append(chip);
+  });
+}
+
+function setView(mode) {
+  state.viewMode = mode;
+  $("view-grid").classList.toggle("is-active", mode === "grid");
+  $("view-grid").setAttribute("aria-pressed", String(mode === "grid"));
+  $("view-list").classList.toggle("is-active", mode === "list");
+  $("view-list").setAttribute("aria-pressed", String(mode === "list"));
+  render();
+}
+
+function setupControls() {
+  $("search").addEventListener("input", () => {
+    state.page = 1;
+    render();
+  });
+  $("page-size").addEventListener("change", () => {
+    state.page = 1;
+    render();
+  });
   const bindChips = (groupId) => {
     $(groupId).addEventListener("click", (event) => {
       const chip = event.target.closest("button");
