@@ -359,9 +359,9 @@ function buildCard(game) {
     actions.append(link);
   }
   if (state.claimEnabled && state.accessToken && Date.now() < state.accessTokenExpiresAt) {
-    const hideButton = element("button", "chi-btn chi-btn--secondary game-card__link game-card__hide", "手動隱藏");
+    const hideButton = element("button", "chi-btn chi-btn--secondary game-card__link game-card__hide", "刪除");
     hideButton.type = "button";
-    hideButton.addEventListener("click", () => hideGame(game, hideButton));
+    hideButton.addEventListener("click", () => deleteGame(game, hideButton));
     actions.append(hideButton);
   }
   content.append(actions);
@@ -536,16 +536,16 @@ function setupControls() {
   });
 }
 
-// ---------- 手動隱藏遊戲（來源資料保留，不受後續同步影響） ----------
+// ---------- 刪除遊戲（以永久排除紀錄阻止網站與通知重新出現） ----------
 
-async function hideGame(game, button) {
+async function deleteGame(game, button) {
   if (!state.accessToken || Date.now() >= state.accessTokenExpiresAt) {
     say("登入狀態已過期，請重新登入後再操作。");
     clearToken();
     render();
     return;
   }
-  if (!window.confirm(`確定要從網站清單隱藏「${game.title}」嗎？\n原始資料會保留，之後也不會因同步而重新出現。`)) return;
+  if (!window.confirm(`確定要刪除「${game.title}」嗎？\n刪除後會從網站清單移除，並停止所有後續 Discord 通知。來源紀錄會保留作為刪除標記，避免同步後重新出現。`)) return;
   button.disabled = true;
   button.textContent = "處理中…";
   try {
@@ -555,7 +555,7 @@ async function hideGame(game, button) {
     });
     state.games = state.games.filter((item) => item.id !== game.id);
     state.page = 1;
-    say(`已將「${game.title}」從網站清單隱藏。`);
+    say(`已刪除「${game.title}」，後續 Discord 通知也會停止。`);
     render();
   } catch (error) {
     say(error.message);

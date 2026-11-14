@@ -102,3 +102,43 @@ def test_already_announced_game_sends_short_claimed_update_next_run():
     assert sender.calls[-1] == ("game_123", "claimed")
     updated = store.documents[writer.GAMES_PATH]["records"][0]
     assert updated["claim_notification_pending"] is False
+
+
+
+def test_hidden_game_is_excluded_from_all_discord_notifications():
+    store = MemoryStore()
+    store.documents["data/catalog/hidden-games.json"] = {
+        "schema_version": 1,
+        "updated_at": "2026-11-04T00:00:00Z",
+        "ids": ["game_123"],
+    }
+    sender = FakeSender()
+    summary = DiscordNotificationService(GitHubJsonWriter(store), sender).process_games(
+        now=datetime(2026, 11, 4, 1, tzinfo=timezone.utc)
+    )
+    assert summary.sent == 0
+    assert summary.skipped == 0
+    assert sender.calls == []
+    assert store.documents.get(GitHubJsonWriter.NOTIFICATIONS_PATH) is None
+
+
+def test_hidden_game_does_not_send_pending_claim_update_or_reminder():
+    store = MemoryStore()
+    game = store.documents[GitHubJsonWriter.GAMES_PATH]["records"][0]
+    game.update({
+        "claim_status": "claimed",
+        "claimed_at": "2026-11-04T00:00:00Z",
+        "claim_notification_pending": True,
+    })
+    store.documents["data/catalog/hidden-games.json"] = {
+        "schema_version": 1,
+        "updated_at": "2026-11-04T00:00:00Z",
+        "ids": ["game_123"],
+    }
+    sender = FakeSender()
+    summary = DiscordNotificationService(GitHubJsonWriter(store), sender).process_games(
+        now=datetime(2026, 11, 4, 2, tzinfo=timezone.utc)
+    )
+    assert summary.sent == 0
+    assert sender.calls == []
+    assert game["claim_notification_pending"] is True
