@@ -1,1 +1,6 @@
-{"chiSystemVersion":"0.0.0","site":"fg","version":"1.0.0"}
+{
+  "chiSystemVersion": "1.0.0",
+  "chiSystemCommit": "c71c30c44b6934049ed817964a392feb7c9345b3",
+  "site": "fg",
+  "version": "1.0.0"
+}

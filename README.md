@@ -21,6 +21,19 @@ Each game is stored in `data/catalog/games.json`. The record includes its title,
 
 4Gamers is trusted as the curated source for free-game information. No storefront promotion API verification is performed.
 
+## Website design system
+
+The static site uses CHI Design System **v1.0.0**, pinned to commit
+`c71c30c44b6934049ed817964a392feb7c9345b3` from `47tsai/chi-system`. Its generated distribution files
+are vendored under `site/chi-system/` so the website does not depend on a
+floating branch or a cross-site runtime request. Shared tokens, components,
+and theme behavior are owned by CHI; `site/fg.css` contains only Free Game
+specific layout and game-list styling.
+
+To upgrade CHI, copy the required generated distribution assets from the
+selected CHI commit, update `site/chi-system/README.md` and
+`site/release.json`, then run the site validation workflow.
+
 ## Website and manual claim marking
 
 The static website is in `site/` and is configured for GitHub Pages at `https://fg.chi.qzz.io`. The API Worker is in `worker/index.js` and handles reads and authenticated manual claim updates through GitHub's Contents API.

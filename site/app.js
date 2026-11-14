@@ -48,16 +48,6 @@ function element(tag, className, text) {
   return node;
 }
 
-function icon(name, className) {
-  const svg = document.createElementNS("http://www.w3.org/2000/svg", "svg");
-  svg.setAttribute("class", className);
-  svg.setAttribute("aria-hidden", "true");
-  const use = document.createElementNS("http://www.w3.org/2000/svg", "use");
-  use.setAttribute("href", "chi-system/icons.svg#" + name);
-  svg.append(use);
-  return svg;
-}
-
 function say(message) {
   $("notice").textContent = message || "";
 }
@@ -425,6 +415,8 @@ function renderPagination(totalPages) {
 
 function renderState(kind, message) {
   const wrap = element("div", "chi-state");
+  wrap.setAttribute("role", kind === "error" ? "alert" : "status");
+  if (kind === "loading") wrap.setAttribute("aria-busy", "true");
   if (kind === "loading") {
     const spinner = element("div", "chi-spinner");
     spinner.setAttribute("role", "status");
@@ -434,11 +426,9 @@ function renderState(kind, message) {
     wrap.append(element("h3", "chi-state__title", "載入中"));
     wrap.append(element("p", "chi-state__desc", "正在取得資料，請稍候。"));
   } else if (kind === "empty") {
-    wrap.append(icon("inbox", "chi-state__icon"));
     wrap.append(element("h3", "chi-state__title", "沒有符合條件的遊戲"));
     wrap.append(element("p", "chi-state__desc", message || "調整篩選條件，或等新遊戲上架。"));
   } else if (kind === "error") {
-    wrap.append(icon("circle-x", "chi-state__icon"));
     wrap.append(element("h3", "chi-state__title", "載入失敗"));
     wrap.append(element("p", "chi-state__desc", message || "網路發生問題，請檢查連線後再試一次。"));
     const action = element("div", "chi-state__action");

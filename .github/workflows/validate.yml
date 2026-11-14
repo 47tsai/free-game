@@ -42,3 +42,4 @@ jobs:
         run: |
           node --check worker/index.js
           node --check site/app.js
+          node scripts/validate-site.mjs
