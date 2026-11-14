@@ -418,3 +418,18 @@
     padding-top: var(--chi-space-2);
   }
 }
+
+
+/* ---------- Mobile game-card width ---------- */
+@media (max-width: 767px) {
+  #games.fg-grid {
+    grid-template-columns: minmax(0, 1fr);
+    justify-items: stretch;
+  }
+
+  .game-card {
+    width: 100%;
+    max-width: none;
+    box-sizing: border-box;
+  }
+}
