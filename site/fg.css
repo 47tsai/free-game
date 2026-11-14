@@ -34,6 +34,18 @@
 
 /* chi-breakpoint: chi-breakpoint-md */
 @media (min-width: 768px) {
+  .fg-main {
+    padding-top: 0;
+  }
+
+  .fg-page-header {
+    padding-block: var(--chi-space-7) var(--chi-space-6);
+  }
+
+  .fg-controls {
+    padding-top: var(--chi-space-3);
+  }
+
   #games.fg-grid {
     grid-template-columns: repeat(auto-fill, minmax(min(280px, 100%), 1fr));
   }
