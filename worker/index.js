@@ -2,6 +2,7 @@ const OWNER = "47tsai";
 const REPO = "free-game";
 const BRANCH = "main";
 const GAMES_PATH = "data/catalog/games.json";
+const HIDDEN_PATH = "data/catalog/hidden-games.json";
 const AUTH_ORIGIN = "https://auth.chi.qzz.io";
 const ALLOWED_ORIGIN = "https://fg.chi.qzz.io";
 
@@ -32,8 +33,8 @@ function encodeContent(value) {
   return btoa(binary);
 }
 
-async function githubRequest(env, method = "GET", body) {
-  const url = "https://api.github.com/repos/" + OWNER + "/" + REPO + "/contents/" + GAMES_PATH;
+async function githubRequest(env, method = "GET", body, path = GAMES_PATH) {
+  const url = "https://api.github.com/repos/" + OWNER + "/" + REPO + "/contents/" + path;
   const response = await fetch(url, {
     method,
     headers: {
@@ -71,14 +72,28 @@ async function readPublicGames() {
   return response.json();
 }
 
-async function writeGames(env, document, sha) {
+async function readHiddenGames(env) {
+  try {
+    const result = await githubRequest(env, "GET", null, HIDDEN_PATH);
+    return { document: JSON.parse(decodeContent(result.content)), sha: result.sha };
+  } catch (error) {
+    if (String(error.message) === "github_404") return { document: { ids: [] }, sha: null };
+    throw error;
+  }
+}
+
+async function writeDocument(env, path, message, document, sha) {
   const body = {
-    message: "Update game claim status from fg.chi.qzz.io",
+    message,
     content: encodeContent(JSON.stringify(document, null, 2) + "\n"),
     branch: BRANCH,
     ...(sha ? { sha } : {}),
   };
-  return githubRequest(env, "PUT", body);
+  return githubRequest(env, "PUT", body, path);
+}
+
+async function writeGames(env, document, sha) {
+  return writeDocument(env, GAMES_PATH, "Update game claim status from fg.chi.qzz.io", document, sha);
 }
 
 async function requireOwner(request, env) {
@@ -102,7 +117,7 @@ export default {
         status: 204,
         headers: {
           "Access-Control-Allow-Origin": ALLOWED_ORIGIN,
-          "Access-Control-Allow-Methods": "GET, POST, OPTIONS",
+          "Access-Control-Allow-Methods": "GET, POST, DELETE, OPTIONS",
           "Access-Control-Allow-Headers": "Authorization, Content-Type",
           "Access-Control-Max-Age": "600",
         },
@@ -113,14 +128,55 @@ export default {
     }
     if (request.method === "GET" && url.pathname === "/api/games") {
       try {
-        const document = await readPublicGames();
-        const games = Array.isArray(document.records) ? document.records : [];
+        const [document, hiddenResponse] = await Promise.all([
+          readPublicGames(),
+          fetch("https://raw.githubusercontent.com/" + OWNER + "/" + REPO + "/" + BRANCH + "/" + HIDDEN_PATH, {
+            headers: { "Cache-Control": "no-cache", "User-Agent": "FreeGameWebsite" },
+          }),
+        ]);
+        let hiddenIds = [];
+        if (hiddenResponse.ok) {
+          const hidden = await hiddenResponse.json();
+          hiddenIds = Array.isArray(hidden.ids) ? hidden.ids : [];
+        } else if (hiddenResponse.status !== 404) {
+          throw new Error("hidden_games_" + hiddenResponse.status);
+        }
+        const hiddenSet = new Set(hiddenIds);
+        const games = (Array.isArray(document.records) ? document.records : []).filter((game) => !hiddenSet.has(game.id));
         games.sort((a, b) => String(b.added_at || b.created_at).localeCompare(String(a.added_at || a.created_at)));
         return json({ games: games });
       } catch {
         return json({ error: "games_unavailable" }, 502);
       }
     }
+    const hideMatch = url.pathname.match(/^\/api\/games\/([^/]+)\/hide$/);
+    if (request.method === "DELETE" && hideMatch) {
+      if (!(await requireOwner(request, env))) return json({ error: "authentication_required" }, 401);
+      if (!env.GITHUB_TOKEN) return json({ error: "github_token_not_configured" }, 503);
+      const gameId = decodeURIComponent(hideMatch[1]);
+      for (let attempt = 0; attempt < 2; attempt++) {
+        try {
+          const [games, hidden] = await Promise.all([readGames(env), readHiddenGames(env)]);
+          if (!games.document.records.some((item) => item.id === gameId)) return json({ error: "game_not_found" }, 404);
+          const ids = Array.isArray(hidden.document.ids) ? hidden.document.ids : [];
+          if (!ids.includes(gameId)) {
+            ids.push(gameId);
+            hidden.document.ids = ids;
+            hidden.document.updated_at = new Date().toISOString();
+            await writeDocument(env, HIDDEN_PATH, "Hide game from fg.chi.qzz.io", hidden.document, hidden.sha);
+          }
+          return json({ ok: true, hidden: true, game_id: gameId });
+        } catch (error) {
+          if (attempt === 0 && String(error.message).includes("github_409")) continue;
+          const reason = String(error?.message || "");
+          if (reason === "github_401" || reason === "github_403") return json({ error: "github_write_forbidden" }, 503);
+          if (reason === "github_409") return json({ error: "github_write_conflict" }, 409);
+          return json({ error: "hide_game_failed" }, 502);
+        }
+      }
+      return json({ error: "hide_game_conflict" }, 409);
+    }
+
     const match = url.pathname.match(/^\/api\/games\/([^/]+)\/claim$/);
     if (request.method === "POST" && match) {
       if (!(await requireOwner(request, env))) return json({ error: "authentication_required" }, 401);
