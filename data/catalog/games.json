@@ -109,10 +109,10 @@
       "normalized_title": "官方網站公告",
       "offer_end_at": null,
       "platform": "pocoapokemon.jp",
-      "reminder_last_sent_at": null,
+      "reminder_last_sent_at": "2026-11-14T09:40:48.614665Z",
       "store_url": "https://www.pocoapokemon.jp/tc/news/188",
       "title": "官方網站公告",
-      "updated_at": "2026-11-13T04:01:29.025819Z"
+      "updated_at": "2026-11-14T09:40:55.527573Z"
     },
     {
       "added_at": "2026-11-10T16:01:27.441794Z",
@@ -172,5 +172,5 @@
     }
   ],
   "schema_version": 1,
-  "updated_at": "2026-11-14T09:40:51.940865Z"
+  "updated_at": "2026-11-14T09:40:55.617295Z"
 }
