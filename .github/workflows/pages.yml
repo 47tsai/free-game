@@ -43,6 +43,7 @@ jobs:
               "releaseCommit": sha,
               "releaseCommitShort": sha[:7],
               "chiSystemVersion": release["chiSystemVersion"],
+          "chiSystemCommit": release["chiSystemCommit"],
               "deployedAt": datetime.now(timezone.utc).isoformat().replace("+00:00", "Z"),
           }
           json.dump(version, open("site/version.json", "w"), ensure_ascii=False, indent=2)
