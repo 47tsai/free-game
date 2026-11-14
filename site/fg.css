@@ -1,11 +1,6 @@
-/* Free Game 網站專屬樣式（fg.css）
- *
- * 只放本站專屬樣式；共用元件（按鈕、欄位、徽章、資料狀態、header、頁尾）用 chi-system。
- * 全部數值引用 tokens.css 的 --chi-* 變數，不得寫死 token 已涵蓋的值。
- * 響應式：優先用 auto-fit minmax / flex-wrap 讓版面自然收合；真正需要斷點的地方
- * 只用核准值 768px，並在 @media 緊鄰上一行附 chi-breakpoint 註解（SYSTEM.md 第 4 節）。
- * 來源：舊 site/index.html 頁內樣式移植，對照新 token 名稱改寫。
- */
+/* Free Game-specific layout and game-list styling.
+ * Shared header, footer, theme, tokens, fields, buttons, badges and data states
+ * are provided by the pinned CHI Design System distribution. */
 
 /* ---------- 跳至主要內容 ---------- */
 /* chi-system 目前無此元件，先放本站（renew 設計組建議 2 亦主張補進共用件）。 */
@@ -26,13 +21,10 @@
   top: var(--chi-space-3);
 }
 
-/* ---------- Header（本站調整） ---------- */
+/* ---------- CHI content shell and Header actions ---------- */
 /* header 只放品牌＋主題切換＋登入，不放導覽按鍵（品牌 logo 本身就是首頁連結）。
    導覽如需，放在 header 下方獨立一列，不塞進 header 這一行。
    拿掉導覽列後，主題按鈕用 margin-left: auto 把主題切換與登入推到右側。 */
-.chi-header__theme {
-  margin-left: auto;
-}
 
 /* 登入按鈕：手機版只顯示「登入」，桌面以上顯示完整文字。
    header 是固定 60px、不換行的 flex，完整文字在 360px 寬會把整列撐出畫面。 */
@@ -52,22 +44,32 @@
 }
 
 /* ---------- 主內容與頁首 ---------- */
+.chi-content {
+  display: flex;
+  flex-direction: column;
+  min-height: 100vh;
+}
+
 .fg-main {
   flex: 1;
   padding-bottom: var(--chi-space-8);
+}
+
+/* CHI's generic main typography is reset only inside the game-list application. */
+.fg-main p {
+  margin: 0;
 }
 
 .fg-page-header {
   padding-block: var(--chi-space-7) var(--chi-space-6);
 }
 
-.fg-page-title {
+.chi-main .fg-page-title {
   margin: 0;
   color: var(--chi-color-text-primary);
   font-size: var(--chi-font-size-page-title);
   line-height: var(--chi-line-height-page-title);
   font-weight: var(--chi-font-weight-page-title);
-  letter-spacing: var(--chi-letter-spacing-page-title);
 }
 
 /* ---------- 控制區 ---------- */
@@ -119,7 +121,7 @@
 .fg-page-size {
   display: flex;
   align-items: center;
-  gap: 6px;
+  gap: var(--chi-space-1);
   color: var(--chi-color-text-muted);
   font-size: var(--chi-font-size-body-small);
 }
@@ -137,21 +139,21 @@
 .fg-view-toggle .chi-btn {
   display: inline-flex;
   align-items: center;
-  gap: 6px;
+  gap: var(--chi-space-1);
 }
 
 /* ---------- 篩選 chip（本站專屬元件，chi-system 無 chip） ---------- */
 .fg-chip-group {
   display: flex;
   flex-wrap: wrap;
-  gap: 6px;
+  gap: var(--chi-space-1);
   min-width: 0;
 }
 
 .fg-chip {
-  min-height: 34px;
-  padding: 5px 12px;
-  border: 1px solid var(--chi-color-border-subtle);
+  min-height: var(--chi-size-control-compact);
+  padding: var(--chi-space-1) var(--chi-space-3);
+  border: var(--chi-base-border-default-width) solid var(--chi-color-border-subtle);
   border-radius: var(--chi-radius-full);
   background: var(--chi-color-surface);
   color: var(--chi-color-text-muted);
@@ -159,6 +161,11 @@
   font-size: var(--chi-font-size-body-small);
   cursor: pointer;
   transition: background var(--chi-duration), border-color var(--chi-duration), color var(--chi-duration);
+}
+
+.fg-chip:focus-visible {
+  outline: var(--chi-focus-width) solid var(--chi-color-focus-ring);
+  outline-offset: var(--chi-focus-offset);
 }
 
 .fg-chip:hover {
@@ -377,7 +384,7 @@
   justify-content: center;
   align-items: center;
   flex-wrap: wrap;
-  gap: 6px;
+  gap: var(--chi-space-1);
   padding-block: var(--chi-space-6);
 }
 
