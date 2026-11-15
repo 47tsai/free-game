@@ -461,7 +461,7 @@ function focusGameOnce() {
 function render() {
   const filtered = filteredGames();
   const pageSizeValue = $("page-size").value;
-  const size = pageSizeValue === "all" ? filtered.length : Number(pageSizeValue);
+  const size = pageSizeValue === "all" ? Math.max(1, filtered.length) : Number(pageSizeValue);
   const totalPages = Math.max(1, Math.ceil(filtered.length / size));
   state.page = Math.min(state.page, totalPages);
   const pageGames = filtered.slice((state.page - 1) * size, state.page * size);
