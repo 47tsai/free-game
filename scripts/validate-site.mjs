@@ -28,7 +28,7 @@ assert(!html.includes("icons.svg") && !html.includes("navigation.css"), "The pag
 assert(!app.includes("icons.svg") && !app.includes("function icon("), "The application still depends on the legacy icon sprite.");
 assert(!existsSync(resolve(site, "chi-system/navigation.css")) && !existsSync(resolve(site, "chi-system/icons.svg")),
   "Legacy navigation.css/icons.svg should not remain in the vendored distribution.");
-assert(release.chiSystemVersion === "1.0.0", "release.json must pin CHI v1.0.0.");
+assert(release.chiSystemVersion === "1.1.0", "release.json must pin CHI v1.1.0.");
 assert(/^[0-9a-f]{40}$/.test(release.chiSystemCommit || ""), "release.json must pin the full CHI source commit.");
 
 const assetRefs = [
