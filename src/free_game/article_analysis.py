@@ -55,6 +55,12 @@ class _ArticleHTMLParser(HTMLParser):
         self.anchor_tags_skipped_by_context = 0
         self.skipped_anchor_contexts: dict[str, int] = {}
         self.max_skip_depth = 0
+        # Storefront-domain URLs seen in parsed href/src attributes, outside
+        # ignored contexts. A storefront mention that only exists in CSS or
+        # script text (e.g. a dark-mode workaround for widget iframes) is not
+        # a product signal; this counter tells a no-extraction article apart
+        # from a non-offer news item the RSS keyword filter admitted.
+        self.storefront_url_attributes_seen = 0
 
     def handle_starttag(self, tag: str, attrs) -> None:
         attrs_map = dict(attrs)
@@ -106,6 +112,19 @@ class _ArticleHTMLParser(HTMLParser):
                     path=f"/app/{widget.group(1)}/", query="", fragment=""
                 ))
                 self.links.append((app_url, ""))
+        # Count storefront-domain URLs in parsed attributes, outside ignored
+        # contexts, so diagnostics can tell an article with a real storefront
+        # signal apart from one whose only mention sits in CSS or script text.
+        if not self.skip_depth:
+            for attr_name in ("href", "src"):
+                value = attrs_map.get(attr_name)
+                if not value:
+                    continue
+                candidate = urljoin(self.base_url, unescape(value))
+                parsed_attr = urlparse(candidate)
+                host_attr = (parsed_attr.hostname or "").lower().rstrip(".")
+                if parsed_attr.scheme == "https" and host_attr and self._platform(host_attr):
+                    self.storefront_url_attributes_seen += 1
 
     def _finish_active_link(self) -> None:
         if self._active_url:
@@ -245,6 +264,7 @@ class FourGamersArticleAnalyzer:
             "html_bytes": len(text.encode("utf-8")),
             "external_links_found": len(parser.links),
             "storefront_links_found": storefront_links,
+            "storefront_url_attributes_seen": parser.storefront_url_attributes_seen,
             "raw_storefront_domain_mentions": raw_storefront_mentions,
             "href_attributes_found": href_attributes,
             "body_tag_present": bool(re.search(r"<body(?:\s|>)", text, flags=re.IGNORECASE)),

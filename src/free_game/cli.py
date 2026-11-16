@@ -32,6 +32,7 @@ def collect_candidates(feed_payload: bytes | str, *, fetcher=None):
     analyzer = FourGamersArticleAnalyzer()
     candidates = []
     failures = []
+    skipped = []
     for observation in observations:
         try:
             response = article_fetcher.fetch(observation.source_url)
@@ -39,18 +40,34 @@ def collect_candidates(feed_payload: bytes | str, *, fetcher=None):
             if extracted:
                 candidates.extend(extracted)
             else:
-                failures.append({
+                diagnostics = analyzer.diagnostics(observation, response.body)
+                # An article with no storefront-domain URL in any parsed
+                # href/src attribute is a non-offer news item the RSS keyword
+                # filter admitted (e.g. a Twitch Drops serial-code giveaway),
+                # not an extraction failure. Skip it instead of failing the
+                # run; an article that does carry a storefront signal but
+                # yields nothing is still reported as a failure.
+                error = (
+                    "no_storefront_signal"
+                    if diagnostics["storefront_url_attributes_seen"] == 0
+                    else "no_storefront_products_extracted"
+                )
+                entry = {
                     "article_id": observation.external_id,
-                    "error": "no_storefront_products_extracted",
-                    **analyzer.diagnostics(observation, response.body),
-                })
+                    "error": error,
+                    **diagnostics,
+                }
+                if error == "no_storefront_signal":
+                    skipped.append(entry)
+                else:
+                    failures.append(entry)
         except Exception as exc:
             failures.append({
                 "article_id": observation.external_id,
                 "error": "article_fetch_or_analysis_failed",
                 "reason": type(exc).__name__,
             })
-    return candidates, failures
+    return candidates, failures, skipped
 
 
 def _make_writer():
@@ -82,14 +99,14 @@ def main(argv: list[str] | None = None) -> int:
             return 1 if notifications["failed"] else 0
 
         response = HTTPFetcher().fetch(FOUR_GAMERS_RSS)
-        candidates, failed_articles = collect_candidates(response.body)
+        candidates, failed_articles, skipped_articles = collect_candidates(response.body)
         write_summary = None
         if candidates:
             result = writer.write_candidates(candidates)
             write_summary = {"games_created": result.games_created, "games_updated": result.games_updated, "candidates_skipped": result.candidates_skipped}
         notifications = _send_notifications(writer)
         failed = bool(failed_articles or notifications["failed"])
-        print(json.dumps({"status": "partial_failure" if failed else "success", "rss": FOUR_GAMERS_RSS, "candidates": len(candidates), "failed_articles": failed_articles, "write": write_summary, "notifications": notifications}, ensure_ascii=False))
+        print(json.dumps({"status": "partial_failure" if failed else "success", "rss": FOUR_GAMERS_RSS, "candidates": len(candidates), "failed_articles": failed_articles, "skipped_articles": skipped_articles, "write": write_summary, "notifications": notifications}, ensure_ascii=False))
         return 1 if failed else 0
     except Exception as exc:
         print(json.dumps({"status": "error", "error": f"{type(exc).__name__}: {str(exc) or 'no_error_message'}"}, ensure_ascii=False))
