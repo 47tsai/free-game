@@ -1,4 +1,4 @@
-/* chi-system components.css — 生成物，DO NOT EDIT。由 scripts/build-site.mjs 串接 components/<元件>/*.css 產生。順序：header、footer、sidebar、button、base。 */
+/* chi-system components.css — 生成物，DO NOT EDIT。由 scripts/build-site.mjs 串接 components/<元件>/*.css 產生。順序：header、footer、sidebar、button、icon、base。 */
 
 /* --- header/header.css --- */
 /* chi-system Header — 只引 Token，不寫原始值。 */
@@ -415,6 +415,48 @@ html.chi-sidebar-open body {
   background: var(--chi-button-danger-background);
   border-color: var(--chi-button-danger-background);
 }
+/* --- icon/icon.css --- */
+/* chi-system Icon — 內嵌 SVG 圖示樣式（SPEC.md §6，U4）。
+ * 授權：Font Awesome Free 6.4.0，Icons: CC BY 4.0（threads 例外取自 6.4.2，見 icon.js）。
+ * 搭配 components/icon/icon.js：chiIcon() 回傳 <svg class="chi-icon">，此檔管尺寸與對齊。
+ *
+ * 注意與 base.css 的分工：base.css 也有 .chi-icon（Token 固定尺寸，供 <select> 等舊用法），
+ * 建置順序 icon 在 base 之前（見 scripts/build-site.mjs），因此此處用 svg.chi-icon
+ * 提高特異度，確保 chiIcon() 產生的 svg 依文字尺寸縮放（1em），不被 base.css 蓋回 20px；
+ * .chi-icon--sm／--lg 修飾仍沿用 base.css 的 Token 尺寸（16px／24px）。
+ * 垂直對齊 -0.125em 沿用 Font Awesome 做法，讓圖示基線與文字對齊。
+ */
+svg.chi-icon {
+  width: 1em;
+  height: 1em;
+  flex: none;
+  fill: currentColor;
+  vertical-align: -0.125em;
+}
+svg.chi-icon--sm {
+  width: var(--chi-base-icon-sm);
+  height: var(--chi-base-icon-sm);
+}
+svg.chi-icon--lg {
+  width: var(--chi-base-icon-lg);
+  height: var(--chi-base-icon-lg);
+}
+/* 側邊欄導覽圖示格：固定 Token 尺寸，內層 svg 撐滿（見 SPEC.md §6 導覽連結寫法）。
+ * 用法：<a><span class="chi-sidebar__icon">chiIcon('fa-solid fa-star')</span><span class="chi-sidebar__label">…</span></a> */
+.chi-sidebar__icon {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: var(--chi-base-icon-md);
+  height: var(--chi-base-icon-md);
+  flex: none;
+}
+.chi-sidebar__icon svg {
+  width: 100%;
+  height: 100%;
+  fill: currentColor;
+}
+
 /* --- base/base.css --- */
 /* chi-system base.css — 文件基礎＋表單／Tabs／卡片／清單／表格／徽章／對話框／資料狀態
  * 來源：chi-system-old 的 components.css（HEAD 436f028）第 1–56 行與第 161–719 行，

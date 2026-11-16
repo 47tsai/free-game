@@ -213,6 +213,50 @@
   --chi-color-brand: #8CDC47;
 }
 
+[data-chi-brand="fg"] {
+  --chi-button-primary-background: #8F5600;
+  --chi-button-primary-background-active: #663D00;
+  --chi-button-primary-background-hover: #7A4900;
+  --chi-color-accent: #8F5600;
+  --chi-color-accent-active: #7A4900;
+  --chi-color-accent-hover: #7A4900;
+  --chi-color-focus-ring: #B86E00;
+  --chi-sidebar-text-active: #8F5600;
+}
+
+[data-chi-theme="dark"][data-chi-brand="fg"] {
+  --chi-button-primary-background: #FFB84D;
+  --chi-button-primary-background-active: #FF9900;
+  --chi-button-primary-background-hover: #FFCC80;
+  --chi-color-accent: #FFB84D;
+  --chi-color-accent-active: #FF9900;
+  --chi-color-accent-hover: #FFCC80;
+  --chi-color-focus-ring: #FFB84D;
+  --chi-sidebar-text-active: #FFB84D;
+}
+
+[data-chi-brand="nav"] {
+  --chi-button-primary-background: #006E87;
+  --chi-button-primary-background-active: #004A5E;
+  --chi-button-primary-background-hover: #005A6E;
+  --chi-color-accent: #006E87;
+  --chi-color-accent-active: #005A6E;
+  --chi-color-accent-hover: #005A6E;
+  --chi-color-focus-ring: #008CAD;
+  --chi-sidebar-text-active: #006E87;
+}
+
+[data-chi-theme="dark"][data-chi-brand="nav"] {
+  --chi-button-primary-background: #35BDD8;
+  --chi-button-primary-background-active: #2AA9C2;
+  --chi-button-primary-background-hover: #7DD3E8;
+  --chi-color-accent: #35BDD8;
+  --chi-color-accent-active: #2AA9C2;
+  --chi-color-accent-hover: #7DD3E8;
+  --chi-color-focus-ring: #35BDD8;
+  --chi-sidebar-text-active: #35BDD8;
+}
+
 /* 相容別名（舊寫法沿用，見 components/base/base.css 檔頭） */
 :root {
   --chi-line-height-body: var(--chi-font-line-height-body);

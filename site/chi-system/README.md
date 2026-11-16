@@ -1,8 +1,8 @@
 # CHI Design System assets
 
-- Version: **v1.0.0**
+- Version: **v1.1.0**
 - Source repository: https://github.com/47tsai/chi-system
-- Pinned source commit: `c71c30c44b6934049ed817964a392feb7c9345b3`
+- Pinned source commit: `edd266cf49ed7d8eeecad4b4f2eeb3f27c0df60d`
 
 Vendored generated assets:
 - `tokens.css`
