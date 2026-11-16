@@ -91,6 +91,7 @@ def test_article_without_store_link_is_not_a_game_candidate():
         "html_bytes": len(html.encode("utf-8")),
         "external_links_found": 0,
         "storefront_links_found": 0,
+        "storefront_url_attributes_seen": 0,
         "raw_storefront_domain_mentions": 0,
         "href_attributes_found": 0,
         "body_tag_present": True,
@@ -101,6 +102,46 @@ def test_article_without_store_link_is_not_a_game_candidate():
         "active_skip_tags": "",
         "skipped_anchor_contexts": "",
     }
+
+
+def test_diagnostics_ignores_storefront_mention_inside_style_block():
+    # Regression test for 4Gamers article 83308 (Twitch GTA6 Drops giveaway):
+    # the only store.steampowered.com mention sits in a dark-mode CSS
+    # workaround for widget iframes, so there is no storefront signal even
+    # though the raw domain mention count is 1.
+    html = """
+    <html><head><style>
+      .dark .render-content iframe[src*="https://store.steampowered.com/widget/"] {
+        color-scheme: normal;
+      }
+    </style></head><body>
+      <p>Twitch 宣布連日送遊戲序號，限時免費領取上限超過 1 萬組。</p>
+    </body></html>
+    """
+    analyzer = FourGamersArticleAnalyzer()
+    diagnostics = analyzer.diagnostics(observation(), html)
+
+    assert analyzer.analyze(observation(), html) == ()
+    assert diagnostics["external_links_found"] == 0
+    assert diagnostics["storefront_links_found"] == 0
+    assert diagnostics["raw_storefront_domain_mentions"] == 1
+    assert diagnostics["storefront_url_attributes_seen"] == 0
+
+
+def test_diagnostics_counts_storefront_urls_seen_in_attributes():
+    html = """
+    <html><body>
+      <a href="https://store.steampowered.com/app/12345/example/">Example Game</a>
+      <iframe src="https://store.steampowered.com/widget/67890/"></iframe>
+      <iframe src="https://www.youtube.com/embed/example"></iframe>
+      <a href="https://www.4gamers.com.tw/news/detail/other">Related article</a>
+    </body></html>
+    """
+    diagnostics = FourGamersArticleAnalyzer().diagnostics(observation(), html)
+
+    assert diagnostics["storefront_url_attributes_seen"] == 2
+    assert diagnostics["external_links_found"] == 2
+    assert diagnostics["storefront_links_found"] == 2
 
 
 def test_extracts_explicit_taiwan_deadline_from_article_body():
