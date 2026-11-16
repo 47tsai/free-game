@@ -121,6 +121,7 @@
   flex-direction: column;
   width: var(--chi-layout-sidebar-width);
   height: 100vh;
+  height: 100dvh; /* 手機瀏覽器網址列收放時跟著實際可視高度走，抽屜底部的切換鈕才不會被推出畫面；100vh 為舊瀏覽器 fallback。 */
   background: var(--chi-sidebar-background);
   border-right: var(--chi-base-border-default-width) solid var(--chi-color-border-subtle);
   transform: translateX(-100%);
