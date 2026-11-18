@@ -22,10 +22,10 @@
     {
       "added_at": "2026-11-18T10:01:33.180730Z",
       "article_url": "https://www.4gamers.com.tw/news/detail/83383/steam-the-ghost-of-solaris-free-to-paid",
-      "claim_notification_pending": false,
-      "claim_source": null,
-      "claim_status": "unclaimed",
-      "claimed_at": null,
+      "claim_notification_pending": true,
+      "claim_source": "manual",
+      "claim_status": "claimed",
+      "claimed_at": "2026-11-18T10:33:32.650Z",
       "cover_image_url": "https://img.4gamers.com.tw/news-image/0f613b9f-6fe7-4a30-8998-e8f6ee38b47c.jpg",
       "created_at": "2026-11-18T10:01:33.180730Z",
       "external_product_id": "4452300",
@@ -36,7 +36,7 @@
       "reminder_last_sent_at": null,
       "store_url": "https://store.steampowered.com/app/4452300/",
       "title": "The Ghost Of Solaris",
-      "updated_at": "2026-11-18T10:01:33.180730Z"
+      "updated_at": "2026-11-18T10:33:32.650Z"
     },
     {
       "added_at": "2026-11-13T04:01:29.025011Z",
@@ -191,5 +191,5 @@
     }
   ],
   "schema_version": 1,
-  "updated_at": "2026-11-18T10:01:33.371462Z"
+  "updated_at": "2026-11-18T10:33:32.650Z"
 }
