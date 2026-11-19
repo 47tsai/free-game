@@ -207,8 +207,27 @@
       "store_url": "https://store.epicgames.com/p/good-morning-human-6d0b45",
       "title": "GMH - Good Morning Human",
       "updated_at": "2026-11-08T10:52:15.855219Z"
+    },
+    {
+      "added_at": "2026-11-19T22:01:18.175061Z",
+      "article_url": "https://www.4gamers.com.tw/news/detail/83419/mark-of-the-deep-is-free-to-keep-on-epic-games-store",
+      "claim_notification_pending": false,
+      "claim_source": null,
+      "claim_status": "unclaimed",
+      "claimed_at": null,
+      "cover_image_url": "https://img.4gamers.com.tw/news-image/9ce7720f-9103-4276-ad42-818fa360f269.jpg",
+      "created_at": "2026-11-19T22:01:18.175061Z",
+      "external_product_id": "mark-of-the-deep-f7dc08",
+      "id": "game_cdc7e478-fb8a-5ea4-b861-4ca065291241",
+      "normalized_title": "mark of the deep",
+      "offer_end_at": null,
+      "platform": "epic",
+      "reminder_last_sent_at": null,
+      "store_url": "https://store.epicgames.com/p/mark-of-the-deep-f7dc08",
+      "title": "Mark of the Deep",
+      "updated_at": "2026-11-19T22:01:18.175061Z"
     }
   ],
   "schema_version": 1,
-  "updated_at": "2026-11-19T10:01:20.996211Z"
+  "updated_at": "2026-11-19T22:01:18.353431Z"
 }
