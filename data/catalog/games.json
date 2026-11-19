@@ -58,6 +58,25 @@
       "updated_at": "2026-11-14T09:40:51.713100Z"
     },
     {
+      "added_at": "2026-11-19T10:01:20.768550Z",
+      "article_url": "https://www.4gamers.com.tw/news/detail/83404/contractor-the-clean-up-part-ii-is-free-on-egs-but-need-vpn",
+      "claim_notification_pending": false,
+      "claim_source": null,
+      "claim_status": "unclaimed",
+      "claimed_at": null,
+      "cover_image_url": "https://img.4gamers.com.tw/news-image/a9b47df3-ac33-409e-ae35-87d05ff1c249.jpg",
+      "created_at": "2026-11-19T10:01:20.768550Z",
+      "external_product_id": "contractor-the-clean-up-part-ii-1b1b57",
+      "id": "game_694e134d-0bd5-58d5-8057-a11baa3e135d",
+      "normalized_title": "contractor the clean up part ii",
+      "offer_end_at": null,
+      "platform": "epic",
+      "reminder_last_sent_at": null,
+      "store_url": "https://store.epicgames.com/p/contractor-the-clean-up-part-ii-1b1b57",
+      "title": "Contractor: The Clean Up Part II",
+      "updated_at": "2026-11-19T10:01:20.768550Z"
+    },
+    {
       "added_at": "2026-11-10T16:01:27.441249Z",
       "article_url": "https://www.4gamers.com.tw/news/detail/83209/battle-sweeper-steam-delisting",
       "claim_notification_pending": false,
@@ -191,5 +210,5 @@
     }
   ],
   "schema_version": 1,
-  "updated_at": "2026-11-18T11:20:28.518720Z"
+  "updated_at": "2026-11-19T10:01:20.996211Z"
 }
