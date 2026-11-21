@@ -309,8 +309,8 @@
       "idempotency_key": "reminder:game_cdc7e478-fb8a-5ea4-b861-4ca065291241:2:discord",
       "last_error": null,
       "notification_type": "deadline_reminder",
-      "sent_at": null,
-      "status": "pending"
+      "sent_at": "2026-11-21T22:01:30.035664Z",
+      "status": "sent"
     },
     {
       "attempt_count": 1,
@@ -338,5 +338,5 @@
     }
   ],
   "schema_version": 1,
-  "updated_at": "2026-11-21T22:01:28.712275Z"
+  "updated_at": "2026-11-21T22:01:30.281249Z"
 }
