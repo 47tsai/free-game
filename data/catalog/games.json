@@ -71,10 +71,10 @@
       "normalized_title": "contractor the clean up part ii",
       "offer_end_at": null,
       "platform": "epic",
-      "reminder_last_sent_at": "2026-11-20T11:04:26.564456Z",
+      "reminder_last_sent_at": "2026-11-21T12:02:32.629207Z",
       "store_url": "https://store.epicgames.com/p/contractor-the-clean-up-part-ii-1b1b57",
       "title": "Contractor: The Clean Up Part II",
-      "updated_at": "2026-11-20T11:04:30.383890Z"
+      "updated_at": "2026-11-21T12:02:36.798014Z"
     },
     {
       "added_at": "2026-11-10T16:01:27.441249Z",
@@ -229,5 +229,5 @@
     }
   ],
   "schema_version": 1,
-  "updated_at": "2026-11-20T22:01:24.634831Z"
+  "updated_at": "2026-11-21T12:02:37.023996Z"
 }
