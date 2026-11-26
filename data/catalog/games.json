@@ -79,10 +79,10 @@
     {
       "added_at": "2026-11-26T10:01:25.381942Z",
       "article_url": "https://www.4gamers.com.tw/news/detail/83530/steam-ruins-to-fortress-leaves-early-access-free-to-paid-1-0-release",
-      "claim_notification_pending": false,
-      "claim_source": null,
-      "claim_status": "unclaimed",
-      "claimed_at": null,
+      "claim_notification_pending": true,
+      "claim_source": "manual",
+      "claim_status": "claimed",
+      "claimed_at": "2026-11-26T10:05:37.095Z",
       "cover_image_url": "https://img.4gamers.com.tw/news-image/131fc32c-066d-4039-a145-4f69c44c5f77.jpg",
       "created_at": "2026-11-26T10:01:25.381942Z",
       "external_product_id": "did:plc:bwyjuoutweksdxxlghoa5p32",
@@ -93,7 +93,7 @@
       "reminder_last_sent_at": null,
       "store_url": "https://bsky.app/profile/did:plc:bwyjuoutweksdxxlghoa5p32",
       "title": "@nimblebeasts.bsky.social",
-      "updated_at": "2026-11-26T10:01:25.381942Z"
+      "updated_at": "2026-11-26T10:05:37.095Z"
     },
     {
       "added_at": "2026-11-19T10:01:20.768550Z",
@@ -267,5 +267,5 @@
     }
   ],
   "schema_version": 1,
-  "updated_at": "2026-11-26T10:01:25.757592Z"
+  "updated_at": "2026-11-26T10:05:37.095Z"
 }
