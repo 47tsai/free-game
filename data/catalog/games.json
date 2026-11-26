@@ -98,10 +98,10 @@
     {
       "added_at": "2026-11-26T22:01:23.496345Z",
       "article_url": "https://www.4gamers.com.tw/news/detail/83537/bread-and-fred-is-free-to-keep-on-epic-games-store-this-week",
-      "claim_notification_pending": false,
-      "claim_source": null,
-      "claim_status": "unclaimed",
-      "claimed_at": null,
+      "claim_notification_pending": true,
+      "claim_source": "manual",
+      "claim_status": "claimed",
+      "claimed_at": "2026-11-26T23:01:58.942Z",
       "cover_image_url": "https://img.4gamers.com.tw/news-image/d69b4045-b87a-4ca6-9105-0188986ee81c.jpg",
       "created_at": "2026-11-26T22:01:23.496345Z",
       "external_product_id": "bread-and-fred-1db362",
@@ -112,7 +112,7 @@
       "reminder_last_sent_at": null,
       "store_url": "https://store.epicgames.com/p/bread-and-fred-1db362",
       "title": "Bread & Fred",
-      "updated_at": "2026-11-26T22:01:23.496345Z"
+      "updated_at": "2026-11-26T23:01:58.942Z"
     },
     {
       "added_at": "2026-11-19T10:01:20.768550Z",
@@ -305,5 +305,5 @@
     }
   ],
   "schema_version": 1,
-  "updated_at": "2026-11-26T22:01:31.722521Z"
+  "updated_at": "2026-11-26T23:01:58.942Z"
 }
