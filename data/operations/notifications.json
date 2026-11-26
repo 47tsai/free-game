@@ -171,6 +171,18 @@
     {
       "attempt_count": 1,
       "channel": "discord",
+      "created_at": "2026-11-26T10:01:27.080220Z",
+      "game_id": "game_03438085-fb87-5d3b-a30d-4f3bee039028",
+      "id": "notification_9540847f-92ee-5f35-8659-9aac2175fcf1",
+      "idempotency_key": "new_game:game_03438085-fb87-5d3b-a30d-4f3bee039028:discord",
+      "last_error": null,
+      "notification_type": "new_offer",
+      "sent_at": null,
+      "status": "pending"
+    },
+    {
+      "attempt_count": 1,
+      "channel": "discord",
       "created_at": "2026-11-14T09:40:48.614665Z",
       "game_id": "game_543cf611-5be8-5932-bdf6-08a325f6ca8c",
       "id": "notification_966ca274-6362-5843-99bf-aeb63758071e",
@@ -338,5 +350,5 @@
     }
   ],
   "schema_version": 1,
-  "updated_at": "2026-11-21T22:01:30.281249Z"
+  "updated_at": "2026-11-26T10:01:28.575608Z"
 }
