@@ -77,6 +77,24 @@
       "updated_at": "2026-11-14T09:40:51.713100Z"
     },
     {
+      "added_at": "2026-11-27T23:10:37.064792Z",
+      "article_url": null,
+      "claim_notification_pending": true,
+      "claim_source": "fgc",
+      "claim_status": "claimed",
+      "claimed_at": "2026-11-27T23:10:37.064792Z",
+      "cover_image_url": null,
+      "created_at": "2026-11-27T23:10:37.064792Z",
+      "external_product_id": "en",
+      "id": "game_6236b2ce-0f4b-5b09-80e0-7152f2950131",
+      "normalized_title": "dead age 2",
+      "platform": "gog",
+      "reminder_last_sent_at": null,
+      "store_url": "https://www.gog.com/en",
+      "title": "Dead Age 2",
+      "updated_at": "2026-11-27T23:10:37.064792Z"
+    },
+    {
       "added_at": "2026-11-26T10:01:25.381942Z",
       "article_url": "https://www.4gamers.com.tw/news/detail/83530/steam-ruins-to-fortress-leaves-early-access-free-to-paid-1-0-release",
       "claim_notification_pending": false,
@@ -324,5 +342,5 @@
     }
   ],
   "schema_version": 1,
-  "updated_at": "2026-11-27T22:01:24.022646Z"
+  "updated_at": "2026-11-27T23:10:37.634140Z"
 }
