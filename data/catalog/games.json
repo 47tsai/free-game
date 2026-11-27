@@ -77,24 +77,6 @@
       "updated_at": "2026-11-14T09:40:51.713100Z"
     },
     {
-      "added_at": "2026-11-27T23:10:37.064792Z",
-      "article_url": null,
-      "claim_notification_pending": true,
-      "claim_source": "fgc",
-      "claim_status": "claimed",
-      "claimed_at": "2026-11-27T23:10:37.064792Z",
-      "cover_image_url": null,
-      "created_at": "2026-11-27T23:10:37.064792Z",
-      "external_product_id": "en",
-      "id": "game_6236b2ce-0f4b-5b09-80e0-7152f2950131",
-      "normalized_title": "dead age 2",
-      "platform": "gog",
-      "reminder_last_sent_at": null,
-      "store_url": "https://www.gog.com/en",
-      "title": "Dead Age 2",
-      "updated_at": "2026-11-27T23:10:37.064792Z"
-    },
-    {
       "added_at": "2026-11-26T10:01:25.381942Z",
       "article_url": "https://www.4gamers.com.tw/news/detail/83530/steam-ruins-to-fortress-leaves-early-access-free-to-paid-1-0-release",
       "claim_notification_pending": false,
@@ -324,23 +306,23 @@
     {
       "added_at": "2026-11-27T22:01:23.881290Z",
       "article_url": "https://www.4gamers.com.tw/news/detail/83565/gog-dead-age-2-free-to-claim-limited-time",
-      "claim_notification_pending": false,
-      "claim_source": null,
-      "claim_status": "unclaimed",
-      "claimed_at": null,
+      "claim_notification_pending": true,
+      "claim_source": "fgc",
+      "claim_status": "claimed",
+      "claimed_at": "2026-11-27T15:01:43Z",
       "cover_image_url": "https://img.4gamers.com.tw/news-image/f8d8a2d5-2356-4532-94dd-3bc7ab1ed223.jpg",
       "created_at": "2026-11-27T22:01:23.881290Z",
       "external_product_id": "dead_age_2",
       "id": "game_fb625c35-bcbb-52ca-90e0-bdb037353855",
-      "normalized_title": "台灣時間 11 月 30 日晚上 10 點截止",
+      "normalized_title": "dead age 2",
       "offer_end_at": "2026-11-30T22:00:00+08:00",
       "platform": "gog",
       "reminder_last_sent_at": null,
       "store_url": "https://www.gog.com/en/game/dead_age_2",
-      "title": "台灣時間 11 月 30 日晚上 10 點截止",
-      "updated_at": "2026-11-27T22:01:23.881290Z"
+      "title": "Dead Age 2",
+      "updated_at": "2026-11-27T23:50:05Z"
     }
   ],
   "schema_version": 1,
-  "updated_at": "2026-11-27T23:10:37.634140Z"
+  "updated_at": "2026-11-27T23:50:05Z"
 }

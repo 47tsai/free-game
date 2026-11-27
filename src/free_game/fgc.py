@@ -17,6 +17,28 @@ _PLATFORM_HOSTS = {
     "steam": "steam", "epic": "epic", "epic games": "epic", "epic games store": "epic",
     "gog": "gog", "ubisoft": "ubisoft", "dlsite": "dlsite",
 }
+# Path segments that are not a product identity: locale prefixes such as
+# "/en" and storefront roots such as "/game". Using one as an
+# external_product_id (e.g. GOG's "https://www.gog.com/en" -> "en") makes
+# the claim match nothing and creates a duplicate record.
+_GENERIC_PATH_SEGMENTS = {
+    "en", "zh", "zh-tw", "zh-cn", "zh-hk", "ja", "ko", "de", "fr", "es",
+    "pt", "ru", "pl", "game", "games", "store", "p", "app", "products",
+    "product", "catalog", "search",
+}
+_LOCALE_SEGMENT = re.compile(r"^[a-z]{2}(?:-[a-z]{2})?$")
+
+
+def _external_product_id_or_none(platform: str, path: str) -> str | None:
+    external_id = FourGamersArticleAnalyzer._external_product_id(platform, path)
+    if external_id:
+        return external_id
+    segment = path.rstrip("/").split("/")[-1] if path.rstrip("/") else ""
+    if not segment:
+        return None
+    if segment.casefold() in _GENERIC_PATH_SEGMENTS or _LOCALE_SEGMENT.match(segment):
+        return None
+    return segment
 
 
 class FGCError(RuntimeError):
@@ -51,15 +73,19 @@ def parse_fgc_messages(payload: str | bytes) -> list[dict]:
             item_platform = platform or (parsed.hostname or "").lower().removeprefix("www.")
             if not item_platform:
                 continue
-            external_id = FourGamersArticleAnalyzer._external_product_id(item_platform, parsed.path)
-            if not external_id:
-                external_id = parsed.path.rstrip("/").split("/")[-1]
-            if not external_id:
+            title = title.strip()
+            if not title:
                 continue
-            claims[(item_platform, external_id)] = {
+            # A link without a product slug (e.g. GOG "https://www.gog.com/en")
+            # has no usable external id. Keep the claim, keyed by title, so
+            # the writer can match it against the catalog instead of
+            # inventing an id such as "en" and creating a duplicate record.
+            external_id = _external_product_id_or_none(item_platform, parsed.path)
+            key = (item_platform, external_id) if external_id else (item_platform, "title:" + title.casefold())
+            claims[key] = {
                 "platform": item_platform,
                 "external_product_id": external_id,
-                "title": title.strip(),
+                "title": title,
                 "store_url": url,
             }
     return list(claims.values())

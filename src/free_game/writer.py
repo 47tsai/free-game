@@ -143,6 +143,14 @@ class GitHubJsonWriter:
         if not isinstance(records, list):
             raise ContentsStoreError("games:records_must_be_array")
         existing = {item["id"]: item for item in records if isinstance(item, dict) and isinstance(item.get("id"), str)}
+        # FGC placeholders have no article_url yet. If a later ingestion
+        # carries the same platform + title, merge into the placeholder
+        # instead of creating a second record for the same game.
+        placeholder_by_title = {
+            (item.get("platform"), _normalize_title(str(item.get("title") or ""))): item
+            for item in records
+            if isinstance(item, dict) and not item.get("article_url") and item.get("title")
+        }
         changes: dict[str, dict[str, Any]] = {}
         skipped = 0
         for candidate in candidates:
@@ -154,6 +162,13 @@ class GitHubJsonWriter:
             else:
                 game_id = _stable_id("game", candidate.source_key, candidate.source_external_id or "")
             previous = changes.get(game_id) or existing.get(game_id, {})
+            if not previous:
+                placeholder = placeholder_by_title.get(
+                    (candidate.platform, _normalize_title(candidate.title))
+                )
+                if placeholder is not None and isinstance(placeholder.get("id"), str):
+                    game_id = placeholder["id"]
+                    previous = changes.get(game_id) or placeholder
             now = _now()
             article_url = candidate.article_url or (candidate.product_url if not candidate.platform else None)
             store_url = candidate.product_url if candidate.platform else previous.get("store_url")
@@ -192,19 +207,45 @@ class GitHubJsonWriter:
         if not isinstance(records, list):
             raise ContentsStoreError("games:records_must_be_array")
         existing = {item["id"]: item for item in records if isinstance(item, dict) and isinstance(item.get("id"), str)}
+        # Title fallback: a claim whose store link carries no product slug
+        # (external_product_id is None, e.g. GOG "https://www.gog.com/en")
+        # must match the catalog record by platform + title, not create a
+        # second record. Prefer a record that already has an article_url
+        # (the ingested one) over an earlier placeholder.
+        by_title: dict[tuple[Any, str], dict[str, Any]] = {}
+        for item in records:
+            if not isinstance(item, dict) or not item.get("title"):
+                continue
+            key = (item.get("platform"), _normalize_title(str(item["title"])))
+            current = by_title.get(key)
+            if current is None or (not current.get("article_url") and item.get("article_url")):
+                by_title[key] = item
         changes: dict[str, dict[str, Any]] = {}
         for claim in claims:
             platform, external_id, title, store_url = (claim.get(key) for key in ("platform", "external_product_id", "title", "store_url"))
-            if not all(isinstance(value, str) and value.strip() for value in (platform, external_id, title)):
+            if not isinstance(platform, str) or not platform.strip():
                 continue
-            game_id = _stable_id("game", platform, external_id)
+            if not isinstance(title, str) or not title.strip():
+                continue
+            if external_id is not None and (not isinstance(external_id, str) or not external_id.strip()):
+                external_id = None
+            normalized_title = _normalize_title(title)
+            if external_id:
+                game_id = _stable_id("game", platform, external_id)
+            else:
+                game_id = _stable_id("game", platform, "title", normalized_title)
             previous = changes.get(game_id) or existing.get(game_id, {})
+            if not previous:
+                matched = by_title.get((platform, normalized_title))
+                if matched is not None and isinstance(matched.get("id"), str):
+                    game_id = matched["id"]
+                    previous = changes.get(game_id) or matched
             incoming = {
                 "id": game_id,
                 "title": previous.get("title") or title.strip(),
-                "normalized_title": previous.get("normalized_title") or _normalize_title(title),
+                "normalized_title": previous.get("normalized_title") or normalized_title,
                 "platform": platform,
-                "external_product_id": external_id,
+                "external_product_id": previous.get("external_product_id") or external_id,
                 "store_url": previous.get("store_url") or _https_url_or_none(store_url),
                 "article_url": previous.get("article_url"),
                 "cover_image_url": previous.get("cover_image_url"),
