@@ -327,6 +327,27 @@ def test_extracts_steam_products_from_4gamers_steam_widget_iframes():
         assert result[0].verification_status == "candidate"
 
 
+def test_deadline_anchor_does_not_become_game_title():
+    # Regression: 4Gamers article 83565 links the same GOG URL once as
+    # the deadline sentence and once as "Dead Age 2｜GOG.com". The
+    # deadline text used to win and become the game title.
+    html = """
+    <html><body>
+      <p>GOG 目前推出限時免費活動，活動截至<a href="https://www.gog.com/en/game/dead_age_2">台灣時間 11 月 30 日晚上 10 點截止</a>，只要在期限內將遊戲加入 GOG 收藏庫即可永久保留。</p>
+      <p>《屍變紀元 2》免費領取連結：<a href="https://www.gog.com/en/game/dead_age_2">Dead Age 2｜GOG.com</a></p>
+    </body></html>
+    """
+    result = FourGamersArticleAnalyzer().analyze(
+        observation(title="GOG限免：殭屍末日RPG《屍變紀元2》三日限時免費"), html
+    )
+
+    assert len(result) == 1
+    assert result[0].platform == "gog"
+    assert result[0].external_product_id == "dead_age_2"
+    assert result[0].title == "Dead Age 2"
+    assert result[0].offer_end_at.isoformat() == "2026-11-30T22:00:00+08:00"
+
+
 def test_ignores_non_steam_and_non_widget_iframes():
     html = """
     <html><body>

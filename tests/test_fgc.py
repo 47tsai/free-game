@@ -19,3 +19,12 @@ def test_unknown_platform_uses_store_url_host_as_identity():
     claims = parse_fgc_messages(payload)
     assert claims[0]["platform"] == "new-store.example"
     assert claims[0]["external_product_id"] == "abc"
+
+
+def test_gog_homepage_link_has_no_product_id():
+    # Regression: the Dead Age 2 FGC message linked to
+    # https://www.gog.com/en, whose last path segment "en" was used as
+    # the product id and created a duplicate record.
+    payload = json.dumps({"message": "**GOG** (Chi):\n• **[Dead Age 2](https://www.gog.com/en)**: claimed"})
+    claims = parse_fgc_messages(payload)
+    assert claims == [{"platform": "gog", "external_product_id": None, "title": "Dead Age 2", "store_url": "https://www.gog.com/en"}]

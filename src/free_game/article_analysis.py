@@ -36,6 +36,14 @@ _STORE_SUFFIX_RE = re.compile(
     r"gog(?:\.com)?|ubisoft(?: store)?|dlsite)\s*[）)]?\s*$",
     re.IGNORECASE,
 )
+# Anchor text that is a deadline sentence, not a game title, e.g. the
+# 4Gamers Dead Age 2 article links "台灣時間 11 月 30 日晚上 10 點截止"
+# to GOG. Treating it as the title creates a record titled with the
+# deadline and breaks later title matching.
+_DEADLINE_TITLE_RE = re.compile(
+    r"截止|台灣時間|台北時間|[0-9０-９]+\s*月\s*[0-9０-９]+\s*日|"
+    r"(?:凌晨|早上|上午|中午|下午|傍晚|晚上|晚間)\s*[0-9０-９]+\s*點",
+)
 
 
 class _ArticleHTMLParser(HTMLParser):
@@ -180,7 +188,12 @@ class FourGamersArticleAnalyzer:
         parser = _ArticleHTMLParser(observation.source_url)
         parser.feed(text)
         parser.close()
-        links = list(dict.fromkeys(parser.links))
+        # One storefront URL can appear several times with different anchor
+        # text (the Dead Age 2 article links the same GOG URL once as the
+        # deadline sentence and once as "Dead Age 2｜GOG.com"). Keep only
+        # the best title per URL so a deadline sentence never becomes the
+        # game title and shadows the real one.
+        links = self._best_link_per_url(parser.links)
         offer_end_at = self._extract_offer_end_at(" ".join(parser.body_text), observation.observed_at)
         headline_titles = self._headline_titles(observation.raw_title or "")
         if not links:
@@ -193,6 +206,8 @@ class FourGamersArticleAnalyzer:
             recognized_platform = _ArticleHTMLParser._platform(host)
             platform = recognized_platform or host
             title = self._clean_name(anchor_text)
+            if title and self._is_deadline_like(title):
+                title = ""
             if title and self._is_dlc_candidate(title, " ".join(parser.body_text)):
                 continue
             if not title and len(links) == 1 and len(headline_titles) == 1:
@@ -334,6 +349,26 @@ class FourGamersArticleAnalyzer:
             matches.append(deadline)
         unique = list(dict.fromkeys(matches))
         return unique[0] if len(unique) == 1 else None
+
+    @staticmethod
+    def _is_deadline_like(value: str) -> bool:
+        return bool(_DEADLINE_TITLE_RE.search(value))
+
+    @classmethod
+    def _best_link_per_url(cls, links: list[tuple[str, str]]) -> list[tuple[str, str]]:
+        best: dict[str, tuple[int, str]] = {}
+        for url, label in links:
+            cleaned = cls._clean_name(label)
+            if not cleaned:
+                score = -1
+            elif cls._is_deadline_like(cleaned) or cleaned.casefold() in _GENERIC_LABELS:
+                score = -10
+            else:
+                score = 0
+            current = best.get(url)
+            if current is None or score > current[0]:
+                best[url] = (score, label)
+        return [(url, label) for url, (_, label) in best.items()]
 
     @staticmethod
     def _clean_name(value: str) -> str:

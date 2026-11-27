@@ -139,6 +139,54 @@ def test_manual_claim_state_is_not_overwritten_by_fgc_sync():
     assert game["claim_notification_pending"] is True
 
 
+def test_fgc_claim_without_product_slug_matches_existing_game_by_title():
+    # Regression: Dead Age 2 was claimed via a GOG homepage link, so the
+    # claim carried no product id and previously created a duplicate
+    # record instead of updating the ingested one.
+    store = MemoryStore()
+    writer = GitHubJsonWriter(store)
+    writer.write_candidates([candidate(
+        platform="gog", external_product_id="dead_age_2", title="Dead Age 2",
+        product_url="https://www.gog.com/en/game/dead_age_2",
+        article_url="https://www.4gamers.com.tw/news/detail/83565/gog-dead-age-2-free-to-claim-limited-time",
+        source_external_id="4gamers-dead-age-2",
+    )])
+    (created, updated), _ = writer.sync_fgc_claims([{"platform": "gog", "external_product_id": None, "title": "Dead Age 2", "store_url": "https://www.gog.com/en"}])
+    assert (created, updated) == (0, 1)
+    games = store.documents[writer.GAMES_PATH]["records"]
+    assert len(games) == 1
+    game = games[0]
+    assert game["claim_status"] == "claimed"
+    assert game["claim_source"] == "fgc"
+    assert game["external_product_id"] == "dead_age_2"
+    assert game["store_url"] == "https://www.gog.com/en/game/dead_age_2"
+    assert game["title"] == "Dead Age 2"
+
+
+def test_fgc_claim_without_product_slug_and_no_match_creates_title_placeholder():
+    store = MemoryStore()
+    writer = GitHubJsonWriter(store)
+    (created, updated), _ = writer.sync_fgc_claims([{"platform": "gog", "external_product_id": None, "title": "Dead Age 2", "store_url": "https://www.gog.com/en"}])
+    assert (created, updated) == (1, 0)
+    games = store.documents[writer.GAMES_PATH]["records"]
+    assert len(games) == 1
+    assert games[0]["claim_status"] == "claimed"
+    assert games[0]["external_product_id"] is None
+    # A later ingestion of the same game must merge into this
+    # placeholder instead of creating a second record.
+    writer.write_candidates([candidate(
+        platform="gog", external_product_id="dead_age_2", title="Dead Age 2",
+        product_url="https://www.gog.com/en/game/dead_age_2",
+        article_url="https://www.4gamers.com.tw/news/detail/83565/gog-dead-age-2-free-to-claim-limited-time",
+        source_external_id="4gamers-dead-age-2",
+    )])
+    games = store.documents[writer.GAMES_PATH]["records"]
+    assert len(games) == 1
+    assert games[0]["external_product_id"] == "dead_age_2"
+    assert games[0]["claim_status"] == "claimed"
+    assert games[0]["article_url"].endswith("/gog-dead-age-2-free-to-claim-limited-time")
+
+
 def test_retries_sha_conflict_after_rereading():
     store = MemoryStore()
     store.conflict_once = True
