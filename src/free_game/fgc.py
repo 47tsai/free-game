@@ -4,6 +4,7 @@ from __future__ import annotations
 
 import json
 import re
+from datetime import datetime, timezone
 from urllib.error import HTTPError, URLError
 from urllib.parse import urlparse
 from urllib.request import Request, urlopen
@@ -80,14 +81,23 @@ def parse_fgc_messages(payload: str | bytes) -> list[dict]:
             # has no usable external id. Keep the claim, keyed by title, so
             # the writer can match it against the catalog instead of
             # inventing an id such as "en" and creating a duplicate record.
+            # The ntfy event time is the claim time; the writer uses it as
+            # the anchor for the time-window fallback when the title does
+            # not match either.
             external_id = _external_product_id_or_none(item_platform, parsed.path)
             key = (item_platform, external_id) if external_id else (item_platform, "title:" + title.casefold())
-            claims[key] = {
+            if key in claims:
+                continue
+            claim: dict = {
                 "platform": item_platform,
                 "external_product_id": external_id,
                 "title": title,
                 "store_url": url,
             }
+            event_time = event.get("time")
+            if isinstance(event_time, (int, float)) and event_time > 0:
+                claim["claimed_at"] = datetime.fromtimestamp(event_time, tz=timezone.utc).isoformat().replace("+00:00", "Z")
+            claims[key] = claim
     return list(claims.values())
 
 

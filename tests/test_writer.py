@@ -187,6 +187,60 @@ def test_fgc_claim_without_product_slug_and_no_match_creates_title_placeholder()
     assert games[0]["article_url"].endswith("/gog-dead-age-2-free-to-claim-limited-time")
 
 
+def _ingest_gog(writer, store, *, title, external_id, source_id, added_at):
+    writer.write_candidates([candidate(
+        platform="gog", external_product_id=external_id, title=title,
+        product_url=f"https://www.gog.com/en/game/{external_id}",
+        article_url=f"https://www.4gamers.com.tw/news/detail/{source_id}",
+        source_external_id=source_id,
+    )])
+    game = next(item for item in store.documents[writer.GAMES_PATH]["records"] if item["external_product_id"] == external_id)
+    # update_game cannot move added_at (the merge guard keeps it once an
+    # article_url exists), so set it directly in the test store.
+    game["added_at"] = added_at
+    return game
+
+
+def test_fgc_claim_without_product_slug_matches_unique_recent_unclaimed_by_time_window():
+    # Title does not match (ingested title is Chinese, claim title is
+    # English), but exactly one unclaimed GOG record was added near the
+    # claim time, so the time-window fallback matches it.
+    store = MemoryStore()
+    writer = GitHubJsonWriter(store)
+    _ingest_gog(writer, store, title="屍變紀元2", external_id="dead_age_2", source_id="4gamers-dead-age-2", added_at="2026-11-27T22:01:23Z")
+    (created, updated), _ = writer.sync_fgc_claims([{"platform": "gog", "external_product_id": None, "title": "Dead Age 2", "store_url": "https://www.gog.com/en", "claimed_at": "2026-11-27T23:10:37Z"}])
+    assert (created, updated) == (0, 1)
+    games = store.documents[writer.GAMES_PATH]["records"]
+    assert len(games) == 1
+    assert games[0]["claim_status"] == "claimed"
+    assert games[0]["claim_source"] == "fgc"
+    assert games[0]["claimed_at"] == "2026-11-27T23:10:37Z"
+    assert games[0]["external_product_id"] == "dead_age_2"
+
+
+def test_fgc_claim_time_window_does_not_match_when_multiple_recent_unclaimed():
+    store = MemoryStore()
+    writer = GitHubJsonWriter(store)
+    _ingest_gog(writer, store, title="屍變紀元2", external_id="dead_age_2", source_id="4gamers-dead-age-2", added_at="2026-11-27T22:01:23Z")
+    _ingest_gog(writer, store, title="另一款遊戲", external_id="other_game", source_id="4gamers-other", added_at="2026-11-27T22:05:00Z")
+    (created, updated), _ = writer.sync_fgc_claims([{"platform": "gog", "external_product_id": None, "title": "Dead Age 2", "store_url": "https://www.gog.com/en", "claimed_at": "2026-11-27T23:10:37Z"}])
+    assert (created, updated) == (1, 0)
+    games = store.documents[writer.GAMES_PATH]["records"]
+    assert len(games) == 3
+    assert all(game["claim_status"] == "unclaimed" for game in games if game["external_product_id"])
+
+
+def test_fgc_claim_time_window_does_not_match_when_outside_window():
+    store = MemoryStore()
+    writer = GitHubJsonWriter(store)
+    _ingest_gog(writer, store, title="屍變紀元2", external_id="dead_age_2", source_id="4gamers-dead-age-2", added_at="2026-11-20T22:01:23Z")
+    (created, updated), _ = writer.sync_fgc_claims([{"platform": "gog", "external_product_id": None, "title": "Dead Age 2", "store_url": "https://www.gog.com/en", "claimed_at": "2026-11-27T23:10:37Z"}])
+    assert (created, updated) == (1, 0)
+    games = store.documents[writer.GAMES_PATH]["records"]
+    assert len(games) == 2
+    assert next(game for game in games if game["external_product_id"] == "dead_age_2")["claim_status"] == "unclaimed"
+
+
 def test_retries_sha_conflict_after_rereading():
     store = MemoryStore()
     store.conflict_once = True
