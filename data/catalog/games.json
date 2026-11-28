@@ -306,7 +306,7 @@
     {
       "added_at": "2026-11-27T22:01:23.881290Z",
       "article_url": "https://www.4gamers.com.tw/news/detail/83565/gog-dead-age-2-free-to-claim-limited-time",
-      "claim_notification_pending": true,
+      "claim_notification_pending": false,
       "claim_source": "fgc",
       "claim_status": "claimed",
       "claimed_at": "2026-11-27T15:01:43Z",
@@ -320,9 +320,9 @@
       "reminder_last_sent_at": null,
       "store_url": "https://www.gog.com/en/game/dead_age_2",
       "title": "Dead Age 2",
-      "updated_at": "2026-11-27T23:50:05Z"
+      "updated_at": "2026-11-28T04:01:23.204223Z"
     }
   ],
   "schema_version": 1,
-  "updated_at": "2026-11-27T23:50:05Z"
+  "updated_at": "2026-11-28T04:01:23.372551Z"
 }
