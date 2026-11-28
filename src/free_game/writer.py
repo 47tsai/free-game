@@ -8,7 +8,7 @@ import json
 import time
 import uuid
 from dataclasses import dataclass
-from datetime import datetime, timezone
+from datetime import datetime, timedelta, timezone
 from typing import Any, Protocol
 from urllib.error import HTTPError, URLError
 from urllib.parse import quote, urlparse
@@ -18,6 +18,13 @@ from free_game.adapters.base import NormalizedCandidate
 from free_game.validation import validate_collection
 
 _ID_NAMESPACE = uuid.UUID("a53b3d7c-cd0a-4d1e-96df-7d36e5e1d80f")
+
+# Time-window fallback for FGC claims with no product id: a claim whose
+# title also does not match (e.g. the ingested title is in Chinese while
+# the claim title is in English) is matched to the single unclaimed record
+# on the same platform added within this window of the claim time. More
+# than one candidate, or none, means no match -- never guess.
+_FGC_TIME_WINDOW = timedelta(hours=48)
 
 
 class ContentsConflictError(RuntimeError):
@@ -230,6 +237,8 @@ class GitHubJsonWriter:
             if external_id is not None and (not isinstance(external_id, str) or not external_id.strip()):
                 external_id = None
             normalized_title = _normalize_title(title)
+            claim_time = _parse_time(claim.get("claimed_at"))
+            anchor = claim_time or _parse_time(now)
             if external_id:
                 game_id = _stable_id("game", platform, external_id)
             else:
@@ -237,6 +246,14 @@ class GitHubJsonWriter:
             previous = changes.get(game_id) or existing.get(game_id, {})
             if not previous:
                 matched = by_title.get((platform, normalized_title))
+                if matched is not None and isinstance(matched.get("id"), str):
+                    game_id = matched["id"]
+                    previous = changes.get(game_id) or matched
+            if not previous and not external_id:
+                # Time-window fallback: title did not match either, so
+                # match the single unclaimed record on this platform
+                # added near the claim time, if there is exactly one.
+                matched = _single_recent_unclaimed(records, platform, anchor)
                 if matched is not None and isinstance(matched.get("id"), str):
                     game_id = matched["id"]
                     previous = changes.get(game_id) or matched
@@ -250,7 +267,7 @@ class GitHubJsonWriter:
                 "article_url": previous.get("article_url"),
                 "cover_image_url": previous.get("cover_image_url"),
                 "claim_status": "claimed",
-                "claimed_at": previous.get("claimed_at") or now,
+                "claimed_at": previous.get("claimed_at") or (_iso_z(claim_time) if claim_time is not None else now),
                 "claim_source": previous.get("claim_source") or "fgc",
                 "claim_notification_pending": previous.get("claim_notification_pending", False) or previous.get("claim_status") != "claimed",
                 "added_at": previous.get("added_at") or now,
@@ -379,6 +396,41 @@ def _https_url_or_none(value: str | None) -> str | None:
         return None
     parsed = urlparse(value)
     return value if parsed.scheme == "https" and parsed.netloc else None
+
+
+def _parse_time(value: Any) -> datetime | None:
+    if isinstance(value, datetime):
+        return value.astimezone(timezone.utc) if value.tzinfo else value.replace(tzinfo=timezone.utc)
+    if isinstance(value, (int, float)) and value > 0:
+        return datetime.fromtimestamp(value, tz=timezone.utc)
+    if isinstance(value, str):
+        try:
+            parsed = datetime.fromisoformat(value.replace("Z", "+00:00"))
+        except ValueError:
+            return None
+        return parsed.astimezone(timezone.utc) if parsed.tzinfo else parsed.replace(tzinfo=timezone.utc)
+    return None
+
+
+def _iso_z(value: datetime) -> str:
+    return value.astimezone(timezone.utc).isoformat().replace("+00:00", "Z")
+
+
+def _single_recent_unclaimed(records: list, platform: str, anchor: datetime | None) -> dict[str, Any] | None:
+    if anchor is None:
+        return None
+    candidates = []
+    for item in records:
+        if not isinstance(item, dict) or item.get("platform") != platform:
+            continue
+        if item.get("claim_status") == "claimed":
+            continue
+        added = _parse_time(item.get("added_at"))
+        if added is None:
+            continue
+        if abs((added - anchor).total_seconds()) <= _FGC_TIME_WINDOW.total_seconds():
+            candidates.append(item)
+    return candidates[0] if len(candidates) == 1 else None
 
 
 def _now() -> str:
